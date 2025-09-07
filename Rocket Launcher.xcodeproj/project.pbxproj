@@ -116,16 +116,6 @@
 			path = "Rocket Launcher Watch App";
 			sourceTree = "<group>";
 		};
-		964549452E6CDE34007C6127 /* Rocket Launcher Watch AppTests */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = "Rocket Launcher Watch AppTests";
-			sourceTree = "<group>";
-		};
-		9645494F2E6CDE34007C6127 /* Rocket Launcher Watch AppUITests */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = "Rocket Launcher Watch AppUITests";
-			sourceTree = "<group>";
-		};
 		967D9B262E2CB4B0008E1D5A /* Rocket Launcher Widget */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
@@ -197,8 +187,6 @@
 				96340A692E2CAA8500A763FB /* Rocket Launcher */,
 				967D9B262E2CB4B0008E1D5A /* Rocket Launcher Widget */,
 				964549372E6CDE33007C6127 /* Rocket Launcher Watch App */,
-				964549452E6CDE34007C6127 /* Rocket Launcher Watch AppTests */,
-				9645494F2E6CDE34007C6127 /* Rocket Launcher Watch AppUITests */,
 				967D9B212E2CB4B0008E1D5A /* Frameworks */,
 				96340A682E2CAA8500A763FB /* Products */,
 			);
@@ -331,9 +319,6 @@
 			dependencies = (
 				964549442E6CDE34007C6127 /* PBXTargetDependency */,
 			);
-			fileSystemSynchronizedGroups = (
-				964549452E6CDE34007C6127 /* Rocket Launcher Watch AppTests */,
-			);
 			name = "Rocket Launcher Watch AppTests";
 			packageProductDependencies = (
 			);
@@ -353,9 +338,6 @@
 			);
 			dependencies = (
 				9645494E2E6CDE34007C6127 /* PBXTargetDependency */,
-			);
-			fileSystemSynchronizedGroups = (
-				9645494F2E6CDE34007C6127 /* Rocket Launcher Watch AppUITests */,
 			);
 			name = "Rocket Launcher Watch AppUITests";
 			packageProductDependencies = (
