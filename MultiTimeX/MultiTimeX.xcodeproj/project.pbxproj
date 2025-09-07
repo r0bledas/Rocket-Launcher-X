@@ -1,0 +1,991 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		96C2FB142D95299B00B193AB /* Time Watch App.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = 96C2FAF12D95299A00B193AB /* Time Watch App.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		96C2FB012D95299B00B193AB /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 96C98DDC2D91226D000A05D0 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 96C2FAF02D95299A00B193AB;
+			remoteInfo = "Time Watch App";
+		};
+		96C2FB0B2D95299B00B193AB /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 96C98DDC2D91226D000A05D0 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 96C2FAF02D95299A00B193AB;
+			remoteInfo = "Time Watch App";
+		};
+		96C2FB122D95299B00B193AB /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 96C98DDC2D91226D000A05D0 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 96C2FAF02D95299A00B193AB;
+			remoteInfo = "Time Watch App";
+		};
+		96C98DF62D91226E000A05D0 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 96C98DDC2D91226D000A05D0 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 96C98DE32D91226D000A05D0;
+			remoteInfo = MultiTimeX;
+		};
+		96C98E002D91226E000A05D0 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 96C98DDC2D91226D000A05D0 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 96C98DE32D91226D000A05D0;
+			remoteInfo = MultiTimeX;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		96C2FB152D95299B00B193AB /* Embed Watch Content */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "$(CONTENTS_FOLDER_PATH)/Watch";
+			dstSubfolderSpec = 16;
+			files = (
+				96C2FB142D95299B00B193AB /* Time Watch App.app in Embed Watch Content */,
+			);
+			name = "Embed Watch Content";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		96C2FAF12D95299A00B193AB /* Time Watch App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Time Watch App.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		96C2FB002D95299B00B193AB /* Time Watch AppTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Time Watch AppTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		96C2FB0A2D95299B00B193AB /* Time Watch AppUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Time Watch AppUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		96C98DE42D91226D000A05D0 /* MultiTimeX.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MultiTimeX.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		96C98DF52D91226E000A05D0 /* MultiTimeXTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MultiTimeXTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		96C98DFF2D91226E000A05D0 /* MultiTimeXUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MultiTimeXUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		96C2FAF22D95299A00B193AB /* Time Watch App */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "Time Watch App";
+			sourceTree = "<group>";
+		};
+		96C2FB032D95299B00B193AB /* Time Watch AppTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "Time Watch AppTests";
+			sourceTree = "<group>";
+		};
+		96C2FB0D2D95299B00B193AB /* Time Watch AppUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "Time Watch AppUITests";
+			sourceTree = "<group>";
+		};
+		96C98DE62D91226D000A05D0 /* MultiTimeX */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = MultiTimeX;
+			sourceTree = "<group>";
+		};
+		96C98DF82D91226E000A05D0 /* MultiTimeXTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = MultiTimeXTests;
+			sourceTree = "<group>";
+		};
+		96C98E022D91226E000A05D0 /* MultiTimeXUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = MultiTimeXUITests;
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		96C2FAEE2D95299A00B193AB /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		96C2FAFD2D95299B00B193AB /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		96C2FB072D95299B00B193AB /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		96C98DE12D91226D000A05D0 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		96C98DF22D91226E000A05D0 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		96C98DFC2D91226E000A05D0 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		96C98DDB2D91226D000A05D0 = {
+			isa = PBXGroup;
+			children = (
+				96C98DE62D91226D000A05D0 /* MultiTimeX */,
+				96C98DF82D91226E000A05D0 /* MultiTimeXTests */,
+				96C98E022D91226E000A05D0 /* MultiTimeXUITests */,
+				96C2FAF22D95299A00B193AB /* Time Watch App */,
+				96C2FB032D95299B00B193AB /* Time Watch AppTests */,
+				96C2FB0D2D95299B00B193AB /* Time Watch AppUITests */,
+				96C98DE52D91226D000A05D0 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		96C98DE52D91226D000A05D0 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				96C98DE42D91226D000A05D0 /* MultiTimeX.app */,
+				96C98DF52D91226E000A05D0 /* MultiTimeXTests.xctest */,
+				96C98DFF2D91226E000A05D0 /* MultiTimeXUITests.xctest */,
+				96C2FAF12D95299A00B193AB /* Time Watch App.app */,
+				96C2FB002D95299B00B193AB /* Time Watch AppTests.xctest */,
+				96C2FB0A2D95299B00B193AB /* Time Watch AppUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		96C2FAF02D95299A00B193AB /* Time Watch App */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 96C2FB1C2D95299B00B193AB /* Build configuration list for PBXNativeTarget "Time Watch App" */;
+			buildPhases = (
+				96C2FAED2D95299A00B193AB /* Sources */,
+				96C2FAEE2D95299A00B193AB /* Frameworks */,
+				96C2FAEF2D95299A00B193AB /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				96C2FAF22D95299A00B193AB /* Time Watch App */,
+			);
+			name = "Time Watch App";
+			packageProductDependencies = (
+			);
+			productName = "Time Watch App";
+			productReference = 96C2FAF12D95299A00B193AB /* Time Watch App.app */;
+			productType = "com.apple.product-type.application";
+		};
+		96C2FAFF2D95299B00B193AB /* Time Watch AppTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 96C2FB1D2D95299B00B193AB /* Build configuration list for PBXNativeTarget "Time Watch AppTests" */;
+			buildPhases = (
+				96C2FAFC2D95299B00B193AB /* Sources */,
+				96C2FAFD2D95299B00B193AB /* Frameworks */,
+				96C2FAFE2D95299B00B193AB /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				96C2FB022D95299B00B193AB /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				96C2FB032D95299B00B193AB /* Time Watch AppTests */,
+			);
+			name = "Time Watch AppTests";
+			packageProductDependencies = (
+			);
+			productName = "Time Watch AppTests";
+			productReference = 96C2FB002D95299B00B193AB /* Time Watch AppTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		96C2FB092D95299B00B193AB /* Time Watch AppUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 96C2FB1E2D95299B00B193AB /* Build configuration list for PBXNativeTarget "Time Watch AppUITests" */;
+			buildPhases = (
+				96C2FB062D95299B00B193AB /* Sources */,
+				96C2FB072D95299B00B193AB /* Frameworks */,
+				96C2FB082D95299B00B193AB /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				96C2FB0C2D95299B00B193AB /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				96C2FB0D2D95299B00B193AB /* Time Watch AppUITests */,
+			);
+			name = "Time Watch AppUITests";
+			packageProductDependencies = (
+			);
+			productName = "Time Watch AppUITests";
+			productReference = 96C2FB0A2D95299B00B193AB /* Time Watch AppUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+		96C98DE32D91226D000A05D0 /* MultiTimeX */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 96C98E092D91226E000A05D0 /* Build configuration list for PBXNativeTarget "MultiTimeX" */;
+			buildPhases = (
+				96C98DE02D91226D000A05D0 /* Sources */,
+				96C98DE12D91226D000A05D0 /* Frameworks */,
+				96C98DE22D91226D000A05D0 /* Resources */,
+				96C2FB152D95299B00B193AB /* Embed Watch Content */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				96C2FB132D95299B00B193AB /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				96C98DE62D91226D000A05D0 /* MultiTimeX */,
+			);
+			name = MultiTimeX;
+			packageProductDependencies = (
+			);
+			productName = MultiTimeX;
+			productReference = 96C98DE42D91226D000A05D0 /* MultiTimeX.app */;
+			productType = "com.apple.product-type.application";
+		};
+		96C98DF42D91226E000A05D0 /* MultiTimeXTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 96C98E0C2D91226E000A05D0 /* Build configuration list for PBXNativeTarget "MultiTimeXTests" */;
+			buildPhases = (
+				96C98DF12D91226E000A05D0 /* Sources */,
+				96C98DF22D91226E000A05D0 /* Frameworks */,
+				96C98DF32D91226E000A05D0 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				96C98DF72D91226E000A05D0 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				96C98DF82D91226E000A05D0 /* MultiTimeXTests */,
+			);
+			name = MultiTimeXTests;
+			packageProductDependencies = (
+			);
+			productName = MultiTimeXTests;
+			productReference = 96C98DF52D91226E000A05D0 /* MultiTimeXTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		96C98DFE2D91226E000A05D0 /* MultiTimeXUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 96C98E0F2D91226E000A05D0 /* Build configuration list for PBXNativeTarget "MultiTimeXUITests" */;
+			buildPhases = (
+				96C98DFB2D91226E000A05D0 /* Sources */,
+				96C98DFC2D91226E000A05D0 /* Frameworks */,
+				96C98DFD2D91226E000A05D0 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				96C98E012D91226E000A05D0 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				96C98E022D91226E000A05D0 /* MultiTimeXUITests */,
+			);
+			name = MultiTimeXUITests;
+			packageProductDependencies = (
+			);
+			productName = MultiTimeXUITests;
+			productReference = 96C98DFF2D91226E000A05D0 /* MultiTimeXUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		96C98DDC2D91226D000A05D0 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1620;
+				LastUpgradeCheck = 1620;
+				TargetAttributes = {
+					96C2FAF02D95299A00B193AB = {
+						CreatedOnToolsVersion = 16.2;
+					};
+					96C2FAFF2D95299B00B193AB = {
+						CreatedOnToolsVersion = 16.2;
+						TestTargetID = 96C2FAF02D95299A00B193AB;
+					};
+					96C2FB092D95299B00B193AB = {
+						CreatedOnToolsVersion = 16.2;
+						TestTargetID = 96C2FAF02D95299A00B193AB;
+					};
+					96C98DE32D91226D000A05D0 = {
+						CreatedOnToolsVersion = 16.2;
+					};
+					96C98DF42D91226E000A05D0 = {
+						CreatedOnToolsVersion = 16.2;
+						TestTargetID = 96C98DE32D91226D000A05D0;
+					};
+					96C98DFE2D91226E000A05D0 = {
+						CreatedOnToolsVersion = 16.2;
+						TestTargetID = 96C98DE32D91226D000A05D0;
+					};
+				};
+			};
+			buildConfigurationList = 96C98DDF2D91226D000A05D0 /* Build configuration list for PBXProject "MultiTimeX" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 96C98DDB2D91226D000A05D0;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 96C98DE52D91226D000A05D0 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				96C98DE32D91226D000A05D0 /* MultiTimeX */,
+				96C98DF42D91226E000A05D0 /* MultiTimeXTests */,
+				96C98DFE2D91226E000A05D0 /* MultiTimeXUITests */,
+				96C2FAF02D95299A00B193AB /* Time Watch App */,
+				96C2FAFF2D95299B00B193AB /* Time Watch AppTests */,
+				96C2FB092D95299B00B193AB /* Time Watch AppUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		96C2FAEF2D95299A00B193AB /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		96C2FAFE2D95299B00B193AB /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		96C2FB082D95299B00B193AB /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		96C98DE22D91226D000A05D0 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		96C98DF32D91226E000A05D0 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		96C98DFD2D91226E000A05D0 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		96C2FAED2D95299A00B193AB /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		96C2FAFC2D95299B00B193AB /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		96C2FB062D95299B00B193AB /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		96C98DE02D91226D000A05D0 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		96C98DF12D91226E000A05D0 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		96C98DFB2D91226E000A05D0 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		96C2FB022D95299B00B193AB /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 96C2FAF02D95299A00B193AB /* Time Watch App */;
+			targetProxy = 96C2FB012D95299B00B193AB /* PBXContainerItemProxy */;
+		};
+		96C2FB0C2D95299B00B193AB /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 96C2FAF02D95299A00B193AB /* Time Watch App */;
+			targetProxy = 96C2FB0B2D95299B00B193AB /* PBXContainerItemProxy */;
+		};
+		96C2FB132D95299B00B193AB /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 96C2FAF02D95299A00B193AB /* Time Watch App */;
+			targetProxy = 96C2FB122D95299B00B193AB /* PBXContainerItemProxy */;
+		};
+		96C98DF72D91226E000A05D0 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 96C98DE32D91226D000A05D0 /* MultiTimeX */;
+			targetProxy = 96C98DF62D91226E000A05D0 /* PBXContainerItemProxy */;
+		};
+		96C98E012D91226E000A05D0 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 96C98DE32D91226D000A05D0 /* MultiTimeX */;
+			targetProxy = 96C98E002D91226E000A05D0 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		96C2FB162D95299B00B193AB /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"Time Watch App/Preview Content\"";
+				DEVELOPMENT_TEAM = B59DS54BDQ;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = WatchMultiTimeX;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = com.Robledas.pillows.MultiTimeX;
+				INFOPLIST_KEY_WKRunsIndependentlyOfCompanionApp = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.Robledas.pillows.MultiTimeX.watchkitapp;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 11.2;
+			};
+			name = Debug;
+		};
+		96C2FB172D95299B00B193AB /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"Time Watch App/Preview Content\"";
+				DEVELOPMENT_TEAM = B59DS54BDQ;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = WatchMultiTimeX;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = com.Robledas.pillows.MultiTimeX;
+				INFOPLIST_KEY_WKRunsIndependentlyOfCompanionApp = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.Robledas.pillows.MultiTimeX.watchkitapp;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				VALIDATE_PRODUCT = YES;
+				WATCHOS_DEPLOYMENT_TARGET = 11.2;
+			};
+			name = Release;
+		};
+		96C2FB182D95299B00B193AB /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = B59DS54BDQ;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.Robledas.WatchMultiTimeX.Time-Watch-AppTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Time Watch App.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Time Watch App";
+				WATCHOS_DEPLOYMENT_TARGET = 11.2;
+			};
+			name = Debug;
+		};
+		96C2FB192D95299B00B193AB /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = B59DS54BDQ;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.Robledas.WatchMultiTimeX.Time-Watch-AppTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Time Watch App.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Time Watch App";
+				VALIDATE_PRODUCT = YES;
+				WATCHOS_DEPLOYMENT_TARGET = 11.2;
+			};
+			name = Release;
+		};
+		96C2FB1A2D95299B00B193AB /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = B59DS54BDQ;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.Robledas.WatchMultiTimeX.Time-Watch-AppUITests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				TEST_TARGET_NAME = "Time Watch App";
+				WATCHOS_DEPLOYMENT_TARGET = 11.2;
+			};
+			name = Debug;
+		};
+		96C2FB1B2D95299B00B193AB /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = B59DS54BDQ;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.Robledas.WatchMultiTimeX.Time-Watch-AppUITests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				TEST_TARGET_NAME = "Time Watch App";
+				VALIDATE_PRODUCT = YES;
+				WATCHOS_DEPLOYMENT_TARGET = 11.2;
+			};
+			name = Release;
+		};
+		96C98E072D91226E000A05D0 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		96C98E082D91226E000A05D0 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SWIFT_COMPILATION_MODE = wholemodule;
+			};
+			name = Release;
+		};
+		96C98E0A2D91226E000A05D0 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = MultiTimeX/MultiTimeX.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"MultiTimeX/Preview Content\"";
+				DEVELOPMENT_TEAM = B59DS54BDQ;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
+				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 15.2;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.Robledas.pillows.MultiTimeX;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				XROS_DEPLOYMENT_TARGET = 2.2;
+			};
+			name = Debug;
+		};
+		96C98E0B2D91226E000A05D0 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = MultiTimeX/MultiTimeX.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"MultiTimeX/Preview Content\"";
+				DEVELOPMENT_TEAM = B59DS54BDQ;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
+				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 15.2;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.Robledas.pillows.MultiTimeX;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				XROS_DEPLOYMENT_TARGET = 2.2;
+			};
+			name = Release;
+		};
+		96C98E0D2D91226E000A05D0 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = B59DS54BDQ;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
+				MACOSX_DEPLOYMENT_TARGET = 15.2;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.Robledas.pillows.MultiTimeXTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/MultiTimeX.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/MultiTimeX";
+				XROS_DEPLOYMENT_TARGET = 2.2;
+			};
+			name = Debug;
+		};
+		96C98E0E2D91226E000A05D0 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = B59DS54BDQ;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
+				MACOSX_DEPLOYMENT_TARGET = 15.2;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.Robledas.pillows.MultiTimeXTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/MultiTimeX.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/MultiTimeX";
+				XROS_DEPLOYMENT_TARGET = 2.2;
+			};
+			name = Release;
+		};
+		96C98E102D91226E000A05D0 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = B59DS54BDQ;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
+				MACOSX_DEPLOYMENT_TARGET = 15.2;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.Robledas.pillows.MultiTimeXUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				TEST_TARGET_NAME = MultiTimeX;
+				XROS_DEPLOYMENT_TARGET = 2.2;
+			};
+			name = Debug;
+		};
+		96C98E112D91226E000A05D0 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = B59DS54BDQ;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
+				MACOSX_DEPLOYMENT_TARGET = 15.2;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.Robledas.pillows.MultiTimeXUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				TEST_TARGET_NAME = MultiTimeX;
+				XROS_DEPLOYMENT_TARGET = 2.2;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		96C2FB1C2D95299B00B193AB /* Build configuration list for PBXNativeTarget "Time Watch App" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				96C2FB162D95299B00B193AB /* Debug */,
+				96C2FB172D95299B00B193AB /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		96C2FB1D2D95299B00B193AB /* Build configuration list for PBXNativeTarget "Time Watch AppTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				96C2FB182D95299B00B193AB /* Debug */,
+				96C2FB192D95299B00B193AB /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		96C2FB1E2D95299B00B193AB /* Build configuration list for PBXNativeTarget "Time Watch AppUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				96C2FB1A2D95299B00B193AB /* Debug */,
+				96C2FB1B2D95299B00B193AB /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		96C98DDF2D91226D000A05D0 /* Build configuration list for PBXProject "MultiTimeX" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				96C98E072D91226E000A05D0 /* Debug */,
+				96C98E082D91226E000A05D0 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		96C98E092D91226E000A05D0 /* Build configuration list for PBXNativeTarget "MultiTimeX" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				96C98E0A2D91226E000A05D0 /* Debug */,
+				96C98E0B2D91226E000A05D0 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		96C98E0C2D91226E000A05D0 /* Build configuration list for PBXNativeTarget "MultiTimeXTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				96C98E0D2D91226E000A05D0 /* Debug */,
+				96C98E0E2D91226E000A05D0 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		96C98E0F2D91226E000A05D0 /* Build configuration list for PBXNativeTarget "MultiTimeXUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				96C98E102D91226E000A05D0 /* Debug */,
+				96C98E112D91226E000A05D0 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 96C98DDC2D91226D000A05D0 /* Project object */;
+}
