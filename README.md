@@ -31,7 +31,9 @@
 
 ## 📱 Screenshots
 
-*Add screenshots of your widgets and configuration screens here*
+![Rocket Launcher App Preview](https://drive.google.com/uc?id=12dK6583ZFMGWuOswm4lsreXhpXHnrxXY)
+
+*App interface showing widget configuration and launcher functionality*
 
 ## 🚀 Getting Started
 
