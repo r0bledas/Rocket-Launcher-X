@@ -9,6 +9,29 @@ import SwiftUI
 import AuthenticationServices
 import WatchKit
 
+// MARK: - watchOS Compatible Activity Indicator
+struct ActivityIndicatorView: View {
+    @State private var isAnimating = false
+    
+    var body: some View {
+        ZStack {
+            Circle()
+                .stroke(Color.white.opacity(0.3), lineWidth: 3)
+                .frame(width: 40, height: 40)
+            
+            Circle()
+                .trim(from: 0, to: 0.8)
+                .stroke(Color.white, style: StrokeStyle(lineWidth: 3, lineCap: .round))
+                .frame(width: 40, height: 40)
+                .rotationEffect(Angle(degrees: isAnimating ? 360 : 0))
+                .animation(.linear(duration: 1).repeatForever(autoreverses: false), value: isAnimating)
+        }
+        .onAppear {
+            isAnimating = true
+        }
+    }
+}
+
 struct ContentView: View {
     @State private var selectedTab = 0 // Default to Web Launcher page
     
@@ -34,138 +57,156 @@ struct WebLauncherView: View {
     @State private var showingTextInput = false
     @StateObject private var searchHistory = SearchHistoryManager()
     @State private var showingHistory = false
+    @State private var isLoading = false // Add loading state
     
     var body: some View {
         NavigationView {
-            ScrollView {
-                VStack(spacing: 0) {
-                    // Header Section
-                    VStack(spacing: 16) {
-                        // Title with better styling
-                        Text("Web Launcher")
-                            .font(.system(size: 18, weight: .bold, design: .rounded))
-                            .foregroundColor(.white)
-                        
-                        // Main Search Button with improved design
-                        Button(action: {
-                            presentTextInputController()
-                        }) {
-                            HStack(spacing: 8) {
-                                Image(systemName: "magnifyingglass")
-                                    .font(.system(size: 16, weight: .medium))
-                                Text("Search Google")
-                                    .font(.system(size: 15, weight: .medium))
-                            }
-                            .foregroundColor(.white)
-                            .frame(maxWidth: .infinity)
-                            .frame(height: 44)
-                            .background(
-                                LinearGradient(
-                                    colors: [Color.blue, Color.blue.opacity(0.8)],
-                                    startPoint: .top,
-                                    endPoint: .bottom
+            ZStack {
+                ScrollView {
+                    VStack(spacing: 0) {
+                        // Header Section
+                        VStack(spacing: 16) {
+                            // Title with better styling
+                            Text("Web Launcher")
+                                .font(.system(size: 18, weight: .bold, design: .rounded))
+                                .foregroundColor(.white)
+                            
+                            // Main Search Button with improved design
+                            Button(action: {
+                                presentTextInputController()
+                            }) {
+                                HStack(spacing: 8) {
+                                    Image(systemName: "magnifyingglass")
+                                        .font(.system(size: 16, weight: .medium))
+                                    Text("Search Google")
+                                        .font(.system(size: 15, weight: .medium))
+                                }
+                                .foregroundColor(.white)
+                                .frame(maxWidth: .infinity)
+                                .frame(height: 44)
+                                .background(
+                                    LinearGradient(
+                                        colors: [Color.blue, Color.blue.opacity(0.8)],
+                                        startPoint: .top,
+                                        endPoint: .bottom
+                                    )
                                 )
-                            )
-                            .cornerRadius(22)
-                            .shadow(color: .blue.opacity(0.3), radius: 4, x: 0, y: 2)
-                        }
-                        .buttonStyle(PlainButtonStyle())
-                    }
-                    .padding(.top, 8)
-                    .padding(.horizontal, 16)
-                    
-                    Spacer(minLength: 16)
-                    
-                    // Content Section
-                    VStack(spacing: 12) {
-                        // History Toggle Button
-                        Button(action: {
-                            withAnimation(.easeInOut(duration: 0.3)) {
-                                showingHistory.toggle()
+                                .cornerRadius(22)
+                                .shadow(color: .blue.opacity(0.3), radius: 4, x: 0, y: 2)
                             }
-                        }) {
-                            HStack(spacing: 6) {
-                                Image(systemName: showingHistory ? "clock.fill" : "clock")
-                                    .font(.system(size: 12))
-                                Text("History")
-                                    .font(.system(size: 13, weight: .medium))
-                            }
-                            .foregroundColor(.blue)
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 6)
-                            .background(Color.blue.opacity(0.1))
-                            .cornerRadius(12)
+                            .buttonStyle(PlainButtonStyle())
                         }
-                        .buttonStyle(PlainButtonStyle())
+                        .padding(.top, 8)
+                        .padding(.horizontal, 16)
                         
-                        // Search History Section
-                        if showingHistory {
-                            VStack(spacing: 8) {
-                                if !searchHistory.recentSearches.isEmpty {
-                                    VStack(spacing: 6) {
-                                        Text("Recent")
-                                            .font(.system(size: 12, weight: .semibold))
-                                            .foregroundColor(.secondary)
-                                        
-                                        Button(action: {
-                                            withAnimation {
-                                                searchHistory.clearHistory()
-                                            }
-                                        }) {
-                                            Image(systemName: "trash")
-                                                .font(.system(size: 12))
-                                                .foregroundColor(.red)
-                                        }
-                                        .buttonStyle(PlainButtonStyle())
-                                    }
-                                    
-                                    LazyVStack(spacing: 4) {
-                                        ForEach(searchHistory.recentSearches.prefix(3), id: \.self) { search in
-                                            Button(search) {
-                                                performGoogleSearchDirectly(with: search)
+                        Spacer(minLength: 16)
+                        
+                        // Content Section
+                        VStack(spacing: 12) {
+                            // History Toggle Button
+                            Button(action: {
+                                withAnimation(.easeInOut(duration: 0.3)) {
+                                    showingHistory.toggle()
+                            }
+                            }) {
+                                HStack(spacing: 6) {
+                                    Image(systemName: showingHistory ? "clock.fill" : "clock")
+                                        .font(.system(size: 12))
+                                    Text("History")
+                                        .font(.system(size: 13, weight: .medium))
+                                }
+                                .foregroundColor(.blue)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 6)
+                                .background(Color.blue.opacity(0.1))
+                                .cornerRadius(12)
+                            }
+                            .buttonStyle(PlainButtonStyle())
+                            
+                            // Search History Section
+                            if showingHistory {
+                                VStack(spacing: 8) {
+                                    if !searchHistory.recentSearches.isEmpty {
+                                        VStack(spacing: 6) {
+                                            Text("Recent")
+                                                .font(.system(size: 12, weight: .semibold))
+                                                .foregroundColor(.secondary)
+                                            
+                                            Button(action: {
                                                 withAnimation {
-                                                    showingHistory = false
+                                                    searchHistory.clearHistory()
                                                 }
+                                            }) {
+                                                Image(systemName: "trash")
+                                                    .font(.system(size: 12))
+                                                    .foregroundColor(.red)
                                             }
-                                            .font(.system(size: 12))
-                                            .frame(maxWidth: .infinity, alignment: .leading)
-                                            .padding(.horizontal, 12)
-                                            .padding(.vertical, 8)
-                                            .background(Color(white: 0.1))
-                                            .foregroundColor(.white)
-                                            .cornerRadius(8)
                                             .buttonStyle(PlainButtonStyle())
                                         }
+                                        
+                                        LazyVStack(spacing: 4) {
+                                            ForEach(searchHistory.recentSearches.prefix(3), id: \.self) { search in
+                                                Button(search) {
+                                                    performGoogleSearchDirectly(with: search)
+                                                    withAnimation {
+                                                        showingHistory = false
+                                                    }
+                                                }
+                                                .font(.system(size: 12))
+                                                .frame(maxWidth: .infinity, alignment: .leading)
+                                                .padding(.horizontal, 12)
+                                                .padding(.vertical, 8)
+                                                .background(Color(white: 0.1))
+                                                .foregroundColor(.white)
+                                                .cornerRadius(8)
+                                                .buttonStyle(PlainButtonStyle())
+                                            }
+                                        }
+                                    } else {
+                                        Text("No recent searches")
+                                            .font(.system(size: 11))
+                                            .foregroundColor(.secondary)
+                                            .padding(.vertical, 8)
                                     }
-                                } else {
-                                    Text("No recent searches")
-                                        .font(.system(size: 11))
-                                        .foregroundColor(.secondary)
-                                        .padding(.vertical, 8)
                                 }
+                                .transition(.opacity.combined(with: .move(edge: .top)))
                             }
-                            .transition(.opacity.combined(with: .move(edge: .top)))
                         }
+                        .padding(.horizontal, 16)
+                        
+                        Spacer()
+                        
+                        // Navigation Hint
+                        HStack(spacing: 4) {
+                            Text("Timer")
+                                .font(.system(size: 10, weight: .medium))
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 8))
+                        }
+                        .foregroundColor(.secondary)
+                        .padding(.bottom, 16)
                     }
-                    .padding(.horizontal, 16)
-                    
-                    Spacer()
-                    
-                    // Navigation Hint
-                    HStack(spacing: 4) {
-                        Text("Timer")
-                            .font(.system(size: 10, weight: .medium))
-                        Image(systemName: "chevron.right")
-                            .font(.system(size: 8))
-                    }
-                    .foregroundColor(.secondary)
-                    .padding(.bottom, 16)
+                    .frame(minHeight: showingHistory ? nil : 200)
                 }
-                .frame(minHeight: showingHistory ? nil : 200)
+                .scrollDisabled(!showingHistory)
+                .navigationTitle("")
+                .navigationBarHidden(true)
+                
+                // Fullscreen Loading Overlay
+                if isLoading {
+                    Color.black.opacity(0.8)
+                        .ignoresSafeArea(.all)
+                    
+                    VStack(spacing: 16) {
+                        // watchOS compatible loading indicator
+                        ActivityIndicatorView()
+                        
+                        Text("Loading...")
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundColor(.white)
+                    }
+                }
             }
-            .scrollDisabled(!showingHistory)
-            .navigationTitle("")
-            .navigationBarHidden(true)
         }
     }
     
@@ -174,30 +215,59 @@ struct WebLauncherView: View {
     private func presentTextInputController() {
         WKInterfaceDevice.current().play(.click)
         
+        // Add 0.5 second delay before showing loading overlay
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            withAnimation(.easeInOut(duration: 0.2)) {
+                isLoading = true
+            }
+        }
+        
         // Use WKExtension's presentTextInputController for direct keyboard input
         WKExtension.shared().visibleInterfaceController?.presentTextInputController(
             withSuggestions: nil,
-            allowedInputMode: .allowAnimatedEmoji
+            allowedInputMode: .allowEmoji
         ) { result in
             if let resultArray = result,
                let textResult = resultArray.first as? String,
                !textResult.isEmpty {
                 // Perform Google search directly with the input
                 performGoogleSearchDirectly(with: textResult)
+            } else {
+                // Hide loading if user cancels or doesn't enter text
+                DispatchQueue.main.async {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        isLoading = false
+                    }
+                }
             }
         }
     }
     
     private func performGoogleSearchDirectly(with query: String) {
+        // Loading overlay is already showing, so no need to show it again
+        
         // Add to search history
         searchHistory.addSearch(query)
         
         let encodedQuery = query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
         let searchURL = "https://www.google.com/search?q=\(encodedQuery)"
         
-        guard let websiteURL = URL(string: searchURL) else { return }
+        guard let websiteURL = URL(string: searchURL) else { 
+            // Hide loading if URL is invalid
+            withAnimation(.easeInOut(duration: 0.2)) {
+                isLoading = false
+            }
+            return 
+        }
         
-        let session = ASWebAuthenticationSession(url: websiteURL, callbackURLScheme: nil) { _, _ in }
+        let session = ASWebAuthenticationSession(url: websiteURL, callbackURLScheme: nil) { _, _ in
+            // Hide loading overlay when session completes or fails
+            DispatchQueue.main.async {
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    isLoading = false
+                }
+            }
+        }
         session.prefersEphemeralWebBrowserSession = true
         session.start()
     }
