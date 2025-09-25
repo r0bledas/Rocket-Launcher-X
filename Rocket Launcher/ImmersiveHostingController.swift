@@ -3,7 +3,6 @@
 //  Rocket Launcher
 //
 //  Created by Raudel Alejandro on 19-07-2025.
-//
 
 import SwiftUI
 import UIKit
