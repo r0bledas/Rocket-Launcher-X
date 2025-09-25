@@ -1,0 +1,59 @@
+# Xcode
+*.xcuserstate
+*.xcuserdatad/
+xcuserdata/
+*.xcscmblueprint
+*.xccheckout
+build/
+DerivedData/
+*.moved-aside
+*.pbxuser
+*.mode1v3
+*.mode2v3
+*.perspectivev3
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Development utilities
+*.py
+*.sh
+*.pyc
+__pycache__/
+widget_setup_guide.md
+
+# IDEs
+.vscode/
+.idea/
+
+# Additional Xcode patterns
+*.xcworkspace/xcuserdata/
+**/xcuserdata/
+**/*.xcuserdatad
+**/*.xcuserstate
+project.xcworkspace/
+*.xcworkspace/
+
+# Widget and App Group specific
+*.entitlements.backup
+
+# Swift Package Manager
+.swiftpm/
+Package.resolved
+
+# Provisioning and certificates
+*.mobileprovision
+*.provisionprofile
+*.p8
+*.p12
+
+# Build and archive
+*.xcarchive
+exportOptions.plist

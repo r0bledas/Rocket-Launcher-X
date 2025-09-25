@@ -1,0 +1,1098 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		964549562E6CDE34007C6127 /* Rocket Launcher Watch App.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = 964549362E6CDE33007C6127 /* Rocket Launcher Watch App.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		967D9B232E2CB4B0008E1D5A /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 967D9B222E2CB4B0008E1D5A /* WidgetKit.framework */; };
+		967D9B252E2CB4B0008E1D5A /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 967D9B242E2CB4B0008E1D5A /* SwiftUI.framework */; };
+		967D9B362E2CB4B1008E1D5A /* Rocket Launcher WidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 967D9B202E2CB4B0008E1D5A /* Rocket Launcher WidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		96340A752E2CAA8700A763FB /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 96340A5F2E2CAA8500A763FB /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 96340A662E2CAA8500A763FB;
+			remoteInfo = "Rocket Launcher";
+		};
+		96340A7F2E2CAA8700A763FB /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 96340A5F2E2CAA8500A763FB /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 96340A662E2CAA8500A763FB;
+			remoteInfo = "Rocket Launcher";
+		};
+		964549432E6CDE34007C6127 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 96340A5F2E2CAA8500A763FB /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 964549352E6CDE33007C6127;
+			remoteInfo = "Rocket Launcher Watch App";
+		};
+		9645494D2E6CDE34007C6127 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 96340A5F2E2CAA8500A763FB /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 964549352E6CDE33007C6127;
+			remoteInfo = "Rocket Launcher Watch App";
+		};
+		964549542E6CDE34007C6127 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 96340A5F2E2CAA8500A763FB /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 964549352E6CDE33007C6127;
+			remoteInfo = "Rocket Launcher Watch App";
+		};
+		967D9B342E2CB4B1008E1D5A /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 96340A5F2E2CAA8500A763FB /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 967D9B1F2E2CB4B0008E1D5A;
+			remoteInfo = "Rocket Launcher WidgetExtension";
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		964549572E6CDE34007C6127 /* Embed Watch Content */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "$(CONTENTS_FOLDER_PATH)/Watch";
+			dstSubfolderSpec = 16;
+			files = (
+				964549562E6CDE34007C6127 /* Rocket Launcher Watch App.app in Embed Watch Content */,
+			);
+			name = "Embed Watch Content";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		967D9B3B2E2CB4B1008E1D5A /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				967D9B362E2CB4B1008E1D5A /* Rocket Launcher WidgetExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		96340A672E2CAA8500A763FB /* Rocket Launcher.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Rocket Launcher.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		96340A742E2CAA8700A763FB /* Rocket LauncherTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Rocket LauncherTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		96340A7E2E2CAA8700A763FB /* Rocket LauncherUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Rocket LauncherUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		964549362E6CDE33007C6127 /* Rocket Launcher Watch App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Rocket Launcher Watch App.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		964549422E6CDE34007C6127 /* Rocket Launcher Watch AppTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Rocket Launcher Watch AppTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		9645494C2E6CDE34007C6127 /* Rocket Launcher Watch AppUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Rocket Launcher Watch AppUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		967D9B202E2CB4B0008E1D5A /* Rocket Launcher WidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "Rocket Launcher WidgetExtension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
+		967D9B222E2CB4B0008E1D5A /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
+		967D9B242E2CB4B0008E1D5A /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		967D9B372E2CB4B1008E1D5A /* Exceptions for "Rocket Launcher Widget" folder in "Rocket Launcher WidgetExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 967D9B1F2E2CB4B0008E1D5A /* Rocket Launcher WidgetExtension */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		96340A692E2CAA8500A763FB /* Rocket Launcher */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "Rocket Launcher";
+			sourceTree = "<group>";
+		};
+		964549372E6CDE33007C6127 /* Rocket Launcher Watch App */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "Rocket Launcher Watch App";
+			sourceTree = "<group>";
+		};
+		967D9B262E2CB4B0008E1D5A /* Rocket Launcher Widget */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				967D9B372E2CB4B1008E1D5A /* Exceptions for "Rocket Launcher Widget" folder in "Rocket Launcher WidgetExtension" target */,
+			);
+			path = "Rocket Launcher Widget";
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		96340A642E2CAA8500A763FB /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		96340A712E2CAA8700A763FB /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		96340A7B2E2CAA8700A763FB /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		964549332E6CDE33007C6127 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		9645493F2E6CDE34007C6127 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		964549492E6CDE34007C6127 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		967D9B1D2E2CB4B0008E1D5A /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				967D9B252E2CB4B0008E1D5A /* SwiftUI.framework in Frameworks */,
+				967D9B232E2CB4B0008E1D5A /* WidgetKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		96340A5E2E2CAA8500A763FB = {
+			isa = PBXGroup;
+			children = (
+				96340A692E2CAA8500A763FB /* Rocket Launcher */,
+				967D9B262E2CB4B0008E1D5A /* Rocket Launcher Widget */,
+				964549372E6CDE33007C6127 /* Rocket Launcher Watch App */,
+				967D9B212E2CB4B0008E1D5A /* Frameworks */,
+				96340A682E2CAA8500A763FB /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		96340A682E2CAA8500A763FB /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				96340A672E2CAA8500A763FB /* Rocket Launcher.app */,
+				96340A742E2CAA8700A763FB /* Rocket LauncherTests.xctest */,
+				96340A7E2E2CAA8700A763FB /* Rocket LauncherUITests.xctest */,
+				967D9B202E2CB4B0008E1D5A /* Rocket Launcher WidgetExtension.appex */,
+				964549362E6CDE33007C6127 /* Rocket Launcher Watch App.app */,
+				964549422E6CDE34007C6127 /* Rocket Launcher Watch AppTests.xctest */,
+				9645494C2E6CDE34007C6127 /* Rocket Launcher Watch AppUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		967D9B212E2CB4B0008E1D5A /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				967D9B222E2CB4B0008E1D5A /* WidgetKit.framework */,
+				967D9B242E2CB4B0008E1D5A /* SwiftUI.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		96340A662E2CAA8500A763FB /* Rocket Launcher */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 96340A882E2CAA8700A763FB /* Build configuration list for PBXNativeTarget "Rocket Launcher" */;
+			buildPhases = (
+				96340A632E2CAA8500A763FB /* Sources */,
+				96340A642E2CAA8500A763FB /* Frameworks */,
+				96340A652E2CAA8500A763FB /* Resources */,
+				967D9B3B2E2CB4B1008E1D5A /* Embed Foundation Extensions */,
+				964549572E6CDE34007C6127 /* Embed Watch Content */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				967D9B352E2CB4B1008E1D5A /* PBXTargetDependency */,
+				964549552E6CDE34007C6127 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				96340A692E2CAA8500A763FB /* Rocket Launcher */,
+			);
+			name = "Rocket Launcher";
+			packageProductDependencies = (
+			);
+			productName = "Rocket Launcher";
+			productReference = 96340A672E2CAA8500A763FB /* Rocket Launcher.app */;
+			productType = "com.apple.product-type.application";
+		};
+		96340A732E2CAA8700A763FB /* Rocket LauncherTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 96340A8B2E2CAA8700A763FB /* Build configuration list for PBXNativeTarget "Rocket LauncherTests" */;
+			buildPhases = (
+				96340A702E2CAA8700A763FB /* Sources */,
+				96340A712E2CAA8700A763FB /* Frameworks */,
+				96340A722E2CAA8700A763FB /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				96340A762E2CAA8700A763FB /* PBXTargetDependency */,
+			);
+			name = "Rocket LauncherTests";
+			packageProductDependencies = (
+			);
+			productName = "Rocket LauncherTests";
+			productReference = 96340A742E2CAA8700A763FB /* Rocket LauncherTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		96340A7D2E2CAA8700A763FB /* Rocket LauncherUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 96340A8E2E2CAA8700A763FB /* Build configuration list for PBXNativeTarget "Rocket LauncherUITests" */;
+			buildPhases = (
+				96340A7A2E2CAA8700A763FB /* Sources */,
+				96340A7B2E2CAA8700A763FB /* Frameworks */,
+				96340A7C2E2CAA8700A763FB /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				96340A802E2CAA8700A763FB /* PBXTargetDependency */,
+			);
+			name = "Rocket LauncherUITests";
+			packageProductDependencies = (
+			);
+			productName = "Rocket LauncherUITests";
+			productReference = 96340A7E2E2CAA8700A763FB /* Rocket LauncherUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+		964549352E6CDE33007C6127 /* Rocket Launcher Watch App */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 9645495E2E6CDE34007C6127 /* Build configuration list for PBXNativeTarget "Rocket Launcher Watch App" */;
+			buildPhases = (
+				964549322E6CDE33007C6127 /* Sources */,
+				964549332E6CDE33007C6127 /* Frameworks */,
+				964549342E6CDE33007C6127 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				964549372E6CDE33007C6127 /* Rocket Launcher Watch App */,
+			);
+			name = "Rocket Launcher Watch App";
+			packageProductDependencies = (
+			);
+			productName = "Rocket Launcher Watch App";
+			productReference = 964549362E6CDE33007C6127 /* Rocket Launcher Watch App.app */;
+			productType = "com.apple.product-type.application";
+		};
+		964549412E6CDE34007C6127 /* Rocket Launcher Watch AppTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 9645495F2E6CDE34007C6127 /* Build configuration list for PBXNativeTarget "Rocket Launcher Watch AppTests" */;
+			buildPhases = (
+				9645493E2E6CDE34007C6127 /* Sources */,
+				9645493F2E6CDE34007C6127 /* Frameworks */,
+				964549402E6CDE34007C6127 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				964549442E6CDE34007C6127 /* PBXTargetDependency */,
+			);
+			name = "Rocket Launcher Watch AppTests";
+			packageProductDependencies = (
+			);
+			productName = "Rocket Launcher Watch AppTests";
+			productReference = 964549422E6CDE34007C6127 /* Rocket Launcher Watch AppTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		9645494B2E6CDE34007C6127 /* Rocket Launcher Watch AppUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 964549602E6CDE34007C6127 /* Build configuration list for PBXNativeTarget "Rocket Launcher Watch AppUITests" */;
+			buildPhases = (
+				964549482E6CDE34007C6127 /* Sources */,
+				964549492E6CDE34007C6127 /* Frameworks */,
+				9645494A2E6CDE34007C6127 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				9645494E2E6CDE34007C6127 /* PBXTargetDependency */,
+			);
+			name = "Rocket Launcher Watch AppUITests";
+			packageProductDependencies = (
+			);
+			productName = "Rocket Launcher Watch AppUITests";
+			productReference = 9645494C2E6CDE34007C6127 /* Rocket Launcher Watch AppUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+		967D9B1F2E2CB4B0008E1D5A /* Rocket Launcher WidgetExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 967D9B382E2CB4B1008E1D5A /* Build configuration list for PBXNativeTarget "Rocket Launcher WidgetExtension" */;
+			buildPhases = (
+				967D9B1C2E2CB4B0008E1D5A /* Sources */,
+				967D9B1D2E2CB4B0008E1D5A /* Frameworks */,
+				967D9B1E2E2CB4B0008E1D5A /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				967D9B262E2CB4B0008E1D5A /* Rocket Launcher Widget */,
+			);
+			name = "Rocket Launcher WidgetExtension";
+			packageProductDependencies = (
+			);
+			productName = "Rocket Launcher WidgetExtension";
+			productReference = 967D9B202E2CB4B0008E1D5A /* Rocket Launcher WidgetExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		96340A5F2E2CAA8500A763FB /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1640;
+				LastUpgradeCheck = 1640;
+				TargetAttributes = {
+					96340A662E2CAA8500A763FB = {
+						CreatedOnToolsVersion = 16.3;
+					};
+					96340A732E2CAA8700A763FB = {
+						CreatedOnToolsVersion = 16.3;
+						TestTargetID = 96340A662E2CAA8500A763FB;
+					};
+					96340A7D2E2CAA8700A763FB = {
+						CreatedOnToolsVersion = 16.3;
+						TestTargetID = 96340A662E2CAA8500A763FB;
+					};
+					964549352E6CDE33007C6127 = {
+						CreatedOnToolsVersion = 16.4;
+					};
+					964549412E6CDE34007C6127 = {
+						CreatedOnToolsVersion = 16.4;
+						TestTargetID = 964549352E6CDE33007C6127;
+					};
+					9645494B2E6CDE34007C6127 = {
+						CreatedOnToolsVersion = 16.4;
+						TestTargetID = 964549352E6CDE33007C6127;
+					};
+					967D9B1F2E2CB4B0008E1D5A = {
+						CreatedOnToolsVersion = 16.3;
+					};
+				};
+			};
+			buildConfigurationList = 96340A622E2CAA8500A763FB /* Build configuration list for PBXProject "Rocket Launcher" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 96340A5E2E2CAA8500A763FB;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 96340A682E2CAA8500A763FB /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				96340A662E2CAA8500A763FB /* Rocket Launcher */,
+				96340A732E2CAA8700A763FB /* Rocket LauncherTests */,
+				96340A7D2E2CAA8700A763FB /* Rocket LauncherUITests */,
+				967D9B1F2E2CB4B0008E1D5A /* Rocket Launcher WidgetExtension */,
+				964549352E6CDE33007C6127 /* Rocket Launcher Watch App */,
+				964549412E6CDE34007C6127 /* Rocket Launcher Watch AppTests */,
+				9645494B2E6CDE34007C6127 /* Rocket Launcher Watch AppUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		96340A652E2CAA8500A763FB /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		96340A722E2CAA8700A763FB /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		96340A7C2E2CAA8700A763FB /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		964549342E6CDE33007C6127 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		964549402E6CDE34007C6127 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		9645494A2E6CDE34007C6127 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		967D9B1E2E2CB4B0008E1D5A /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		96340A632E2CAA8500A763FB /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		96340A702E2CAA8700A763FB /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		96340A7A2E2CAA8700A763FB /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		964549322E6CDE33007C6127 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		9645493E2E6CDE34007C6127 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		964549482E6CDE34007C6127 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		967D9B1C2E2CB4B0008E1D5A /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		96340A762E2CAA8700A763FB /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 96340A662E2CAA8500A763FB /* Rocket Launcher */;
+			targetProxy = 96340A752E2CAA8700A763FB /* PBXContainerItemProxy */;
+		};
+		96340A802E2CAA8700A763FB /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 96340A662E2CAA8500A763FB /* Rocket Launcher */;
+			targetProxy = 96340A7F2E2CAA8700A763FB /* PBXContainerItemProxy */;
+		};
+		964549442E6CDE34007C6127 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 964549352E6CDE33007C6127 /* Rocket Launcher Watch App */;
+			targetProxy = 964549432E6CDE34007C6127 /* PBXContainerItemProxy */;
+		};
+		9645494E2E6CDE34007C6127 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 964549352E6CDE33007C6127 /* Rocket Launcher Watch App */;
+			targetProxy = 9645494D2E6CDE34007C6127 /* PBXContainerItemProxy */;
+		};
+		964549552E6CDE34007C6127 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 964549352E6CDE33007C6127 /* Rocket Launcher Watch App */;
+			targetProxy = 964549542E6CDE34007C6127 /* PBXContainerItemProxy */;
+		};
+		967D9B352E2CB4B1008E1D5A /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 967D9B1F2E2CB4B0008E1D5A /* Rocket Launcher WidgetExtension */;
+			targetProxy = 967D9B342E2CB4B1008E1D5A /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		96340A862E2CAA8700A763FB /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = B59DS54BDQ;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.4;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		96340A872E2CAA8700A763FB /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = B59DS54BDQ;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.4;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		96340A892E2CAA8700A763FB /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "Rocket Launcher/Rocket Launcher.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Info.plist;
+				INFOPLIST_KEY_CFBundleURLTypes = "{\n    CFBundleURLName = \"com.rocketlauncher.app\";\n    CFBundleURLSchemes =     (\n        rocketlauncher\n    );\n}";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
+				INFOPLIST_KEY_LSApplicationQueriesSchemes = "App-Prefs camera photos-redirect messages tel mailto x-web-search maps music itms-apps twitter fb instagram whatsapp youtube spotify zoom slack discord";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "This app needs access to your photo library to save downloaded wallpapers.";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UILaunchStoryboardName = "/Users/raudel/Library/Mobile Documents/com~apple~CloudDocs/Documents/Xcode Projects/Rocket Launcher/iPhone 13.png";
+				INFOPLIST_KEY_UIStatusBarHidden = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.2;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.Robledas.rocketlauncher.Rocket-Launcher";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		96340A8A2E2CAA8700A763FB /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "Rocket Launcher/Rocket Launcher.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Info.plist;
+				INFOPLIST_KEY_CFBundleURLTypes = "{\n    CFBundleURLName = \"com.rocketlauncher.app\";\n    CFBundleURLSchemes =     (\n        rocketlauncher\n    );\n}";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
+				INFOPLIST_KEY_LSApplicationQueriesSchemes = "App-Prefs camera photos-redirect messages tel mailto x-web-search maps music itms-apps twitter fb instagram whatsapp youtube spotify zoom slack discord";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "This app needs access to your photo library to save downloaded wallpapers.";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UILaunchStoryboardName = "/Users/raudel/Library/Mobile Documents/com~apple~CloudDocs/Documents/Xcode Projects/Rocket Launcher/iPhone 13.png";
+				INFOPLIST_KEY_UIStatusBarHidden = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.2;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.Robledas.rocketlauncher.Rocket-Launcher";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		96340A8C2E2CAA8700A763FB /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.4;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.Robledas.rocketlauncher.Rocket-LauncherTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Rocket Launcher.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Rocket Launcher";
+			};
+			name = Debug;
+		};
+		96340A8D2E2CAA8700A763FB /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.4;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.Robledas.rocketlauncher.Rocket-LauncherTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Rocket Launcher.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Rocket Launcher";
+			};
+			name = Release;
+		};
+		96340A8F2E2CAA8700A763FB /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.Robledas.rocketlauncher.Rocket-LauncherUITests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = "Rocket Launcher";
+			};
+			name = Debug;
+		};
+		96340A902E2CAA8700A763FB /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.Robledas.rocketlauncher.Rocket-LauncherUITests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = "Rocket Launcher";
+			};
+			name = Release;
+		};
+		964549582E6CDE34007C6127 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Rocket Launcher";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = "com.Robledas.rocketlauncher.Rocket-Launcher";
+				INFOPLIST_KEY_WKRunsIndependentlyOfCompanionApp = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.Robledas.rocketlauncher.Rocket-Launcher.watchkitapp";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 11.5;
+			};
+			name = Debug;
+		};
+		964549592E6CDE34007C6127 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Rocket Launcher";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = "com.Robledas.rocketlauncher.Rocket-Launcher";
+				INFOPLIST_KEY_WKRunsIndependentlyOfCompanionApp = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.Robledas.rocketlauncher.Rocket-Launcher.watchkitapp";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 11.5;
+			};
+			name = Release;
+		};
+		9645495A2E6CDE34007C6127 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = B59DS54BDQ;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.Robledas.Rocket-Launcher-Watch-Watch-AppTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Rocket Launcher Watch App.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Rocket Launcher Watch App";
+				WATCHOS_DEPLOYMENT_TARGET = 11.5;
+			};
+			name = Debug;
+		};
+		9645495B2E6CDE34007C6127 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = B59DS54BDQ;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.Robledas.Rocket-Launcher-Watch-Watch-AppTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Rocket Launcher Watch App.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Rocket Launcher Watch App";
+				WATCHOS_DEPLOYMENT_TARGET = 11.5;
+			};
+			name = Release;
+		};
+		9645495C2E6CDE34007C6127 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = B59DS54BDQ;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.Robledas.Rocket-Launcher-Watch-Watch-AppUITests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				TEST_TARGET_NAME = "Rocket Launcher Watch App";
+				WATCHOS_DEPLOYMENT_TARGET = 11.5;
+			};
+			name = Debug;
+		};
+		9645495D2E6CDE34007C6127 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = B59DS54BDQ;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.Robledas.Rocket-Launcher-Watch-Watch-AppUITests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				TEST_TARGET_NAME = "Rocket Launcher Watch App";
+				WATCHOS_DEPLOYMENT_TARGET = 11.5;
+			};
+			name = Release;
+		};
+		967D9B392E2CB4B1008E1D5A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = "Rocket Launcher Widget/Rocket Launcher Widget.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Rocket Launcher Widget/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Rocket Launcher Widget";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.2;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.Robledas.rocketlauncher.Rocket-Launcher.Rocket-Launcher-Widget";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		967D9B3A2E2CB4B1008E1D5A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = "Rocket Launcher Widget/Rocket Launcher Widget.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Rocket Launcher Widget/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Rocket Launcher Widget";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.2;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.Robledas.rocketlauncher.Rocket-Launcher.Rocket-Launcher-Widget";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		96340A622E2CAA8500A763FB /* Build configuration list for PBXProject "Rocket Launcher" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				96340A862E2CAA8700A763FB /* Debug */,
+				96340A872E2CAA8700A763FB /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		96340A882E2CAA8700A763FB /* Build configuration list for PBXNativeTarget "Rocket Launcher" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				96340A892E2CAA8700A763FB /* Debug */,
+				96340A8A2E2CAA8700A763FB /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		96340A8B2E2CAA8700A763FB /* Build configuration list for PBXNativeTarget "Rocket LauncherTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				96340A8C2E2CAA8700A763FB /* Debug */,
+				96340A8D2E2CAA8700A763FB /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		96340A8E2E2CAA8700A763FB /* Build configuration list for PBXNativeTarget "Rocket LauncherUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				96340A8F2E2CAA8700A763FB /* Debug */,
+				96340A902E2CAA8700A763FB /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		9645495E2E6CDE34007C6127 /* Build configuration list for PBXNativeTarget "Rocket Launcher Watch App" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				964549582E6CDE34007C6127 /* Debug */,
+				964549592E6CDE34007C6127 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		9645495F2E6CDE34007C6127 /* Build configuration list for PBXNativeTarget "Rocket Launcher Watch AppTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				9645495A2E6CDE34007C6127 /* Debug */,
+				9645495B2E6CDE34007C6127 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		964549602E6CDE34007C6127 /* Build configuration list for PBXNativeTarget "Rocket Launcher Watch AppUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				9645495C2E6CDE34007C6127 /* Debug */,
+				9645495D2E6CDE34007C6127 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		967D9B382E2CB4B1008E1D5A /* Build configuration list for PBXNativeTarget "Rocket Launcher WidgetExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				967D9B392E2CB4B1008E1D5A /* Debug */,
+				967D9B3A2E2CB4B1008E1D5A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 96340A5F2E2CAA8500A763FB /* Project object */;
+}
