@@ -14,6 +14,8 @@ struct AppLauncher: Codable {
     let id: Int
     let name: String
     let urlScheme: String
+    let iconFileName: String?
+    let showIcon: Bool?
 }
 
 struct LauncherEntry: TimelineEntry {
@@ -24,15 +26,18 @@ struct LauncherEntry: TimelineEntry {
     let lineSpacing: Double
     let textAlignment: TextAlignment
     let fontName: String
+    let iconsEnabled: Bool
     struct App: Hashable {
         let name: String
         let urlScheme: String
+        let iconFileName: String?
+        let showIcon: Bool?
     }
 }
 
 struct LauncherProvider: TimelineProvider {
     func placeholder(in context: Context) -> LauncherEntry {
-        LauncherEntry(date: Date(), apps: [], backgroundColor: getBackgroundColor(), fontColor: getFontColor(), lineSpacing: 0, textAlignment: .leading, fontName: getSelectedFont())
+        LauncherEntry(date: Date(), apps: [], backgroundColor: getBackgroundColor(), fontColor: getFontColor(), lineSpacing: 0, textAlignment: .leading, fontName: getSelectedFont(), iconsEnabled: getIconsEnabled())
     }
     func getSnapshot(in context: Context, completion: @escaping (LauncherEntry) -> ()) {
         let entry = loadEntry()
@@ -48,7 +53,7 @@ struct LauncherProvider: TimelineProvider {
         var apps: [LauncherEntry.App] = []
         if let data = userDefaults?.data(forKey: "AppLaunchers"),
            let launchers = try? JSONDecoder().decode([AppLauncher].self, from: data) {
-            apps = launchers.prefix(8).map { LauncherEntry.App(name: $0.name, urlScheme: $0.urlScheme) }
+            apps = launchers.prefix(8).map { LauncherEntry.App(name: $0.name, urlScheme: $0.urlScheme, iconFileName: $0.iconFileName, showIcon: $0.showIcon) }
         }
         let color = userDefaults?.string(forKey: "WidgetBackgroundColor") ?? "#242424"
         let fontColor = userDefaults?.string(forKey: "WidgetFontColor") ?? "#FFFFFF"
@@ -61,7 +66,7 @@ struct LauncherProvider: TimelineProvider {
             default: return .leading
             }
         }()
-        return LauncherEntry(date: Date(), apps: apps, backgroundColor: color, fontColor: fontColor, lineSpacing: lineSpacing, textAlignment: textAlignment, fontName: getSelectedFont())
+        return LauncherEntry(date: Date(), apps: apps, backgroundColor: color, fontColor: fontColor, lineSpacing: lineSpacing, textAlignment: textAlignment, fontName: getSelectedFont(), iconsEnabled: getIconsEnabled())
     }
     private func getBackgroundColor() -> String {
         let userDefaults = UserDefaults(suiteName: "group.com.Robledas.rocketlauncher.Rocket-Launcher")
@@ -75,6 +80,11 @@ struct LauncherProvider: TimelineProvider {
     private func getFontColor() -> String {
         let userDefaults = UserDefaults(suiteName: "group.com.Robledas.rocketlauncher.Rocket-Launcher")
         return userDefaults?.string(forKey: "WidgetFontColor") ?? "#FFFFFF"
+    }
+
+    private func getIconsEnabled() -> Bool {
+        let userDefaults = UserDefaults(suiteName: "group.com.Robledas.rocketlauncher.Rocket-Launcher")
+        return userDefaults?.bool(forKey: "WidgetIconsEnabled") ?? true
     }
 }
 
@@ -97,13 +107,22 @@ struct LauncherWidgetEntryView: View {
             ForEach(Array(entry.apps.prefix(8).enumerated()), id: \.offset) { idx, app in
                         if !app.name.isEmpty && !app.urlScheme.isEmpty {
                             Link(destination: URL(string: "rocketlauncher://launch?scheme=\(app.urlScheme.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "")")!) {
-                        let textView = Text(app.name)
-                                    .font(getCustomFont(name: entry.fontName, size: 36, weight: .bold))
-                                    .foregroundColor(Color(hex: entry.fontColor))
-                                    .frame(maxWidth: .infinity, alignment: frameAlignmentFor(entry.textAlignment))
-                                    .multilineTextAlignment(entry.textAlignment)
-                                    .padding(.vertical, 2)
-                        textView
+                                HStack(spacing: 8) {
+                                    if entry.iconsEnabled, (app.showIcon ?? false), let image = loadIconImage(fileName: app.iconFileName) {
+                                        Image(uiImage: image)
+                                            .resizable()
+                                            .interpolation(.high)
+                                            .aspectRatio(contentMode: .fit)
+                                            .frame(width: 30, height: 30)
+                                            .cornerRadius(8)
+                                    }
+                                    Text(app.name)
+                                        .font(getCustomFont(name: entry.fontName, size: 36, weight: .bold))
+                                        .foregroundColor(Color(hex: entry.fontColor))
+                                        .frame(maxWidth: .infinity, alignment: frameAlignmentFor(entry.textAlignment))
+                                        .multilineTextAlignment(entry.textAlignment)
+                                        .padding(.vertical, 1.5)
+                                }
                             }
                             .buttonStyle(PlainButtonStyle())
 
@@ -111,6 +130,7 @@ struct LauncherWidgetEntryView: View {
                     }
                 }
                 .padding(24)
+                .padding(.leading, (entry.textAlignment == .leading && entry.iconsEnabled && entry.apps.contains { $0.showIcon ?? false }) ? -15 : 0)
     }
     
     var body: some View {
@@ -164,10 +184,23 @@ func loadAppsForWidget(widgetIndex: Int) -> [LauncherEntry.App] {
         let start = widgetIndex * 8
         let end = min(start + 8, launchers.count)
         if start < end {
-            apps = launchers[start..<end].map { LauncherEntry.App(name: $0.name, urlScheme: $0.urlScheme) }
+            apps = launchers[start..<end].map { LauncherEntry.App(name: $0.name, urlScheme: $0.urlScheme, iconFileName: $0.iconFileName, showIcon: $0.showIcon) }
         }
     }
     return apps
+}
+
+// MARK: - Icon loading helpers
+private func iconsDirectoryURL() -> URL? {
+    guard let container = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: "group.com.Robledas.rocketlauncher.Rocket-Launcher") else { return nil }
+    let dir = container.appendingPathComponent("icons", isDirectory: true)
+    return dir
+}
+
+private func loadIconImage(fileName: String?) -> UIImage? {
+    guard let fileName = fileName, let dir = iconsDirectoryURL() else { return nil }
+    let url = dir.appendingPathComponent(fileName)
+    return UIImage(contentsOfFile: url.path)
 }
 
 struct RocketLauncherWidget: Widget {
@@ -270,16 +303,16 @@ struct CustomLauncherProvider: TimelineProvider {
     let widgetIndex: Int
     func placeholder(in context: Context) -> LauncherEntry {
         let (lineSpacing, textAlignment) = getSpacingAndAlignment()
-        return LauncherEntry(date: Date(), apps: loadAppsForWidget(widgetIndex: widgetIndex), backgroundColor: getBackgroundColor(), fontColor: getFontColor(), lineSpacing: lineSpacing, textAlignment: textAlignment, fontName: getSelectedFont())
+        return LauncherEntry(date: Date(), apps: loadAppsForWidget(widgetIndex: widgetIndex), backgroundColor: getBackgroundColor(), fontColor: getFontColor(), lineSpacing: lineSpacing, textAlignment: textAlignment, fontName: getSelectedFont(), iconsEnabled: getIconsEnabled())
     }
     func getSnapshot(in context: Context, completion: @escaping (LauncherEntry) -> ()) {
         let (lineSpacing, textAlignment) = getSpacingAndAlignment()
-        let entry = LauncherEntry(date: Date(), apps: loadAppsForWidget(widgetIndex: widgetIndex), backgroundColor: getBackgroundColor(), fontColor: getFontColor(), lineSpacing: lineSpacing, textAlignment: textAlignment, fontName: getSelectedFont())
+        let entry = LauncherEntry(date: Date(), apps: loadAppsForWidget(widgetIndex: widgetIndex), backgroundColor: getBackgroundColor(), fontColor: getFontColor(), lineSpacing: lineSpacing, textAlignment: textAlignment, fontName: getSelectedFont(), iconsEnabled: getIconsEnabled())
         completion(entry)
     }
     func getTimeline(in context: Context, completion: @escaping (Timeline<LauncherEntry>) -> ()) {
         let (lineSpacing, textAlignment) = getSpacingAndAlignment()
-        let entry = LauncherEntry(date: Date(), apps: loadAppsForWidget(widgetIndex: widgetIndex), backgroundColor: getBackgroundColor(), fontColor: getFontColor(), lineSpacing: lineSpacing, textAlignment: textAlignment, fontName: getSelectedFont())
+        let entry = LauncherEntry(date: Date(), apps: loadAppsForWidget(widgetIndex: widgetIndex), backgroundColor: getBackgroundColor(), fontColor: getFontColor(), lineSpacing: lineSpacing, textAlignment: textAlignment, fontName: getSelectedFont(), iconsEnabled: getIconsEnabled())
         let timeline = Timeline(entries: [entry], policy: .atEnd)
         completion(timeline)
     }
@@ -295,6 +328,11 @@ struct CustomLauncherProvider: TimelineProvider {
     private func getFontColor() -> String {
         let userDefaults = UserDefaults(suiteName: "group.com.Robledas.rocketlauncher.Rocket-Launcher")
         return userDefaults?.string(forKey: "WidgetFontColor") ?? "#FFFFFF"
+    }
+    
+    private func getIconsEnabled() -> Bool {
+        let userDefaults = UserDefaults(suiteName: "group.com.Robledas.rocketlauncher.Rocket-Launcher")
+        return userDefaults?.bool(forKey: "WidgetIconsEnabled") ?? true
     }
     
     private func getSpacingAndAlignment() -> (Double, TextAlignment) {

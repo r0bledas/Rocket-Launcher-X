@@ -146,17 +146,37 @@ enum TextAlignmentOption: String, CaseIterable, Identifiable {
     }
 }
 
+// MARK: - Icon Fetch Source Options
+
+enum IconFetchSourceOption: String, CaseIterable, Identifiable {
+    case itunes = "itunes"
+    case iconfinder = "iconfinder"
+    
+    var id: String { rawValue }
+    
+    var label: String {
+        switch self {
+        case .itunes: return "Apple"
+        case .iconfinder: return "Iconfinder"
+        }
+    }
+}
+
 // MARK: - App Launcher Models
 
 struct AppLauncher: Identifiable, Codable {
     let id: Int
     var name: String
     var urlScheme: String
+	var iconFileName: String? // stored in App Group container under /icons
+	var showIcon: Bool? // optional flag to enable/disable icon rendering
     
-    init(id: Int, name: String = "", urlScheme: String = "") {
+	init(id: Int, name: String = "", urlScheme: String = "", iconFileName: String? = nil, showIcon: Bool? = false) {
         self.id = id
         self.name = name
         self.urlScheme = urlScheme
+		self.iconFileName = iconFileName
+		self.showIcon = showIcon
     }
 }
 
@@ -730,6 +750,8 @@ struct WidgetConfigurationView: View {
     @State private var lastBlue: Double = 36
     @State private var didJustApplyWidgets = false
 	@State private var selectedAlignment: TextAlignmentOption = .leading
+	@State private var iconsEnabled: Bool = true
+    @State private var iconFetchSource: IconFetchSourceOption = .itunes
     
     var body: some View {
         NavigationView {
@@ -867,7 +889,32 @@ struct WidgetConfigurationView: View {
 						.background(Color.gray.opacity(0.2))
 						.cornerRadius(12)
                         
-                        // Apply Button
+						// Global Icons Toggle
+						VStack(spacing: 12) {
+							Toggle("Show Icons in Widgets", isOn: $iconsEnabled)
+								.toggleStyle(SwitchToggleStyle(tint: .green))
+								.foregroundColor(.white)
+						}
+						.padding()
+						.background(Color.gray.opacity(0.2))
+						.cornerRadius(12)
+
+						// Icon Source Picker
+						VStack(spacing: 12) {
+							Text("Icon Source")
+								.font(.headline)
+								.foregroundColor(.white)
+							Picker("Icon Source", selection: $iconFetchSource) {
+								Text(IconFetchSourceOption.itunes.label).tag(IconFetchSourceOption.itunes)
+								Text(IconFetchSourceOption.iconfinder.label).tag(IconFetchSourceOption.iconfinder)
+							}
+							.pickerStyle(.segmented)
+						}
+						.padding()
+						.background(Color.gray.opacity(0.2))
+						.cornerRadius(12)
+
+						// Apply Button
                         Button(action: {
                             UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
                             applyColorToWidgets()
@@ -947,6 +994,8 @@ struct WidgetConfigurationView: View {
         let userDefaults = UserDefaults(suiteName: appGroupID)
         userDefaults?.set(backgroundColor, forKey: "WidgetBackgroundColor")
 		userDefaults?.set(selectedAlignment.rawValue, forKey: "WidgetTextAlignment")
+		userDefaults?.set(iconsEnabled, forKey: "WidgetIconsEnabled")
+        userDefaults?.set(iconFetchSource.rawValue, forKey: "IconFetchSource")
         userDefaults?.synchronize()
     }
     
@@ -963,6 +1012,13 @@ struct WidgetConfigurationView: View {
 		} else {
 			selectedAlignment = .leading
 		}
+		iconsEnabled = userDefaults?.bool(forKey: "WidgetIconsEnabled") ?? true
+        if let sourceRaw = userDefaults?.string(forKey: "IconFetchSource"),
+           let source = IconFetchSourceOption(rawValue: sourceRaw) {
+            iconFetchSource = source
+        } else {
+            iconFetchSource = .itunes
+        }
         updateRGBFromHex()
     }
 }
@@ -1003,9 +1059,15 @@ struct WidgetLaunchersConfigView: View {
                     EditButton()
                 }
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Save") {
+                    HStack(spacing: 12) {
+                        Button("Fetch Icons") {
+                            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                            bulkFetchIcons()
+                        }
+                        Button("Save") {
                         store.save()
                         dismiss()
+                        }
                     }
                 }
             }
@@ -1033,6 +1095,40 @@ struct WidgetLaunchersConfigView: View {
             }
         }
     }
+
+    private func bulkFetchIcons() {
+        let group = DispatchGroup()
+        let userDefaults = UserDefaults(suiteName: appGroupID)
+        let sourceRaw = userDefaults?.string(forKey: "IconFetchSource") ?? IconFetchSourceOption.itunes.rawValue
+        let source = IconFetchSourceOption(rawValue: sourceRaw) ?? .itunes
+        for launcherIndex in store.launchers.indices {
+            let name = store.launchers[launcherIndex].name.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !name.isEmpty else { continue }
+            group.enter()
+            let completion: (Result<Data, Error>) -> Void = { result in
+                DispatchQueue.main.async {
+                    if case .success(let data) = result {
+                        if let fileName = saveIconDataToAppGroup(data: data, slotId: store.launchers[launcherIndex].id) {
+                            store.launchers[launcherIndex].iconFileName = fileName
+                            store.launchers[launcherIndex].showIcon = true
+                        }
+                    }
+                    group.leave()
+                }
+            }
+            switch source {
+            case .itunes:
+                fetchIconForAppName(appName: name, completion: completion)
+            case .iconfinder:
+                fetchIconFromIconfinder(query: name, completion: completion)
+            }
+        }
+        group.notify(queue: .main) {
+            store.save()
+            WidgetCenter.shared.reloadAllTimelines()
+            UINotificationFeedbackGenerator().notificationOccurred(.success)
+        }
+    }
 }
 
 // MARK: - Launcher Slot View
@@ -1042,9 +1138,10 @@ struct LauncherSlotView: View {
     @Environment(\.editMode) private var editMode
     @State private var confirmClear = false
     @State private var testLaunchError: String? = nil
+    // Removed per-slot icon UI to reduce clutter
 
     var body: some View {
-        HStack(alignment: .top) {
+		HStack(alignment: .top, spacing: 12) {
             VStack(alignment: .leading, spacing: 4) {
                 Text("App Slot #\(slotNumber)")
                     .font(.headline)
@@ -1056,7 +1153,7 @@ struct LauncherSlotView: View {
                     .keyboardType(.URL)
                     .autocapitalization(.none)
                     .disableAutocorrection(true)
-                HStack(spacing: 16) {
+				HStack(spacing: 16) {
                     Button(action: {
                         UIImpactFeedbackGenerator(style: .light).impactOccurred()
                         let trimmed = launcher.urlScheme.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -1093,6 +1190,8 @@ struct LauncherSlotView: View {
                             UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
                             launcher.name = ""
                             launcher.urlScheme = ""
+							launcher.iconFileName = nil
+							launcher.showIcon = false
                             confirmClear = false
                         } else {
                             UIImpactFeedbackGenerator(style: .medium).impactOccurred()
@@ -1115,6 +1214,7 @@ struct LauncherSlotView: View {
                     .accessibilityLabel("Clear slot")
                     .accessibilityHint("Clear the name and URL scheme for this slot")
                 }
+
                 if let testLaunchError = testLaunchError {
                     Text(testLaunchError)
                         .font(.caption)
@@ -1470,6 +1570,172 @@ struct DocumentPicker: UIViewControllerRepresentable {
             parent.onDocumentPicked(url)
         }
     }
+}
+
+// MARK: - Document Picker for PNG images
+struct DocumentPickerPNG: UIViewControllerRepresentable {
+    let onDocumentPicked: (URL) -> Void
+    
+    func makeUIViewController(context: Context) -> UIDocumentPickerViewController {
+        let picker = UIDocumentPickerViewController(forOpeningContentTypes: [.png])
+        picker.delegate = context.coordinator
+        return picker
+    }
+    
+    func updateUIViewController(_ uiViewController: UIDocumentPickerViewController, context: Context) {}
+    
+    func makeCoordinator() -> Coordinator {
+        Coordinator(self)
+    }
+    
+    class Coordinator: NSObject, UIDocumentPickerDelegate {
+        let parent: DocumentPickerPNG
+        
+        init(_ parent: DocumentPickerPNG) {
+            self.parent = parent
+        }
+        
+        func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
+            guard let url = urls.first else { return }
+            parent.onDocumentPicked(url)
+        }
+    }
+}
+
+// MARK: - Icon storage helpers
+private func iconsDirectoryURL() -> URL? {
+    guard let container = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: appGroupID) else { return nil }
+    let dir = container.appendingPathComponent("icons", isDirectory: true)
+    if !FileManager.default.fileExists(atPath: dir.path) {
+        try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+    }
+    return dir
+}
+
+private func saveIconToAppGroup(url: URL, slotId: Int) -> String? {
+    guard url.startAccessingSecurityScopedResource() else { return nil }
+    defer { url.stopAccessingSecurityScopedResource() }
+    guard let dir = iconsDirectoryURL() else { return nil }
+    let ext = url.pathExtension.lowercased() == "png" ? "png" : (url.pathExtension.isEmpty ? "png" : url.pathExtension)
+    let fileName = "slot_\(slotId).\(ext)"
+    let destination = dir.appendingPathComponent(fileName)
+    do {
+        if FileManager.default.fileExists(atPath: destination.path) {
+            try FileManager.default.removeItem(at: destination)
+        }
+        try FileManager.default.copyItem(at: url, to: destination)
+        return fileName
+    } catch {
+        return nil
+    }
+}
+
+private func loadIconPreview(for launcher: AppLauncher) -> UIImage? {
+    guard let fileName = launcher.iconFileName, let dir = iconsDirectoryURL() else { return nil }
+    let url = dir.appendingPathComponent(fileName)
+    return UIImage(contentsOfFile: url.path)
+}
+
+// MARK: - Auto-fetch icons via iTunes Search API
+private func fetchIconForAppName(appName: String, completion: @escaping (Result<Data, Error>) -> Void) {
+    // Query iTunes Search API for the app name (US store, software entity)
+    let term = appName.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? appName
+    guard let url = URL(string: "https://itunes.apple.com/search?term=\(term)&country=us&entity=software&limit=1") else {
+        completion(.failure(NSError(domain: "itms", code: -1)))
+        return
+    }
+    let task = URLSession.shared.dataTask(with: url) { data, _, error in
+        if let error = error {
+            completion(.failure(error)); return
+        }
+        guard let data = data,
+              let json = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
+              let results = json["results"] as? [[String: Any]],
+              let first = results.first else {
+            completion(.failure(NSError(domain: "itms", code: -2))); return
+        }
+        // Prefer high-res artworkUrl512, fallback to 100
+        let urlString = (first["artworkUrl512"] as? String) ?? (first["artworkUrl100"] as? String)
+        guard var art = urlString, let u = URL(string: art) else {
+            completion(.failure(NSError(domain: "itms", code: -3))); return
+        }
+        // Ensure PNG extension if possible (many are JPG). We'll still accept JPG and save as PNG if convertible.
+        URLSession.shared.dataTask(with: u) { imgData, _, err in
+            if let err = err { completion(.failure(err)); return }
+            guard let imgData = imgData else { completion(.failure(NSError(domain: "itms", code: -4))); return }
+            // Try to convert to PNG to ensure transparency compatibility if available
+            if let image = UIImage(data: imgData), let pngData = image.pngData() {
+                completion(.success(pngData))
+            } else {
+                completion(.success(imgData))
+            }
+        }.resume()
+    }
+    task.resume()
+}
+
+private func saveIconDataToAppGroup(data: Data, slotId: Int) -> String? {
+    guard let dir = iconsDirectoryURL() else { return nil }
+    let fileName = "slot_\(slotId).png"
+    let destination = dir.appendingPathComponent(fileName)
+    do {
+        if FileManager.default.fileExists(atPath: destination.path) {
+            try FileManager.default.removeItem(at: destination)
+        }
+        try data.write(to: destination)
+        return fileName
+    } catch {
+        return nil
+    }
+}
+
+// MARK: - Iconfinder API fetch
+private func fetchIconFromIconfinder(query: String, completion: @escaping (Result<Data, Error>) -> Void) {
+    let apiKey = "MXBBMz73Zl5XJrgGWjFe4YASi8rtkzIV0LQSYvPiunpeNWm6wmvG3ydyqHyplDrC"
+    guard let encoded = query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
+          let url = URL(string: "https://api.iconfinder.com/v4/icons/search?query=\(encoded)&count=1&premium=false") else {
+        completion(.failure(NSError(domain: "iconfinder", code: -1)))
+        return
+    }
+    var request = URLRequest(url: url)
+    request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+    URLSession.shared.dataTask(with: request) { data, _, error in
+        if let error = error { completion(.failure(error)); return }
+        guard let data = data,
+              let json = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
+              let icons = json["icons"] as? [[String: Any]],
+              let first = icons.first,
+              let rasterSizes = first["raster_sizes"] as? [[String: Any]] else {
+            completion(.failure(NSError(domain: "iconfinder", code: -2)))
+            return
+        }
+        // Choose the largest PNG download_url
+        let sorted = rasterSizes.sorted { (a, b) -> Bool in
+            let sa = (a["size"] as? Int) ?? 0
+            let sb = (b["size"] as? Int) ?? 0
+            return sa > sb
+        }
+        for sizeEntry in sorted {
+            if let formats = sizeEntry["formats"] as? [[String: Any]] {
+                if let png = formats.first(where: { ($0["format"] as? String)?.lowercased() == "png" }),
+                   let urlStr = png["download_url"] as? String,
+                   let dlURL = URL(string: urlStr) {
+                    URLSession.shared.dataTask(with: dlURL) { imgData, _, err in
+                        if let err = err { completion(.failure(err)); return }
+                        guard let imgData = imgData else { completion(.failure(NSError(domain: "iconfinder", code: -3))); return }
+                        // ensure PNG output
+                        if let image = UIImage(data: imgData), let pngData = image.pngData() {
+                            completion(.success(pngData))
+                        } else {
+                            completion(.success(imgData))
+                        }
+                    }.resume()
+                    return
+                }
+            }
+        }
+        completion(.failure(NSError(domain: "iconfinder", code: -4)))
+    }.resume()
 }
 
 // MARK: - Config Card View
