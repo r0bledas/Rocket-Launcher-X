@@ -729,6 +729,7 @@ struct WidgetConfigurationView: View {
     @State private var lastGreen: Double = 36
     @State private var lastBlue: Double = 36
     @State private var didJustApplyWidgets = false
+	@State private var selectedAlignment: TextAlignmentOption = .leading
     
     var body: some View {
         NavigationView {
@@ -849,6 +850,22 @@ struct WidgetConfigurationView: View {
                         .padding()
                         .background(Color.gray.opacity(0.2))
                         .cornerRadius(12)
+
+						// Text Alignment
+						VStack(spacing: 12) {
+							Text("Text Alignment")
+								.font(.headline)
+								.foregroundColor(.white)
+							Picker("Alignment", selection: $selectedAlignment) {
+								Text(TextAlignmentOption.leading.label).tag(TextAlignmentOption.leading)
+								Text(TextAlignmentOption.center.label).tag(TextAlignmentOption.center)
+								Text(TextAlignmentOption.trailing.label).tag(TextAlignmentOption.trailing)
+							}
+							.pickerStyle(.segmented)
+						}
+						.padding()
+						.background(Color.gray.opacity(0.2))
+						.cornerRadius(12)
                         
                         // Apply Button
                         Button(action: {
@@ -929,6 +946,7 @@ struct WidgetConfigurationView: View {
     private func applyColorToWidgets() {
         let userDefaults = UserDefaults(suiteName: appGroupID)
         userDefaults?.set(backgroundColor, forKey: "WidgetBackgroundColor")
+		userDefaults?.set(selectedAlignment.rawValue, forKey: "WidgetTextAlignment")
         userDefaults?.synchronize()
     }
     
@@ -939,6 +957,12 @@ struct WidgetConfigurationView: View {
         let sanitized = sanitizeHexInput(savedBackgroundColor)
         backgroundColor = "#" + sanitized
         customHexInput = sanitized
+		if let alignmentRaw = userDefaults?.string(forKey: "WidgetTextAlignment"),
+		   let option = TextAlignmentOption(rawValue: alignmentRaw) {
+			selectedAlignment = option
+		} else {
+			selectedAlignment = .leading
+		}
         updateRGBFromHex()
     }
 }
