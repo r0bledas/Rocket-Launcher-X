@@ -7,6 +7,8 @@
 		<key>NSExtensionPointIdentifier</key>
 		<string>com.apple.widgetkit-extension</string>
 	</dict>
+	<key>NSSupportsLiveActivities</key>
+	<true/>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>This widget needs access to your photo library to save downloaded wallpapers.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>

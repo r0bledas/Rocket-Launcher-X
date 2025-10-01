@@ -8,6 +8,8 @@
 import SwiftUI
 import WidgetKit
 import UIKit
+import ActivityKit
+import ActivityKit
 import CoreMotion
 import UniformTypeIdentifiers
 import AudioToolbox
@@ -253,6 +255,7 @@ struct ContentView: View {
     @State private var currentTime = Date()
     @State private var showingCompletionAlert = false
     @State private var selectedDay = 0 // 0 for today, 1 for tomorrow
+    @State private var liveActivity: Activity<MultiTimeXAttributes>? = nil
     
     var progress: Double {
         guard initialTimeInterval > 0 else { return 0 }
@@ -516,78 +519,103 @@ struct ContentView: View {
             Color.black.ignoresSafeArea()
             
             VStack {
-                // Header - removed back button, simplified layout
-                HStack {
-                    Spacer()
-                    
-                    Text("MultiTimeX")
-                        .font(.title2)
-                        .fontWeight(.bold)
-                        .foregroundColor(.white)
-                    
-                    Spacer()
+                // Header hidden while running to avoid duplicate titles in landscape
+                if !isRunning {
+                    HStack {
+                        Spacer()
+                        
+                        Text("MultiTimeX")
+                            .font(.title2)
+                            .fontWeight(.bold)
+                            .foregroundColor(.white)
+                        
+                        Spacer()
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.top, 60)
                 }
-                .padding(.horizontal, 20)
-                .padding(.top, 60)
                 
                 if isRunning {
-                    Spacer()
-                    
-                    VStack(spacing: 8) {
-                        Text(timeString(from: timeRemaining))
-                            .font(.system(size: 94, weight: .bold))
-                            .foregroundColor(timeRemaining > 0 ? .white : .red)
-                            .minimumScaleFactor(0.6)
-                            .contentTransition(.numericText())
-                            .animation(.smooth, value: timeRemaining)
-                            .padding(.top, 5)
-                        
-                        Text("until \(timeFormatter.string(from: targetTime))")
-                            .font(.system(size: 13))
-                            .foregroundColor(.gray)
-                            .padding(.top, -8)
-                        
-                        // Progress bar
-                        GeometryReader { geometry in
-                            ZStack(alignment: .leading) {
-                                Rectangle()
-                                    .foregroundColor(.gray.opacity(0.3))
-                                
-                                Rectangle()
-                                    .foregroundColor(timeRemaining > 0 ? .green : .red)
-                                    .frame(width: geometry.size.width * progress)
-                                    .animation(.smooth(duration: 0.3), value: progress)
+                    GeometryReader { proxy in
+                        let isLandscape = proxy.size.width > proxy.size.height
+                        let portraitBaseFont: CGFloat = 94.0
+                        let dynamicFontSize = isLandscape ? portraitBaseFont * 1.5 : portraitBaseFont
+
+                        ZStack {
+                            // Centered timer content
+                            VStack(spacing: 4) {
+                                Spacer()
+                                Text(timeString(from: timeRemaining))
+                                    .font(.system(size: dynamicFontSize, weight: .bold))
+                                    .foregroundColor(timeRemaining > 0 ? .white : .red)
+                                    .minimumScaleFactor(0.4)
+                                    .contentTransition(.numericText())
+                                    .animation(.smooth, value: timeRemaining)
+                                    .lineLimit(1)
+                                    .multilineTextAlignment(.center)
+                                    .padding(.horizontal, 16)
+
+                                Text("until \(timeFormatter.string(from: targetTime))")
+                                    .font(.system(size: 14))
+                                    .foregroundColor(.gray)
+                                    .multilineTextAlignment(.center)
+
+                                GeometryReader { geometry in
+                                    ZStack(alignment: .leading) {
+                                        Rectangle()
+                                            .foregroundColor(.gray.opacity(0.3))
+
+                                        Rectangle()
+                                            .foregroundColor(timeRemaining > 0 ? .green : .red)
+                                            .frame(width: geometry.size.width * progress)
+                                            .animation(.smooth(duration: 0.3), value: progress)
+                                    }
+                                }
+                                .frame(height: 15)
+                                .cornerRadius(8)
+                                .padding(.horizontal, 40)
+
+                                Text("\(Int(progress * 100))%")
+                                    .font(.system(size: 14, weight: .medium))
+                                    .foregroundColor(.gray)
+                                    .contentTransition(.numericText())
+                                    .animation(.smooth, value: progress)
+                                Spacer()
                             }
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+
+                            // Compact Stop button at top-right
+                            VStack {
+                                HStack {
+                                    Spacer()
+                                    Button(action: {
+                                        stopTimer()
+                                        triggerMultiTimeXHapticFeedback()
+                                    }) {
+                                        HStack(spacing: 6) {
+                                            Image(systemName: "stop.fill")
+                                            Text("Stop")
+                                                .fontWeight(.semibold)
+                                        }
+                                        .font(.system(size: 14))
+                                        .foregroundColor(.white)
+                                        .padding(.vertical, 8)
+                                        .padding(.horizontal, 12)
+                                        .background(Color.red)
+                                        .cornerRadius(10)
+                                        .shadow(color: .black.opacity(0.3), radius: 6, x: 0, y: 3)
+                                    }
+                                }
+                                .padding(.top, proxy.safeAreaInsets.top + 12)
+                                .padding(.trailing, 30)
+                                Spacer()
+                            }
+                            .transition(.move(edge: .top))
+                            .animation(.smooth(duration: 0.25), value: isRunning)
                         }
-                        .frame(height: 8)
-                        .cornerRadius(4)
-                        .padding(.horizontal, 20)
-                        
-                        Text("\(Int(progress * 100))%")
-                            .font(.system(size: 14, weight: .medium))
-                            .foregroundColor(.gray)
-                            .contentTransition(.numericText())
-                            .animation(.smooth, value: progress)
-                            .padding(.top, -2)
-                        
-                        Button(action: {
-                            stopTimer()
-                            triggerMultiTimeXHapticFeedback()
-                        }) {
-                            Text("Stop Timer")
-                                .font(.headline)
-                                .foregroundColor(.white)
-                                .frame(maxWidth: .infinity)
-                                .padding()
-                                .background(Color.red)
-                                .cornerRadius(10)
-                        }
-                        .padding(.horizontal, 40)
-                        .padding(.top, 10)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .padding(.bottom, proxy.safeAreaInsets.bottom + 16)
                     }
-                    .padding()
-                    
-                    Spacer()
                 } else {
                     VStack {
                         Spacer()
@@ -677,6 +705,7 @@ struct ContentView: View {
                 timeRemaining = targetTime.timeIntervalSinceNow
                 initialTimeInterval = timeRemaining
                 isRunning = true
+                startLiveActivity(endDate: targetTime)
                 currentTime = Date()
                 
                 let updateInterval = 0.1
@@ -690,6 +719,7 @@ struct ContentView: View {
                             AudioServicesPlaySystemSound(kSystemSoundID_Vibrate)
                             stopTimer()
                         }
+                        updateLiveActivityProgress()
                     }
                 }
             }
@@ -700,10 +730,43 @@ struct ContentView: View {
         timer?.invalidate()
         timer = nil
         isRunning = false
+        endLiveActivity()
         
         if timeRemaining <= 0 {
             showingCompletionAlert = true
         }
+    }
+
+    // MARK: - Live Activity helpers
+    private func startLiveActivity(endDate: Date) {
+        guard ActivityAuthorizationInfo().areActivitiesEnabled else { return }
+        let initial = MultiTimeXAttributes.ContentState(endDate: endDate, percentComplete: 0)
+        do {
+            let activity = try Activity<MultiTimeXAttributes>.request(
+                attributes: MultiTimeXAttributes(),
+                content: ActivityContent(state: initial, staleDate: nil),
+                pushType: nil
+            )
+            liveActivity = activity
+        } catch {
+            print("Failed to start Live Activity: \(error)")
+        }
+    }
+
+    private func updateLiveActivityProgress() {
+        guard let activity = liveActivity else { return }
+        let total = max(1, initialTimeInterval)
+        let done = max(0, total - max(0, timeRemaining))
+        let pct = min(1.0, max(0.0, done / total))
+        let state = MultiTimeXAttributes.ContentState(endDate: targetTime, percentComplete: pct)
+        Task { await activity.update(ActivityContent(state: state, staleDate: nil)) }
+    }
+
+    private func endLiveActivity() {
+        guard let activity = liveActivity else { return }
+        let final = MultiTimeXAttributes.ContentState(endDate: Date(), percentComplete: 1.0)
+        Task { await activity.end(ActivityContent(state: final, staleDate: nil), dismissalPolicy: .immediate) }
+        liveActivity = nil
     }
     
     private func timeString(from timeInterval: TimeInterval) -> String {
@@ -1656,7 +1719,7 @@ private func fetchIconForAppName(appName: String, completion: @escaping (Result<
         }
         // Prefer high-res artworkUrl512, fallback to 100
         let urlString = (first["artworkUrl512"] as? String) ?? (first["artworkUrl100"] as? String)
-        guard var art = urlString, let u = URL(string: art) else {
+        guard let art = urlString, let u = URL(string: art) else {
             completion(.failure(NSError(domain: "itms", code: -3))); return
         }
         // Ensure PNG extension if possible (many are JPG). We'll still accept JPG and save as PNG if convertible.
@@ -1784,4 +1847,7 @@ struct ConfigCardView: View {
         }
         .buttonStyle(PlainButtonStyle())
     }
+}
+#Preview {
+    ContentView()
 }

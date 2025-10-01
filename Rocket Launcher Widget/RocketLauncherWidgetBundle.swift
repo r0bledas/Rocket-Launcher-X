@@ -17,5 +17,6 @@ struct RocketLauncherWidgetBundle: WidgetBundle {
         RocketLauncherWidget4()
         RocketLauncherWidget5()
         CalendarWidget()
+        MultiTimeXLiveActivity()
     }
 }
