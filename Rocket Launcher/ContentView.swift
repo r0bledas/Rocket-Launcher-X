@@ -13,9 +13,12 @@ import ActivityKit
 import CoreMotion
 import UniformTypeIdentifiers
 import AudioToolbox
+import Network
 
 // Centralized App Group ID
 let appGroupID = "group.com.Robledas.rocketlauncher.Rocket-Launcher"
+
+//
 
 // MARK: - Shake Detection
 class ShakeDetector: ObservableObject {
@@ -56,6 +59,10 @@ class ShakeDetector: ObservableObject {
         DispatchQueue.main.async {
             UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
             self.isShakeDetected = true
+            
+            // Log shake detection to console
+            // Note: This will need to be called from ContentView
+            print("📱 Shake detected - settings button revealed")
             
             // Auto-hide after 5 seconds
             DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
@@ -164,6 +171,8 @@ enum IconFetchSourceOption: String, CaseIterable, Identifiable {
     }
 }
 
+//
+
 // MARK: - App Launcher Models
 
 struct AppLauncher: Identifiable, Codable {
@@ -244,7 +253,8 @@ struct ContentView: View {
     // Settings button control
     @AppStorage("AlwaysShowSettingsButton", store: UserDefaults(suiteName: appGroupID)) private var alwaysShowSettingsButton: Bool = false
     // Page swiper state
-    @State private var selectedPage = 0
+    @State private var selectedPage = 0 // Start with Rocket Launcher (first page)
+    //
     
     // MultiTimeX Timer States
     @State private var targetTime = Date()
@@ -293,11 +303,11 @@ struct ContentView: View {
                 .ignoresSafeArea(.all, edges: .all)
             
             TabView(selection: $selectedPage) {
-                // Main Page (0)
+                // Main Page (0) - Rocket Launcher (Default)
                 mainView
                     .tag(0)
                 
-                // Configuration Page (1)
+                // Configuration Page (1) - MultiTimeX (Right)
                 configurationView
                     .tag(1)
             }
@@ -468,10 +478,7 @@ struct ContentView: View {
                     HStack {
                         Spacer()
                         HStack(spacing: 8) {
-                            Text("Swipe left for MultiTimeX")
-                                .font(.caption)
-                                .foregroundColor(.gray)
-                            Image(systemName: "arrow.left")
+                            Text("Swipe left for Ping Tester • Swipe right for MultiTimeX")
                                 .font(.caption)
                                 .foregroundColor(.gray)
                         }
@@ -512,6 +519,242 @@ struct ContentView: View {
             }
         }
     }
+    
+    // MARK: - Ping Tester View (removed)
+    /* private var consoleView: some View {
+        ZStack {
+            Color.black.ignoresSafeArea()
+            
+            VStack(spacing: 0) {
+                // Ping Header
+                HStack {
+                    Text("CARRIER DATA TESTER")
+                        .font(.system(size: 16, weight: .bold, design: .monospaced))
+                        .foregroundColor(.green)
+                    
+                    Spacer()
+                    
+                    Button(action: {
+                        if networkMonitor.isOnCellular {
+                            pingAllServices()
+                        } else {
+                            showingWiFiAlert = true
+                        }
+                    }) {
+                        HStack(spacing: 4) {
+                            if isPinging {
+                                ProgressView()
+                                    .scaleEffect(0.8)
+                                    .progressViewStyle(CircularProgressViewStyle(tint: .green))
+                            } else {
+                                Image(systemName: "arrow.clockwise")
+                                    .font(.system(size: 12))
+                            }
+                            Text(isPinging ? "TESTING..." : "TEST ALL")
+                                .font(.system(size: 12, weight: .bold, design: .monospaced))
+                        }
+                        .foregroundColor(networkMonitor.isOnCellular ? .green : .gray)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(networkMonitor.isOnCellular ? Color.green.opacity(0.2) : Color.gray.opacity(0.2))
+                        .cornerRadius(4)
+                    }
+                    .disabled(isPinging || !networkMonitor.isOnCellular)
+                }
+                .padding(.horizontal, 20)
+                .padding(.top, 60)
+                .padding(.bottom, 16)
+                
+                // Network Status
+                HStack {
+                    HStack(spacing: 6) {
+                        Image(systemName: networkMonitor.isOnCellular ? "antenna.radiowaves.left.and.right" : "wifi")
+                            .font(.system(size: 12))
+                            .foregroundColor(networkMonitor.isOnCellular ? .green : .orange)
+                        
+                        Text(networkMonitor.isOnCellular ? "CELLULAR DATA" : "WIFI CONNECTED")
+                            .font(.system(size: 10, weight: .bold, design: .monospaced))
+                            .foregroundColor(networkMonitor.isOnCellular ? .green : .orange)
+                    }
+                    
+                    Spacer()
+                    
+                    if !networkMonitor.isOnCellular {
+                        Text("DISABLE WIFI TO TEST")
+                            .font(.system(size: 9, weight: .bold, design: .monospaced))
+                            .foregroundColor(.red)
+                    }
+                }
+                .padding(.horizontal, 20)
+                .padding(.bottom, 12)
+                
+                // Summary View
+                if !pingResults.isEmpty {
+                    VStack(spacing: 8) {
+                        HStack {
+                            Text("SUMMARY")
+                                .font(.system(size: 12, weight: .bold, design: .monospaced))
+                                .foregroundColor(.yellow)
+                            Spacer()
+                        }
+                        
+                        HStack(spacing: 16) {
+                            // Web Access
+                            VStack(spacing: 2) {
+                                Text("WEB")
+                                    .font(.system(size: 10, weight: .bold, design: .monospaced))
+                                    .foregroundColor(.blue)
+                                let webResults = pingResults.filter { $0.testType == .web }
+                                let webOnline = webResults.filter { $0.isOnline }.count
+                                Text("\(webOnline)/\(webResults.count)")
+                                    .font(.system(size: 12, weight: .bold, design: .monospaced))
+                                    .foregroundColor(webOnline == webResults.count ? .green : .red)
+                            }
+                            
+                            // API Access
+                            VStack(spacing: 2) {
+                                Text("API")
+                                    .font(.system(size: 10, weight: .bold, design: .monospaced))
+                                    .foregroundColor(.orange)
+                                let apiResults = pingResults.filter { $0.testType == .api }
+                                let apiOnline = apiResults.filter { $0.isOnline }.count
+                                Text("\(apiOnline)/\(apiResults.count)")
+                                    .font(.system(size: 12, weight: .bold, design: .monospaced))
+                                    .foregroundColor(apiOnline == apiResults.count ? .green : .red)
+                            }
+                            
+                            // DNS Access
+                            VStack(spacing: 2) {
+                                Text("DNS")
+                                    .font(.system(size: 10, weight: .bold, design: .monospaced))
+                                    .foregroundColor(.purple)
+                                let dnsResults = pingResults.filter { $0.testType == .dns }
+                                let dnsOnline = dnsResults.filter { $0.isOnline }.count
+                                Text("\(dnsOnline)/\(dnsResults.count)")
+                                    .font(.system(size: 12, weight: .bold, design: .monospaced))
+                                    .foregroundColor(dnsOnline == dnsResults.count ? .green : .red)
+                            }
+                            
+                            Spacer()
+                        }
+                        .padding(.horizontal, 16)
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.bottom, 12)
+                }
+                
+                // Ping Results or WiFi Warning
+                if !networkMonitor.isOnCellular {
+                    VStack(spacing: 16) {
+                        Image(systemName: "wifi.slash")
+                            .font(.system(size: 60))
+                            .foregroundColor(.orange)
+                        
+                        Text("WiFi Detected")
+                            .font(.system(size: 18, weight: .bold, design: .monospaced))
+                            .foregroundColor(.orange)
+                        
+                        Text("Carrier data testing requires cellular connection")
+                            .font(.system(size: 14, weight: .medium, design: .monospaced))
+                            .foregroundColor(.gray)
+                            .multilineTextAlignment(.center)
+                        
+                        Text("Disable WiFi in Settings to test carrier restrictions")
+                            .font(.system(size: 12, weight: .medium, design: .monospaced))
+                            .foregroundColor(.secondary)
+                            .multilineTextAlignment(.center)
+                    }
+                    .padding(.horizontal, 40)
+                    .padding(.vertical, 60)
+                } else {
+                    ScrollView {
+                        LazyVStack(alignment: .leading, spacing: 4) {
+                            ForEach(pingResults) { result in
+                            HStack(alignment: .top, spacing: 8) {
+                                // Timestamp
+                                Text(timeFormatter.string(from: result.timestamp))
+                                    .font(.system(size: 9, weight: .medium, design: .monospaced))
+                                    .foregroundColor(.green.opacity(0.7))
+                                    .frame(width: 50, alignment: .leading)
+                                
+                                // Service Name
+                                Text(result.service)
+                                    .font(.system(size: 10, weight: .bold, design: .monospaced))
+                                    .foregroundColor(.green)
+                                    .frame(width: 60, alignment: .leading)
+                                
+                                // Test Type
+                                Text(result.testType.rawValue)
+                                    .font(.system(size: 8, weight: .medium, design: .monospaced))
+                                    .foregroundColor(.blue)
+                                    .frame(width: 35, alignment: .leading)
+                                
+                                // Status
+                                HStack(spacing: 3) {
+                                    Circle()
+                                        .fill(result.isOnline ? .green : .red)
+                                        .frame(width: 6, height: 6)
+                                    
+                                    Text(result.isOnline ? "OK" : "FAIL")
+                                        .font(.system(size: 8, weight: .bold, design: .monospaced))
+                                        .foregroundColor(result.isOnline ? .green : .red)
+                                }
+                                .frame(width: 40, alignment: .leading)
+                                
+                                // Response Time or Error
+                                if result.isOnline, let responseTime = result.responseTime {
+                                    Text("\(String(format: "%.0f", responseTime * 1000))ms")
+                                        .font(.system(size: 8, weight: .medium, design: .monospaced))
+                                        .foregroundColor(.green.opacity(0.8))
+                                        .frame(maxWidth: .infinity, alignment: .leading)
+                                } else if let error = result.error {
+                                    Text(error)
+                                        .font(.system(size: 7, weight: .medium, design: .monospaced))
+                                        .foregroundColor(.red)
+                                        .frame(maxWidth: .infinity, alignment: .leading)
+                                        .lineLimit(2)
+                                } else {
+                                    Spacer()
+                                }
+                            }
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 2)
+                            .background(
+                                RoundedRectangle(cornerRadius: 4)
+                                    .fill(result.isOnline ? Color.green.opacity(0.1) : Color.red.opacity(0.1))
+                            )
+                        }
+                    }
+                    .padding(.bottom, 20)
+                }
+                }
+                
+                // Navigation Hint
+                VStack {
+                    Spacer()
+                    HStack(spacing: 4) {
+                        Text("Rocket Launcher")
+                            .font(.system(size: 9, weight: .medium))
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 7))
+                    }
+                    .foregroundColor(.secondary)
+                    .padding(.bottom, 12)
+                }
+            }
+        }
+        .onAppear {
+            // Auto-ping on appear only if on cellular
+            if networkMonitor.isOnCellular {
+                pingAllServices()
+            }
+        }
+        .alert("WiFi Detected", isPresented: $showingWiFiAlert) {
+            Button("OK") { }
+        } message: {
+            Text("Carrier data testing only works on cellular data. Please disable WiFi to test carrier restrictions.")
+        }
+    } */
     
     // MARK: - Configuration View (MultiTimeX)
     private var configurationView: some View {
@@ -673,6 +916,16 @@ struct ContentView: View {
                     .font(.caption)
                     .foregroundColor(.gray)
                     .padding(.bottom, 20)
+                
+                // Navigation Hint
+                HStack(spacing: 4) {
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 7))
+                    Text("Rocket Launcher")
+                        .font(.system(size: 9, weight: .medium))
+                }
+                .foregroundColor(.secondary)
+                .padding(.bottom, 12)
             }
             .alert("Time's Up!", isPresented: $showingCompletionAlert) {
                 Button("OK", role: .cancel) { }
@@ -708,6 +961,7 @@ struct ContentView: View {
                 startLiveActivity(endDate: targetTime)
                 currentTime = Date()
                 
+                
                 let updateInterval = 0.1
                 
                 timer = Timer.scheduledTimer(withTimeInterval: updateInterval, repeats: true) { _ in
@@ -731,6 +985,7 @@ struct ContentView: View {
         timer = nil
         isRunning = false
         endLiveActivity()
+        
         
         if timeRemaining <= 0 {
             showingCompletionAlert = true
@@ -794,6 +1049,220 @@ struct ContentView: View {
         let generator = UIImpactFeedbackGenerator(style: .medium)
         generator.impactOccurred()
     }
+    
+    // MARK: - Ping Testing Functions
+    
+    /* private func pingAllServices() {
+        guard !isPinging else { return }
+        guard networkMonitor.isOnCellular else {
+            showingWiFiAlert = true
+            return
+        }
+        
+        isPinging = true
+        pingResults.removeAll()
+        
+        let services = PingResult.Service.allCases
+        var totalTests = 0
+        var completedTests = 0
+        
+        // Calculate total tests: web + all API endpoints + dns per service
+        for service in services {
+            totalTests += 1 // Web test
+            totalTests += service.apiEndpoints.count // All API endpoints
+            totalTests += 1 // DNS test
+        }
+        
+        for service in services {
+            // Test web access
+            pingService(service, testType: .web, endpointIndex: 0) { completedTests += 1; checkCompletion() }
+            
+            // Test all API endpoints for this service
+            for (index, endpoint) in service.apiEndpoints.enumerated() {
+                pingService(service, testType: .api, endpointIndex: index, customEndpoint: endpoint) { completedTests += 1; checkCompletion() }
+            }
+            
+            // Test DNS resolution
+            pingService(service, testType: .dns, endpointIndex: 0) { completedTests += 1; checkCompletion() }
+        }
+        
+        func checkCompletion() {
+            if completedTests >= totalTests {
+                isPinging = false
+            }
+        }
+    } */
+    
+    /* private func pingService(_ service: PingResult.Service, testType: PingResult.TestType, endpointIndex: Int, customEndpoint: String? = nil, completion: @escaping () -> Void) {
+        let startTime = Date()
+        
+        // Handle DNS testing separately
+        if testType == .dns {
+            testDNSResolution(service: service, startTime: startTime, completion: completion)
+            return
+        }
+        
+        let urlString: String
+        switch testType {
+        case .web:
+            urlString = service.webURL
+        case .api:
+            if let customEndpoint = customEndpoint {
+                urlString = customEndpoint
+            } else {
+                // Fallback to legacy single endpoint
+                guard let endpoint = service.apiEndpoint else {
+                    completion()
+                    return
+                }
+                urlString = endpoint
+            }
+        case .dns:
+            return // Handled above
+        }
+        
+        guard let url = URL(string: urlString) else {
+            addPingResult(
+                service: service.rawValue,
+                testType: testType,
+                isOnline: false,
+                responseTime: nil,
+                error: "Invalid URL",
+                statusCode: nil,
+                endpointIndex: endpointIndex
+            )
+            completion()
+            return
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "HEAD"  // Use HEAD for both web and API tests
+        request.timeoutInterval = 2.0  // Very short timeout for faster testing
+        
+        // Add headers for better detection
+        request.setValue("Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15", forHTTPHeaderField: "User-Agent")
+        
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            let responseTime = Date().timeIntervalSince(startTime)
+            let httpResponse = response as? HTTPURLResponse
+            let statusCode = httpResponse?.statusCode
+            
+            DispatchQueue.main.async {
+                var isOnline = false
+                var errorMessage: String? = nil
+                
+                if let error = error {
+                    // Detect specific carrier restrictions
+                    if error.localizedDescription.contains("The Internet connection appears to be offline") ||
+                       error.localizedDescription.contains("The network connection was lost") ||
+                       error.localizedDescription.contains("offline") {
+                        errorMessage = "🚫 Carrier Data Limit - Web blocked"
+                    } else if error.localizedDescription.contains("timed out") ||
+                              error.localizedDescription.contains("timeout") {
+                        errorMessage = "⏱️ Timeout - Possible carrier restriction"
+                    } else if error.localizedDescription.contains("could not connect") ||
+                              error.localizedDescription.contains("connection refused") {
+                        errorMessage = "🚫 Connection Refused - Carrier blocking"
+                    } else {
+                        errorMessage = "❌ \(error.localizedDescription)"
+                    }
+                } else if let statusCode = statusCode {
+                    if statusCode == 200 || statusCode == 204 {
+                        isOnline = true
+                    } else if statusCode == 403 {
+                        errorMessage = "🚫 Forbidden - Carrier may be blocking"
+                    } else if statusCode == 429 {
+                        errorMessage = "⚠️ Rate Limited - Carrier throttling"
+                    } else if statusCode == 404 {
+                        errorMessage = "❌ Not Found - Service unavailable"
+                    } else {
+                        errorMessage = "HTTP \(statusCode)"
+                    }
+                } else {
+                    errorMessage = "❌ No response"
+                }
+                
+                addPingResult(
+                    service: service.rawValue,
+                    testType: testType,
+                    isOnline: isOnline,
+                    responseTime: isOnline ? responseTime : nil,
+                    error: errorMessage,
+                    statusCode: statusCode,
+                    endpointIndex: endpointIndex
+                )
+                
+                completion()
+            }
+        }.resume()
+    } */
+    
+    /* private func testDNSResolution(service: PingResult.Service, startTime: Date, completion: @escaping () -> Void) {
+        let host = service.dnsHost
+        
+        // Use a simple ping-like test to a common port
+        let urlString = "http://\(host):80"
+        guard let url = URL(string: urlString) else {
+            addPingResult(
+                service: service.rawValue,
+                testType: .dns,
+                isOnline: false,
+                responseTime: nil,
+                error: "🚫 Invalid URL",
+                statusCode: nil,
+                endpointIndex: 0
+            )
+            completion()
+            return
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "HEAD"
+        request.timeoutInterval = 2.0  // Very short timeout for DNS test
+        
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            let responseTime = Date().timeIntervalSince(startTime)
+            
+            DispatchQueue.main.async {
+                var isOnline = false
+                var errorMessage: String? = nil
+                
+                if let error = error {
+                    if error.localizedDescription.contains("timed out") ||
+                       error.localizedDescription.contains("timeout") {
+                        errorMessage = "🚫 DNS Timeout - Carrier blocking"
+                    } else if error.localizedDescription.contains("could not connect") ||
+                              error.localizedDescription.contains("connection refused") {
+                        errorMessage = "🚫 DNS Connection Refused - Carrier blocking"
+                    } else {
+                        errorMessage = "🚫 DNS Error - \(error.localizedDescription)"
+                    }
+                } else if let statusCode = (response as? HTTPURLResponse)?.statusCode {
+                    if statusCode == 200 || statusCode == 404 || statusCode == 403 {
+                        isOnline = true  // Any response means DNS worked
+                    } else {
+                        errorMessage = "HTTP \(statusCode)"
+                    }
+                } else {
+                    errorMessage = "🚫 No DNS Response"
+                }
+                
+                addPingResult(
+                    service: service.rawValue,
+                    testType: .dns,
+                    isOnline: isOnline,
+                    responseTime: isOnline ? responseTime : nil,
+                    error: errorMessage,
+                    statusCode: (response as? HTTPURLResponse)?.statusCode,
+                    endpointIndex: 0
+                )
+                
+                completion()
+            }
+        }.resume()
+    } */
+    
+    private func addPingResult() { }
     
     // Removed loadSettings() in favor of @AppStorage
 }

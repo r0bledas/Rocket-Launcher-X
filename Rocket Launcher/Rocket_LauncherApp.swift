@@ -22,9 +22,12 @@ struct Rocket_LauncherApp: App {
                     let didLaunch = urlHandler.handleURL(url) { failedScheme in
                         self.failedScheme = failedScheme
                         self.showLaunchFailureAlert = true
+                        print("❌ Failed to launch app: \(failedScheme)")
                     }
-                    if !didLaunch {
-                        // If not handled, optionally show alert
+                    if didLaunch {
+                        print("✅ URL scheme handled: \(url.absoluteString)")
+                    } else {
+                        print("⚠️ Unhandled URL: \(url.absoluteString)")
                     }
                 }
                 .alert(isPresented: $showLaunchFailureAlert) {
