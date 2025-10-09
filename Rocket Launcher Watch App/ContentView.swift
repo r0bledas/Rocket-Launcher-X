@@ -33,17 +33,22 @@ struct ActivityIndicatorView: View {
 }
 
 struct ContentView: View {
-    @State private var selectedTab = 0 // Default to Web Launcher page
+    @State private var selectedTab = 1 // Default to center (Web Launcher)
+    @State private var syncReceiver = SalesWatchReceiver.shared
     
     var body: some View {
         TabView(selection: $selectedTab) {
-            // Web Launcher Page (main homepage)
-            WebLauncherView()
+            // Left: Sales Counter
+            SalesCounterView()
                 .tag(0)
             
-            // MultiTimeX Timer Page (swipe right to access)
-            MultiTimeXView()
+            // Center: Web Launcher Page (main homepage)
+            WebLauncherView()
                 .tag(1)
+            
+            // Right: MultiTimeX Timer Page
+            MultiTimeXView()
+                .tag(2)
         }
         .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
         .ignoresSafeArea(.all, edges: .all)

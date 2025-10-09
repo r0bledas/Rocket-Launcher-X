@@ -14,6 +14,7 @@ import CoreMotion
 import UniformTypeIdentifiers
 import AudioToolbox
 import Network
+import WatchConnectivity
 
 // Centralized App Group ID
 let appGroupID = "group.com.Robledas.rocketlauncher.Rocket-Launcher"
@@ -251,9 +252,9 @@ struct ContentView: View {
     @StateObject private var shakeDetector = ShakeDetector()
     @State private var showingSettings = false
     // Settings button control
-    @AppStorage("AlwaysShowSettingsButton", store: UserDefaults(suiteName: appGroupID)) private var alwaysShowSettingsButton: Bool = false
+    @AppStorage("AlwaysShowSettingsButton", store: UserDefaults(suiteName: appGroupID)) private var alwaysShowSettingsButton: Bool = true
     // Page swiper state
-    @State private var selectedPage = 0 // Start with Rocket Launcher (first page)
+    @State private var selectedPage = 1 // Start with Rocket Launcher (center page)
     //
     
     // MultiTimeX Timer States
@@ -303,13 +304,17 @@ struct ContentView: View {
                 .ignoresSafeArea(.all, edges: .all)
             
             TabView(selection: $selectedPage) {
-                // Main Page (0) - Rocket Launcher (Default)
-                mainView
+                // Sales Counter Page (0) - Left Tab
+                salesCounterView
                     .tag(0)
                 
-                // Configuration Page (1) - MultiTimeX (Right)
-                configurationView
+                // Main Page (1) - Rocket Launcher (Center/Main)
+                mainView
                     .tag(1)
+                
+                // Configuration Page (2) - MultiTimeX (Right)
+                configurationView
+                    .tag(2)
             }
             .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
             .ignoresSafeArea(.all, edges: .all)
@@ -318,7 +323,7 @@ struct ContentView: View {
             VStack {
                 Spacer()
                 HStack(spacing: 8) {
-                    ForEach(0..<2, id: \.self) { index in
+                    ForEach(0..<3, id: \.self) { index in
                         Circle()
                             .fill(selectedPage == index ? Color.white : Color.white.opacity(0.4))
                             .frame(width: 8, height: 8)
@@ -478,7 +483,7 @@ struct ContentView: View {
                     HStack {
                         Spacer()
                         HStack(spacing: 8) {
-                            Text("Swipe left for Ping Tester • Swipe right for MultiTimeX")
+                            Text("Swipe left for Sales Counter • Swipe right for MultiTimeX")
                                 .font(.caption)
                                 .foregroundColor(.gray)
                         }
@@ -516,6 +521,43 @@ struct ContentView: View {
                     Spacer()
                 }
                 .padding(.bottom, 80) // Position above page indicators
+            }
+        }
+    }
+    
+    // MARK: - Sales Counter View
+    private var salesCounterView: some View {
+        ZStack {
+            Color.black.ignoresSafeArea()
+            
+            VStack(spacing: 0) {
+                // Header
+                HStack {
+                    Spacer()
+                    Text("Sales Counter")
+                        .font(.title2)
+                        .fontWeight(.bold)
+                        .foregroundColor(.white)
+                    Spacer()
+                }
+                .padding(.horizontal, 20)
+                .padding(.top, 60)
+                
+                // Sales Counter Content
+                SalesCounterView()
+                    .padding(.top, 20)
+                
+                Spacer()
+                
+                // Navigation Hint
+                HStack(spacing: 4) {
+                    Text("Rocket Launcher")
+                        .font(.system(size: 9, weight: .medium))
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 7))
+                }
+                .foregroundColor(.secondary)
+                .padding(.bottom, 12)
             }
         }
     }

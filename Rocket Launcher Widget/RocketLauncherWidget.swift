@@ -91,11 +91,6 @@ struct LauncherProvider: TimelineProvider {
 struct LauncherWidgetEntryView: View {
     let entry: LauncherEntry
     
-    private var backgroundView: some View {
-            Color(hex: entry.backgroundColor)
-                .ignoresSafeArea()
-    }
-    
     private var emptyStateView: some View {
                 Text("👻")
                     .font(.system(size: 60))
@@ -135,7 +130,6 @@ struct LauncherWidgetEntryView: View {
     
     var body: some View {
         ZStack {
-            backgroundView
             if entry.apps.isEmpty || entry.apps.allSatisfy({ $0.name.isEmpty }) {
                 emptyStateView
             } else {
@@ -210,7 +204,12 @@ struct RocketLauncherWidget: Widget {
             if #available(iOS 17.0, *) {
                 LauncherWidgetEntryView(entry: entry)
                     .containerBackground(for: .widget) {
-                        Color(hex: entry.backgroundColor)
+                        let hex = entry.backgroundColor.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
+                        if hex == "00000000" || hex.lowercased() == "clear" {
+                            Color.clear
+                        } else {
+                            Color(hex: entry.backgroundColor)
+                        }
                     }
             } else {
                 LauncherWidgetEntryView(entry: entry)
@@ -229,7 +228,12 @@ struct RocketLauncherWidget2: Widget {
             if #available(iOS 17.0, *) {
                 LauncherWidgetEntryView(entry: entry)
                     .containerBackground(for: .widget) {
-                        Color(hex: entry.backgroundColor)
+                        let hex = entry.backgroundColor.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
+                        if hex == "00000000" || hex.lowercased() == "clear" {
+                            Color.clear
+                        } else {
+                            Color(hex: entry.backgroundColor)
+                        }
                     }
             } else {
                 LauncherWidgetEntryView(entry: entry)
@@ -248,7 +252,12 @@ struct RocketLauncherWidget3: Widget {
             if #available(iOS 17.0, *) {
                 LauncherWidgetEntryView(entry: entry)
                     .containerBackground(for: .widget) {
-                        Color(hex: entry.backgroundColor)
+                        let hex = entry.backgroundColor.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
+                        if hex == "00000000" || hex.lowercased() == "clear" {
+                            Color.clear
+                        } else {
+                            Color(hex: entry.backgroundColor)
+                        }
                     }
             } else {
                 LauncherWidgetEntryView(entry: entry)
@@ -267,7 +276,12 @@ struct RocketLauncherWidget4: Widget {
             if #available(iOS 17.0, *) {
                 LauncherWidgetEntryView(entry: entry)
                     .containerBackground(for: .widget) {
-                        Color(hex: entry.backgroundColor)
+                        let hex = entry.backgroundColor.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
+                        if hex == "00000000" || hex.lowercased() == "clear" {
+                            Color.clear
+                        } else {
+                            Color(hex: entry.backgroundColor)
+                        }
                     }
             } else {
                 LauncherWidgetEntryView(entry: entry)
@@ -438,6 +452,35 @@ struct CalendarWidgetView: View {
     
     private let calendar = Calendar.current
     private let dateFormatter = DateFormatter()
+    private var isClearBackground: Bool {
+        let hex = entry.backgroundColor.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
+        return hex == "00000000" || hex.lowercased() == "clear"
+    }
+    private var isHighlightLight: Bool {
+        let hex = entry.highlightColor.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
+        var int: UInt64 = 0
+        Scanner(string: hex).scanHexInt64(&int)
+        let r, g, b: Double
+        switch hex.count {
+        case 3:
+            r = Double((int >> 8) * 17);
+            g = Double((int >> 4 & 0xF) * 17);
+            b = Double((int & 0xF) * 17)
+        case 6:
+            r = Double((int >> 16) & 0xFF);
+            g = Double((int >> 8) & 0xFF);
+            b = Double(int & 0xFF)
+        case 8:
+            r = Double((int >> 16) & 0xFF);
+            g = Double((int >> 8) & 0xFF);
+            b = Double(int & 0xFF)
+        default:
+            r = 255; g = 255; b = 255
+        }
+        // Perceived luminance (0..1)
+        let luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255.0
+        return luminance > 0.7
+    }
     
     var body: some View {
         HStack(spacing: 8) {
@@ -490,19 +533,38 @@ struct CalendarWidgetView: View {
                 LazyVGrid(columns: Array(repeating: GridItem(.fixed(22), spacing: 1), count: 7), spacing: 1) {
                     ForEach(calendarDays.prefix(42), id: \.self) { day in
                         if day > 0 {
-                            ZStack {
-                                if day == currentDay {
-                                    Circle()
-                                        .fill(Color(hex: entry.highlightColor))
-                                        .frame(width: 20, height: 20)
+                            if day == currentDay {
+                                if isClearBackground {
+                                    ZStack {
+                                        Text("\(day)")
+                                            .font(.system(size: 11, weight: .bold))
+                                            .foregroundColor(Color(hex: entry.fontColor))
+                                        Circle()
+                                            .stroke(Color(hex: entry.highlightColor), lineWidth: 2)
+                                            .frame(width: 20, height: 20)
+                                    }
+                                    .frame(width: 22, height: 20)
+                                } else {
+                                    ZStack {
+                                        Circle()
+                                            .fill(Color(hex: entry.highlightColor))
+                                            .frame(width: 20, height: 20)
+                                            .overlay(
+                                                Circle()
+                                                    .stroke(Color.black.opacity(0.15), lineWidth: 0.8)
+                                            )
+                                        Text("\(day)")
+                                            .font(.system(size: 11, weight: .bold))
+                                            .foregroundColor(isHighlightLight ? Color.black.opacity(0.9) : .white)
+                                    }
+                                    .frame(width: 22, height: 20)
                                 }
-                                
+                            } else {
                                 Text("\(day)")
-                                    .font(.system(size: 11, weight: day == currentDay ? .bold : .medium))
-                                    .foregroundColor(day == currentDay ? .white :
-                                                   (isWeekend(day: day) ? Color(hex: entry.fontColor).opacity(0.5) : Color(hex: entry.fontColor)))
+                                    .font(.system(size: 11, weight: .medium))
+                                    .foregroundColor(isWeekend(day: day) ? Color(hex: entry.fontColor).opacity(0.5) : Color(hex: entry.fontColor))
+                                    .frame(width: 22, height: 20)
                             }
-                            .frame(width: 22, height: 20)
                         } else {
                             Color.clear
                                 .frame(width: 22, height: 20)
@@ -515,8 +577,6 @@ struct CalendarWidgetView: View {
         .padding(.horizontal, 14)
         .padding(.vertical, 12)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color(hex: entry.backgroundColor))
-        .clipped()
     }
     
     // MARK: - Computed Properties
@@ -609,7 +669,12 @@ struct CalendarWidget: Widget {
             if #available(iOS 17.0, *) {
                 CalendarWidgetView(entry: entry)
                     .containerBackground(for: .widget) {
-                        Color(hex: entry.backgroundColor)
+                        let hex = entry.backgroundColor.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
+                        if hex == "00000000" || hex.lowercased() == "clear" {
+                            Color.clear
+                        } else {
+                            Color(hex: entry.backgroundColor)
+                        }
                     }
             } else {
                 CalendarWidgetView(entry: entry)
