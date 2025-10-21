@@ -206,7 +206,7 @@ struct RocketLauncherWidget: Widget {
                     .containerBackground(for: .widget) {
                         let hex = entry.backgroundColor.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
                         if hex == "00000000" || hex.lowercased() == "clear" {
-                            Color.clear
+                            Color.black.opacity(0.95)
                         } else {
                             Color(hex: entry.backgroundColor)
                         }
@@ -230,7 +230,7 @@ struct RocketLauncherWidget2: Widget {
                     .containerBackground(for: .widget) {
                         let hex = entry.backgroundColor.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
                         if hex == "00000000" || hex.lowercased() == "clear" {
-                            Color.clear
+                            Color.black.opacity(0.95)
                         } else {
                             Color(hex: entry.backgroundColor)
                         }
@@ -254,7 +254,7 @@ struct RocketLauncherWidget3: Widget {
                     .containerBackground(for: .widget) {
                         let hex = entry.backgroundColor.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
                         if hex == "00000000" || hex.lowercased() == "clear" {
-                            Color.clear
+                            Color.black.opacity(0.95)
                         } else {
                             Color(hex: entry.backgroundColor)
                         }
@@ -278,7 +278,7 @@ struct RocketLauncherWidget4: Widget {
                     .containerBackground(for: .widget) {
                         let hex = entry.backgroundColor.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
                         if hex == "00000000" || hex.lowercased() == "clear" {
-                            Color.clear
+                            Color.black.opacity(0.95)
                         } else {
                             Color(hex: entry.backgroundColor)
                         }
@@ -300,7 +300,12 @@ struct RocketLauncherWidget5: Widget {
             if #available(iOS 17.0, *) {
                 LauncherWidgetEntryView(entry: entry)
                     .containerBackground(for: .widget) {
-                        Color(hex: entry.backgroundColor)
+                        let hex = entry.backgroundColor.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
+                        if hex == "00000000" || hex.lowercased() == "clear" {
+                            Color.black.opacity(0.95)
+                        } else {
+                            Color(hex: entry.backgroundColor)
+                        }
                     }
             } else {
                 LauncherWidgetEntryView(entry: entry)
@@ -671,7 +676,7 @@ struct CalendarWidget: Widget {
                     .containerBackground(for: .widget) {
                         let hex = entry.backgroundColor.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
                         if hex == "00000000" || hex.lowercased() == "clear" {
-                            Color.clear
+                            Color.black.opacity(0.95)
                         } else {
                             Color(hex: entry.backgroundColor)
                         }
