@@ -57,7 +57,7 @@ struct LauncherProvider: TimelineProvider {
         }
         let color = userDefaults?.string(forKey: "WidgetBackgroundColor") ?? "#242424"
         let fontColor = userDefaults?.string(forKey: "WidgetFontColor") ?? "#FFFFFF"
-        let lineSpacing = userDefaults?.object(forKey: "WidgetLineSpacing") as? Double ?? 0
+        let lineSpacing = userDefaults?.object(forKey: "WidgetLineSpacing") as? Double ?? -0.5
         let alignmentRaw = userDefaults?.string(forKey: "WidgetTextAlignment") ?? "leading"
         let textAlignment: TextAlignment = {
             switch alignmentRaw {
@@ -103,14 +103,14 @@ struct LauncherWidgetEntryView: View {
                         if !app.name.isEmpty && !app.urlScheme.isEmpty {
                             Link(destination: URL(string: "rocketlauncher://launch?scheme=\(app.urlScheme.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "")")!) {
                                 HStack(spacing: 8) {
-                                    if entry.iconsEnabled, (app.showIcon ?? false), let image = loadIconImage(fileName: app.iconFileName) {
-                                        Image(uiImage: image)
-                                            .resizable()
-                                            .interpolation(.high)
-                                            .aspectRatio(contentMode: .fit)
-                                            .frame(width: 30, height: 30)
-                                            .cornerRadius(8)
-                                    }
+                                     if entry.iconsEnabled, (app.showIcon ?? false), let image = loadIconImage(fileName: app.iconFileName) {
+                                         Image(uiImage: image)
+                                             .resizable()
+                                             .interpolation(.high)
+                                             .aspectRatio(contentMode: .fit)
+                                             .frame(width: 30, height: 30)
+                                             .clipShape(RoundedRectangle(cornerRadius: 6.5))
+                                     }
                                     Text(app.name)
                                         .font(getCustomFont(name: entry.fontName, size: 36, weight: .bold))
                                         .foregroundColor(Color(hex: entry.fontColor))
@@ -356,7 +356,7 @@ struct CustomLauncherProvider: TimelineProvider {
     
     private func getSpacingAndAlignment() -> (Double, TextAlignment) {
         let userDefaults = UserDefaults(suiteName: "group.com.Robledas.rocketlauncher.Rocket-Launcher")
-        let lineSpacing = userDefaults?.object(forKey: "WidgetLineSpacing") as? Double ?? 0
+        let lineSpacing = userDefaults?.object(forKey: "WidgetLineSpacing") as? Double ?? -0.5
         let alignmentRaw = userDefaults?.string(forKey: "WidgetTextAlignment") ?? "leading"
         let textAlignment: TextAlignment = {
             switch alignmentRaw {
@@ -539,31 +539,19 @@ struct CalendarWidgetView: View {
                     ForEach(calendarDays.prefix(42), id: \.self) { day in
                         if day > 0 {
                             if day == currentDay {
-                                if isClearBackground {
-                                    ZStack {
-                                        Text("\(day)")
-                                            .font(.system(size: 11, weight: .bold))
-                                            .foregroundColor(Color(hex: entry.fontColor))
-                                        Circle()
-                                            .stroke(Color(hex: entry.highlightColor), lineWidth: 2)
-                                            .frame(width: 20, height: 20)
-                                    }
-                                    .frame(width: 22, height: 20)
-                                } else {
-                                    ZStack {
-                                        Circle()
-                                            .fill(Color(hex: entry.highlightColor))
-                                            .frame(width: 20, height: 20)
-                                            .overlay(
-                                                Circle()
-                                                    .stroke(Color.black.opacity(0.15), lineWidth: 0.8)
-                                            )
-                                        Text("\(day)")
-                                            .font(.system(size: 11, weight: .bold))
-                                            .foregroundColor(isHighlightLight ? Color.black.opacity(0.9) : .white)
-                                    }
-                                    .frame(width: 22, height: 20)
+                                ZStack {
+                                    Circle()
+                                        .fill(Color(hex: entry.highlightColor))
+                                        .frame(width: 20, height: 20)
+                                        .overlay(
+                                            Circle()
+                                                .stroke(Color.black.opacity(0.15), lineWidth: 0.8)
+                                        )
+                                    Text("\(day)")
+                                        .font(.system(size: 11, weight: .bold))
+                                        .foregroundColor(isHighlightLight ? Color.black.opacity(0.9) : .white)
                                 }
+                                .frame(width: 22, height: 20)
                             } else {
                                 Text("\(day)")
                                     .font(.system(size: 11, weight: .medium))
