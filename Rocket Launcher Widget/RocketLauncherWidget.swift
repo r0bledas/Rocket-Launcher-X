@@ -91,6 +91,41 @@ struct LauncherProvider: TimelineProvider {
 struct LauncherWidgetEntryView: View {
     let entry: LauncherEntry
     
+    // Detect if iOS Display Zoom is enabled
+    private var isDisplayZoomed: Bool {
+        let screen = UIScreen.main
+        return screen.scale != screen.nativeScale
+    }
+    
+    // Dynamic sizes based on display zoom (9.5% reduction when zoomed)
+    private var appFontSize: CGFloat {
+        isDisplayZoomed ? 32.58 : 36
+    }
+    
+    private var iconSize: CGFloat {
+        isDisplayZoomed ? 27.15 : 30
+    }
+    
+    private var iconCornerRadius: CGFloat {
+        isDisplayZoomed ? 5.8825 : 6.5
+    }
+    
+    private var horizontalPadding: CGFloat {
+        isDisplayZoomed ? 21.72 : 24
+    }
+    
+    private var iconSpacing: CGFloat {
+        isDisplayZoomed ? 7.24 : 8
+    }
+    
+    private var verticalPadding: CGFloat {
+        isDisplayZoomed ? 1.3575 : 1.5
+    }
+    
+    private var leadingAdjustment: CGFloat {
+        isDisplayZoomed ? -13.575 : -15
+    }
+    
     private var emptyStateView: some View {
                 Text("👻")
                     .font(.system(size: 60))
@@ -102,21 +137,21 @@ struct LauncherWidgetEntryView: View {
             ForEach(Array(entry.apps.prefix(8).enumerated()), id: \.offset) { idx, app in
                         if !app.name.isEmpty && !app.urlScheme.isEmpty {
                             Link(destination: URL(string: "rocketlauncher://launch?scheme=\(app.urlScheme.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "")")!) {
-                                HStack(spacing: 8) {
+                                HStack(spacing: iconSpacing) {
                                      if entry.iconsEnabled, (app.showIcon ?? false), let image = loadIconImage(fileName: app.iconFileName) {
                                          Image(uiImage: image)
                                              .resizable()
                                              .interpolation(.high)
                                              .aspectRatio(contentMode: .fit)
-                                             .frame(width: 30, height: 30)
-                                             .clipShape(RoundedRectangle(cornerRadius: 6.5))
+                                             .frame(width: iconSize, height: iconSize)
+                                             .clipShape(RoundedRectangle(cornerRadius: iconCornerRadius))
                                      }
                                     Text(app.name)
-                                        .font(getCustomFont(name: entry.fontName, size: 36, weight: .bold))
+                                        .font(getCustomFont(name: entry.fontName, size: appFontSize, weight: .bold))
                                         .foregroundColor(Color(hex: entry.fontColor))
                                         .frame(maxWidth: .infinity, alignment: frameAlignmentFor(entry.textAlignment))
                                         .multilineTextAlignment(entry.textAlignment)
-                                        .padding(.vertical, 1.5)
+                                        .padding(.vertical, verticalPadding)
                                 }
                             }
                             .buttonStyle(PlainButtonStyle())
@@ -124,8 +159,8 @@ struct LauncherWidgetEntryView: View {
                         }
                     }
                 }
-                .padding(24)
-                .padding(.leading, (entry.textAlignment == .leading && entry.iconsEnabled && entry.apps.contains { $0.showIcon ?? false }) ? -15 : 0)
+                .padding(horizontalPadding)
+                .padding(.leading, (entry.textAlignment == .leading && entry.iconsEnabled && entry.apps.contains { $0.showIcon ?? false }) ? leadingAdjustment : 0)
     }
     
     var body: some View {
@@ -376,6 +411,7 @@ struct CalendarEntry: TimelineEntry {
     let backgroundColor: String
     let fontColor: String
     let highlightColor: String
+    let overrideDay: Int? // For dev beta edge day testing
 }
 
 struct CalendarProvider: TimelineProvider {
@@ -384,7 +420,8 @@ struct CalendarProvider: TimelineProvider {
             date: Date(),
             backgroundColor: getCalendarBackgroundColor(),
             fontColor: getCalendarFontColor(),
-            highlightColor: getCalendarHighlightColor()
+            highlightColor: getCalendarHighlightColor(),
+            overrideDay: nil
         )
     }
     
@@ -393,7 +430,8 @@ struct CalendarProvider: TimelineProvider {
             date: Date(),
             backgroundColor: getCalendarBackgroundColor(),
             fontColor: getCalendarFontColor(),
-            highlightColor: getCalendarHighlightColor()
+            highlightColor: getCalendarHighlightColor(),
+            overrideDay: getEdgeDayIfEnabled()
         )
         completion(entry)
     }
@@ -405,12 +443,16 @@ struct CalendarProvider: TimelineProvider {
         // Create entries for current time and next few hours
         var entries: [CalendarEntry] = []
         
+        // Get edge day once for this timeline
+        let edgeDay = getEdgeDayIfEnabled()
+        
         // Current entry
         let currentEntry = CalendarEntry(
             date: now,
             backgroundColor: getCalendarBackgroundColor(),
             fontColor: getCalendarFontColor(),
-            highlightColor: getCalendarHighlightColor()
+            highlightColor: getCalendarHighlightColor(),
+            overrideDay: edgeDay
         )
         entries.append(currentEntry)
         
@@ -421,7 +463,8 @@ struct CalendarProvider: TimelineProvider {
                     date: futureDate,
                     backgroundColor: getCalendarBackgroundColor(),
                     fontColor: getCalendarFontColor(),
-                    highlightColor: getCalendarHighlightColor()
+                    highlightColor: getCalendarHighlightColor(),
+                    overrideDay: edgeDay
                 )
                 entries.append(entry)
             }
@@ -449,6 +492,40 @@ struct CalendarProvider: TimelineProvider {
     private func getCalendarHighlightColor() -> String {
         let userDefaults = UserDefaults(suiteName: "group.com.Robledas.rocketlauncher.Rocket-Launcher")
         return userDefaults?.string(forKey: "CalendarHighlightColor") ?? "#FF3B30"
+    }
+    
+    private func getEdgeDayIfEnabled() -> Int? {
+        let userDefaults = UserDefaults(suiteName: "group.com.Robledas.rocketlauncher.Rocket-Launcher")
+        let isEnabled = userDefaults?.bool(forKey: "CalendarEdgeDayTesting") ?? false
+        
+        guard isEnabled else { return nil }
+        
+        // Get edge days for current month (only left/right edges)
+        let now = Date()
+        let calendar = Calendar.current
+        guard let range = calendar.range(of: .day, in: .month, for: now),
+              let firstDayOfMonth = calendar.date(from: calendar.dateComponents([.year, .month], from: now)) else {
+            return nil
+        }
+        
+        let numberOfDays = range.count
+        
+        // Only collect days that are on left edge (Sundays) or right edge (Saturdays)
+        var edgeDays: [Int] = []
+        
+        for day in 1...numberOfDays {
+            if let dayDate = calendar.date(byAdding: .day, value: day - 1, to: firstDayOfMonth) {
+                let weekday = calendar.component(.weekday, from: dayDate)
+                // Left edge: Sunday (weekday = 1)
+                // Right edge: Saturday (weekday = 7)
+                if weekday == 1 || weekday == 7 {
+                    edgeDays.append(day)
+                }
+            }
+        }
+        
+        // Pick a random edge day from left or right columns
+        return edgeDays.randomElement() ?? 1
     }
 }
 
@@ -606,7 +683,11 @@ struct CalendarWidgetView: View {
     }
     
     private var currentDay: Int {
-        calendar.component(.day, from: entry.date)
+        // Use override day if dev beta testing is enabled
+        if let overrideDay = entry.overrideDay {
+            return overrideDay
+        }
+        return calendar.component(.day, from: entry.date)
     }
     
     private var calendarDays: [Int] {
@@ -682,7 +763,470 @@ struct CalendarWidget: Widget {
 #Preview(as: .systemMedium) {
     CalendarWidget()
 } timeline: {
-    CalendarEntry(date: Date(), backgroundColor: "#242424", fontColor: "#FFFFFF", highlightColor: "#FF3B30")
+    CalendarEntry(date: Date(), backgroundColor: "#242424", fontColor: "#FFFFFF", highlightColor: "#FF3B30", overrideDay: nil)
+}
+
+// MARK: - Day Counter Widget (Left side of calendar)
+
+struct DayCounterWidget: Widget {
+    let kind: String = "DayCounterWidget"
+    
+    var body: some WidgetConfiguration {
+        StaticConfiguration(kind: kind, provider: CalendarProvider()) { entry in
+            if #available(iOS 17.0, *) {
+                DayCounterWidgetView(entry: entry)
+                    .containerBackground(for: .widget) {
+                        let hex = entry.backgroundColor.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
+                        if hex == "00000000" || hex.lowercased() == "clear" {
+                            Color.black.opacity(0.95)
+                        } else {
+                            Color(hex: entry.backgroundColor)
+                        }
+                    }
+            } else {
+                DayCounterWidgetView(entry: entry)
+            }
+        }
+        .configurationDisplayName("Day Counter")
+        .description("Displays the current day number, date, and day of year.")
+        .supportedFamilies([.systemSmall])
+    }
+}
+
+struct DayCounterWidgetView: View {
+    let entry: CalendarEntry
+    
+    private let dateFormatter = DateFormatter()
+    
+    // Detect if iOS Display Zoom is enabled
+    private var isDisplayZoomed: Bool {
+        let screen = UIScreen.main
+        return screen.scale != screen.nativeScale
+    }
+    
+    // Dynamic sizes based on display zoom (4% increase when zoomed, 20% increase in standard)
+    private var dayNumberFontSize: CGFloat {
+        isDisplayZoomed ? 93.6 : 108
+    }
+    
+    private var dateFontSize: CGFloat {
+        isDisplayZoomed ? 16.64 : 19.2
+    }
+    
+    private var dayOfYearFontSize: CGFloat {
+        isDisplayZoomed ? 14.56 : 16.8
+    }
+    
+    private var verticalSpacing: CGFloat {
+        isDisplayZoomed ? 8.32 : 9.6
+    }
+    
+    private var horizontalPadding: CGFloat {
+        isDisplayZoomed ? 12.48 : 14.4
+    }
+    
+    private var verticalPadding: CGFloat {
+        isDisplayZoomed ? 8.32 : 9.6
+    }
+    
+    var body: some View {
+        VStack(spacing: verticalSpacing) {
+            // Large day number - centered and bigger
+            Text(dayString)
+                .font(.system(size: dayNumberFontSize, weight: .bold))
+                .foregroundColor(Color(hex: entry.fontColor))
+                .minimumScaleFactor(0.5)
+                .lineLimit(1)
+                .frame(maxWidth: .infinity, alignment: .center)
+            
+            // Full date in format: Tuesday, 12 August 2025
+            Text(fullDateString)
+                .font(.system(size: dateFontSize, weight: .medium))
+                .foregroundColor(Color(hex: entry.fontColor))
+                .lineLimit(2)
+                .minimumScaleFactor(0.8)
+                .multilineTextAlignment(.center)
+                .frame(maxWidth: .infinity, alignment: .center)
+            
+            // Day of year
+            Text(dayOfYearString)
+                .font(.system(size: dayOfYearFontSize, weight: .regular))
+                .foregroundColor(Color(hex: entry.fontColor).opacity(0.7))
+                .lineLimit(1)
+                .frame(maxWidth: .infinity, alignment: .center)
+        }
+        .padding(.horizontal, horizontalPadding)
+        .padding(.vertical, verticalPadding)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+    
+    private var dayString: String {
+        // Use override day if dev beta testing is enabled
+        if let overrideDay = entry.overrideDay {
+            return String(format: "%02d", overrideDay)
+        }
+        dateFormatter.dateFormat = "dd"
+        return dateFormatter.string(from: entry.date)
+    }
+    
+    private var fullDateString: String {
+        dateFormatter.dateFormat = "EEEE, dd MMMM yyyy"
+        return dateFormatter.string(from: entry.date)
+    }
+    
+    private var dayOfYearString: String {
+        let calendar = Calendar.current
+        let dayOfYear = calendar.ordinality(of: .day, in: .year, for: entry.date) ?? 1
+        let daysInYear = calendar.range(of: .day, in: .year, for: entry.date)?.count ?? 365
+        return "\(dayOfYear)/\(daysInYear)"
+    }
+}
+
+// MARK: - Calendar Viewer Widget (Right side of calendar)
+
+struct CalendarViewerWidget: Widget {
+    let kind: String = "CalendarViewerWidget"
+    
+    var body: some WidgetConfiguration {
+        StaticConfiguration(kind: kind, provider: CalendarProvider()) { entry in
+            if #available(iOS 17.0, *) {
+                CalendarViewerWidgetView(entry: entry)
+                    .containerBackground(for: .widget) {
+                        let hex = entry.backgroundColor.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
+                        if hex == "00000000" || hex.lowercased() == "clear" {
+                            Color.black.opacity(0.95)
+                        } else {
+                            Color(hex: entry.backgroundColor)
+                        }
+                    }
+            } else {
+                CalendarViewerWidgetView(entry: entry)
+            }
+        }
+        .configurationDisplayName("Calendar Viewer")
+        .description("Displays a mini monthly calendar grid.")
+        .supportedFamilies([.systemSmall])
+    }
+}
+
+struct CalendarViewerWidgetView: View {
+    let entry: CalendarEntry
+    
+    private let calendar = Calendar.current
+    
+    // Detect if iOS Display Zoom is enabled
+    private var isDisplayZoomed: Bool {
+        let screen = UIScreen.main
+        return screen.scale != screen.nativeScale
+    }
+    
+    // Dynamic sizes based on display zoom (16% reduction when zoomed)
+    private var headerFontSize: CGFloat {
+        isDisplayZoomed ? 11.76 : 13.72
+    }
+    
+    private var dayFontSize: CGFloat {
+        isDisplayZoomed ? 10.92 : 12.74
+    }
+    
+    private var cellWidth: CGFloat {
+        isDisplayZoomed ? 18.48 : 21.56
+    }
+    
+    private var headerCellHeight: CGFloat {
+        isDisplayZoomed ? 15.12 : 17.64
+    }
+    
+    private var dayCellHeight: CGFloat {
+        isDisplayZoomed ? 16.8 : 19.6
+    }
+    
+    private var circleSize: CGFloat {
+        isDisplayZoomed ? 16.8 : 19.6
+    }
+    
+    private var isHighlightLight: Bool {
+        let hex = entry.highlightColor.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
+        var int: UInt64 = 0
+        Scanner(string: hex).scanHexInt64(&int)
+        let r, g, b: Double
+        switch hex.count {
+        case 3:
+            r = Double((int >> 8) * 17);
+            g = Double((int >> 4 & 0xF) * 17);
+            b = Double((int & 0xF) * 17)
+        case 6:
+            r = Double((int >> 16) & 0xFF);
+            g = Double((int >> 8) & 0xFF);
+            b = Double(int & 0xFF)
+        case 8:
+            r = Double((int >> 16) & 0xFF);
+            g = Double((int >> 8) & 0xFF);
+            b = Double(int & 0xFF)
+        default:
+            r = 255; g = 255; b = 255
+        }
+        let luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255.0
+        return luminance > 0.7
+    }
+    
+    var body: some View {
+        VStack(spacing: 4) {
+            // Calendar header (S M T W T F S)
+            HStack(spacing: 3) {
+                ForEach(["S", "M", "T", "W", "T", "F", "S"], id: \.self) { day in
+                    Text(day)
+                        .font(.system(size: headerFontSize, weight: .medium))
+                        .foregroundColor(isWeekend(dayLetter: day) ?
+                                       Color(hex: entry.fontColor).opacity(0.4) :
+                                       Color(hex: entry.fontColor))
+                        .frame(width: cellWidth, height: headerCellHeight)
+                }
+            }
+            
+            // Calendar grid
+            LazyVGrid(columns: Array(repeating: GridItem(.fixed(cellWidth), spacing: 3), count: 7), spacing: 3) {
+                ForEach(calendarDays.prefix(42), id: \.self) { day in
+                    if day > 0 {
+                        if day == currentDay {
+                            ZStack {
+                                Circle()
+                                    .fill(Color(hex: entry.highlightColor))
+                                    .frame(width: circleSize, height: circleSize)
+                                    .overlay(
+                                        Circle()
+                                            .stroke(Color.black.opacity(0.15), lineWidth: 0.6)
+                                    )
+                                Text("\(day)")
+                                    .font(.system(size: dayFontSize, weight: .bold))
+                                    .foregroundColor(isHighlightLight ? Color.black.opacity(0.9) : .white)
+                            }
+                            .frame(width: cellWidth, height: dayCellHeight)
+                        } else {
+                            Text("\(day)")
+                                .font(.system(size: dayFontSize, weight: .medium))
+                                .foregroundColor(isWeekend(day: day) ? Color(hex: entry.fontColor).opacity(0.5) : Color(hex: entry.fontColor))
+                                .frame(width: cellWidth, height: dayCellHeight)
+                        }
+                    } else {
+                        Color.clear
+                            .frame(width: cellWidth, height: dayCellHeight)
+                    }
+                }
+            }
+        }
+        .padding(.horizontal, 8)
+        .padding(.vertical, 6)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+    
+    private var currentDay: Int {
+        // Use override day if dev beta testing is enabled
+        if let overrideDay = entry.overrideDay {
+            return overrideDay
+        }
+        return calendar.component(.day, from: entry.date)
+    }
+    
+    private var calendarDays: [Int] {
+        guard let range = calendar.range(of: .day, in: .month, for: entry.date),
+              let firstDayOfMonth = calendar.date(from: calendar.dateComponents([.year, .month], from: entry.date)) else {
+            return []
+        }
+        
+        let firstWeekday = calendar.component(.weekday, from: firstDayOfMonth)
+        let numberOfDays = range.count
+        
+        var days: [Int] = []
+        
+        // Add empty days for the beginning of the month
+        for _ in 1..<firstWeekday {
+            days.append(0)
+        }
+        
+        // Add actual days
+        for day in 1...numberOfDays {
+            days.append(day)
+        }
+        
+        // Pad to complete weeks (42 total cells = 6 weeks * 7 days)
+        while days.count < 42 {
+            days.append(0)
+        }
+        
+        return days
+    }
+    
+    private func isWeekend(dayLetter: String) -> Bool {
+        return dayLetter == "S" // Both Sunday and Saturday start with S
+    }
+    
+    private func isWeekend(day: Int) -> Bool {
+        guard day > 0,
+              let date = calendar.date(from: calendar.dateComponents([.year, .month], from: entry.date)),
+              let dayDate = calendar.date(byAdding: .day, value: day - 1, to: date) else {
+            return false
+        }
+        
+        let weekday = calendar.component(.weekday, from: dayDate)
+        return weekday == 1 || weekday == 7 // Sunday = 1, Saturday = 7
+    }
+}
+
+// MARK: - Flip Clock Widget
+
+struct FlipClockEntry: TimelineEntry {
+    let date: Date
+    let backgroundColor: String
+    let fontColor: String
+    let highlightColor: String
+}
+
+struct FlipClockProvider: TimelineProvider {
+    func placeholder(in context: Context) -> FlipClockEntry {
+        FlipClockEntry(
+            date: Date(),
+            backgroundColor: getFlipClockBackgroundColor(),
+            fontColor: getFlipClockFontColor(),
+            highlightColor: getFlipClockHighlightColor()
+        )
+    }
+    
+    func getSnapshot(in context: Context, completion: @escaping (FlipClockEntry) -> ()) {
+        let entry = FlipClockEntry(
+            date: Date(),
+            backgroundColor: getFlipClockBackgroundColor(),
+            fontColor: getFlipClockFontColor(),
+            highlightColor: getFlipClockHighlightColor()
+        )
+        completion(entry)
+    }
+    
+    func getTimeline(in context: Context, completion: @escaping (Timeline<FlipClockEntry>) -> ()) {
+        let now = Date()
+        let calendar = Calendar.current
+        
+        // Create entries for every 0.5 second for the next minute
+        var entries: [FlipClockEntry] = []
+        
+        for secondOffset in 0..<120 { // 60 seconds * 2 = 0.5s intervals
+            let timeOffset = Double(secondOffset) * 0.5
+            if let futureDate = calendar.date(byAdding: .second, value: Int(timeOffset), to: now) {
+                let entry = FlipClockEntry(
+                    date: futureDate,
+                    backgroundColor: getFlipClockBackgroundColor(),
+                    fontColor: getFlipClockFontColor(),
+                    highlightColor: getFlipClockHighlightColor()
+                )
+                entries.append(entry)
+            }
+        }
+        
+        // Schedule the next major update at the next minute
+        let currentMinute = calendar.dateInterval(of: .minute, for: now)?.start ?? now
+        let nextMinute = calendar.date(byAdding: .minute, value: 1, to: currentMinute)!
+        let timeline = Timeline(entries: entries, policy: .after(nextMinute))
+        completion(timeline)
+    }
+    
+    private func getFlipClockBackgroundColor() -> String {
+        let userDefaults = UserDefaults(suiteName: "group.com.Robledas.rocketlauncher.Rocket-Launcher")
+        return userDefaults?.string(forKey: "WidgetBackgroundColor") ?? "#242424"
+    }
+    
+    private func getFlipClockFontColor() -> String {
+        let userDefaults = UserDefaults(suiteName: "group.com.Robledas.rocketlauncher.Rocket-Launcher")
+        return userDefaults?.string(forKey: "WidgetFontColor") ?? "#FFFFFF"
+    }
+    
+    private func getFlipClockHighlightColor() -> String {
+        let userDefaults = UserDefaults(suiteName: "group.com.Robledas.rocketlauncher.Rocket-Launcher")
+        return userDefaults?.string(forKey: "CalendarHighlightColor") ?? "#FF3B30"
+    }
+}
+
+struct FlipClockWidget: Widget {
+    let kind: String = "FlipClockWidget"
+    
+    var body: some WidgetConfiguration {
+        StaticConfiguration(kind: kind, provider: FlipClockProvider()) { entry in
+            if #available(iOS 17.0, *) {
+                FlipClockWidgetView(entry: entry)
+                    .containerBackground(for: .widget) {
+                        let hex = entry.backgroundColor.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
+                        if hex == "00000000" || hex.lowercased() == "clear" {
+                            Color.black.opacity(0.95)
+                        } else {
+                            Color(hex: entry.backgroundColor)
+                        }
+                    }
+            } else {
+                FlipClockWidgetView(entry: entry)
+            }
+        }
+        .configurationDisplayName("Flip Clock")
+        .description("Displays the current time with Apple-style flip animation.")
+        .supportedFamilies([.systemSmall])
+    }
+}
+
+struct FlipClockWidgetView: View {
+    let entry: FlipClockEntry
+    @State private var previousTime = ""
+
+    var body: some View {
+        GeometryReader { geo in
+            let currentTime = timeString(from: entry.date)
+            let components = currentTime.split(separator: ":")
+            let hours = components.first ?? "00"
+            let minutes = components.count > 1 ? components[1] : "00"
+            let dynamicFontSize = min(geo.size.width, geo.size.height) * 0.4
+
+            // Compute blinking colon based on seconds
+            let seconds = Calendar.current.component(.second, from: entry.date)
+            let showColon = seconds % 2 == 0
+
+            HStack(spacing: 4) {
+                FlipText(text: String(hours), color: entry.fontColor, fontSize: dynamicFontSize)
+
+                Text(":")
+                    .font(.system(size: dynamicFontSize, weight: .medium, design: .monospaced))
+                    .foregroundColor(Color(hex: entry.fontColor))
+                    .opacity(showColon ? 1 : 0)
+
+                FlipText(text: String(minutes), color: entry.fontColor, fontSize: dynamicFontSize)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+            .onChange(of: entry.date) {
+                withAnimation(.easeInOut(duration: 0.6)) {
+                    previousTime = currentTime
+                }
+            }
+        }
+    }
+
+    private func timeString(from date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "HH:mm"
+        return formatter.string(from: date)
+    }
+}
+
+struct FlipText: View {
+    let text: String
+    let color: String
+    var fontSize: CGFloat
+
+    var body: some View {
+        Text(text)
+            .font(.system(size: fontSize, weight: .medium, design: .monospaced))
+            .foregroundColor(Color(hex: color))
+            .minimumScaleFactor(0.5)
+            .lineLimit(1)
+            .rotation3DEffect(.degrees(10), axis: (x: 1, y: 0, z: 0))
+            .shadow(color: .black.opacity(0.2), radius: 3, x: 0, y: 3)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+    }
 }
 
 // MARK: - Color Extension for Hex Support

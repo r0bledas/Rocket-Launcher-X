@@ -180,15 +180,15 @@ struct AppLauncher: Identifiable, Codable {
     let id: Int
     var name: String
     var urlScheme: String
-	var iconFileName: String? // stored in App Group container under /icons
-	var showIcon: Bool? // optional flag to enable/disable icon rendering
+    var iconFileName: String? // stored in App Group container under /icons
+    var showIcon: Bool? // optional flag to enable/disable icon rendering
     
-	init(id: Int, name: String = "", urlScheme: String = "", iconFileName: String? = nil, showIcon: Bool? = false) {
+    init(id: Int, name: String = "", urlScheme: String = "", iconFileName: String? = nil, showIcon: Bool? = false) {
         self.id = id
         self.name = name
         self.urlScheme = urlScheme
-		self.iconFileName = iconFileName
-		self.showIcon = showIcon
+        self.iconFileName = iconFileName
+        self.showIcon = showIcon
     }
 }
 
@@ -1323,8 +1323,8 @@ struct WidgetConfigurationView: View {
     @State private var lastGreen: Double = 36
     @State private var lastBlue: Double = 36
     @State private var didJustApplyWidgets = false
-	@State private var selectedAlignment: TextAlignmentOption = .leading
-	@State private var iconsEnabled: Bool = true
+    @State private var selectedAlignment: TextAlignmentOption = .leading
+    @State private var iconsEnabled: Bool = true
     @State private var iconFetchSource: IconFetchSourceOption = .itunes
     
     var body: some View {
@@ -1447,48 +1447,48 @@ struct WidgetConfigurationView: View {
                         .background(Color.gray.opacity(0.2))
                         .cornerRadius(12)
 
-						// Text Alignment
-						VStack(spacing: 12) {
-							Text("Text Alignment")
-								.font(.headline)
-								.foregroundColor(.white)
-							Picker("Alignment", selection: $selectedAlignment) {
-								Text(TextAlignmentOption.leading.label).tag(TextAlignmentOption.leading)
-								Text(TextAlignmentOption.center.label).tag(TextAlignmentOption.center)
-								Text(TextAlignmentOption.trailing.label).tag(TextAlignmentOption.trailing)
-							}
-							.pickerStyle(.segmented)
-						}
-						.padding()
-						.background(Color.gray.opacity(0.2))
-						.cornerRadius(12)
+                        // Text Alignment
+                        VStack(spacing: 12) {
+                            Text("Text Alignment")
+                                .font(.headline)
+                                .foregroundColor(.white)
+                            Picker("Alignment", selection: $selectedAlignment) {
+                                Text(TextAlignmentOption.leading.label).tag(TextAlignmentOption.leading)
+                                Text(TextAlignmentOption.center.label).tag(TextAlignmentOption.center)
+                                Text(TextAlignmentOption.trailing.label).tag(TextAlignmentOption.trailing)
+                            }
+                            .pickerStyle(.segmented)
+                        }
+                        .padding()
+                        .background(Color.gray.opacity(0.2))
+                        .cornerRadius(12)
                         
-						// Global Icons Toggle
-						VStack(spacing: 12) {
-							Toggle("Show Icons in Widgets", isOn: $iconsEnabled)
-								.toggleStyle(SwitchToggleStyle(tint: .green))
-								.foregroundColor(.white)
-						}
-						.padding()
-						.background(Color.gray.opacity(0.2))
-						.cornerRadius(12)
+                        // Global Icons Toggle
+                        VStack(spacing: 12) {
+                            Toggle("Show Icons in Widgets", isOn: $iconsEnabled)
+                                .toggleStyle(SwitchToggleStyle(tint: .green))
+                                .foregroundColor(.white)
+                        }
+                        .padding()
+                        .background(Color.gray.opacity(0.2))
+                        .cornerRadius(12)
 
-						// Icon Source Picker
-						VStack(spacing: 12) {
-							Text("Icon Source")
-								.font(.headline)
-								.foregroundColor(.white)
-							Picker("Icon Source", selection: $iconFetchSource) {
-								Text(IconFetchSourceOption.itunes.label).tag(IconFetchSourceOption.itunes)
-								Text(IconFetchSourceOption.iconfinder.label).tag(IconFetchSourceOption.iconfinder)
-							}
-							.pickerStyle(.segmented)
-						}
-						.padding()
-						.background(Color.gray.opacity(0.2))
-						.cornerRadius(12)
+                        // Icon Source Picker
+                        VStack(spacing: 12) {
+                            Text("Icon Source")
+                                .font(.headline)
+                                .foregroundColor(.white)
+                            Picker("Icon Source", selection: $iconFetchSource) {
+                                Text(IconFetchSourceOption.itunes.label).tag(IconFetchSourceOption.itunes)
+                                Text(IconFetchSourceOption.iconfinder.label).tag(IconFetchSourceOption.iconfinder)
+                            }
+                            .pickerStyle(.segmented)
+                        }
+                        .padding()
+                        .background(Color.gray.opacity(0.2))
+                        .cornerRadius(12)
 
-						// Apply Button
+                        // Apply Button
                         Button(action: {
                             UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
                             applyColorToWidgets()
@@ -1567,8 +1567,8 @@ struct WidgetConfigurationView: View {
     private func applyColorToWidgets() {
         let userDefaults = UserDefaults(suiteName: appGroupID)
         userDefaults?.set(backgroundColor, forKey: "WidgetBackgroundColor")
-		userDefaults?.set(selectedAlignment.rawValue, forKey: "WidgetTextAlignment")
-		userDefaults?.set(iconsEnabled, forKey: "WidgetIconsEnabled")
+        userDefaults?.set(selectedAlignment.rawValue, forKey: "WidgetTextAlignment")
+        userDefaults?.set(iconsEnabled, forKey: "WidgetIconsEnabled")
         userDefaults?.set(iconFetchSource.rawValue, forKey: "IconFetchSource")
         userDefaults?.synchronize()
     }
@@ -1580,13 +1580,13 @@ struct WidgetConfigurationView: View {
         let sanitized = sanitizeHexInput(savedBackgroundColor)
         backgroundColor = "#" + sanitized
         customHexInput = sanitized
-		if let alignmentRaw = userDefaults?.string(forKey: "WidgetTextAlignment"),
-		   let option = TextAlignmentOption(rawValue: alignmentRaw) {
-			selectedAlignment = option
-		} else {
-			selectedAlignment = .leading
-		}
-		iconsEnabled = userDefaults?.bool(forKey: "WidgetIconsEnabled") ?? true
+        if let alignmentRaw = userDefaults?.string(forKey: "WidgetTextAlignment"),
+           let option = TextAlignmentOption(rawValue: alignmentRaw) {
+            selectedAlignment = option
+        } else {
+            selectedAlignment = .leading
+        }
+        iconsEnabled = userDefaults?.bool(forKey: "WidgetIconsEnabled") ?? true
         if let sourceRaw = userDefaults?.string(forKey: "IconFetchSource"),
            let source = IconFetchSourceOption(rawValue: sourceRaw) {
             iconFetchSource = source
@@ -1715,7 +1715,7 @@ struct LauncherSlotView: View {
     // Removed per-slot icon UI to reduce clutter
 
     var body: some View {
-		HStack(alignment: .top, spacing: 12) {
+        HStack(alignment: .top, spacing: 12) {
             VStack(alignment: .leading, spacing: 4) {
                 Text("App Slot #\(slotNumber)")
                     .font(.headline)
@@ -1727,7 +1727,7 @@ struct LauncherSlotView: View {
                     .keyboardType(.URL)
                     .autocapitalization(.none)
                     .disableAutocorrection(true)
-				HStack(spacing: 16) {
+                HStack(spacing: 16) {
                     Button(action: {
                         UIImpactFeedbackGenerator(style: .light).impactOccurred()
                         let trimmed = launcher.urlScheme.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -1764,8 +1764,8 @@ struct LauncherSlotView: View {
                             UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
                             launcher.name = ""
                             launcher.urlScheme = ""
-							launcher.iconFileName = nil
-							launcher.showIcon = false
+                            launcher.iconFileName = nil
+                            launcher.showIcon = false
                             confirmClear = false
                         } else {
                             UIImpactFeedbackGenerator(style: .medium).impactOccurred()
@@ -1819,6 +1819,31 @@ struct SettingsView: View {
     // Confirmation state for clear and reset button
     @State private var confirmClearAndReset = false
     
+    // Display zoom detection
+    private var displayZoomStatus: String {
+        let screen = UIScreen.main
+        let scale = screen.scale
+        let nativeScale = screen.nativeScale
+        
+        if scale != nativeScale {
+            return "Zoomed (Larger)"
+        } else {
+            return "Standard"
+        }
+    }
+    
+    private var screenSizeInfo: String {
+        let bounds = UIScreen.main.bounds
+        return String(format: "%.0f×%.0f pt", bounds.width, bounds.height)
+    }
+    
+    private var scaleInfo: String {
+        let screen = UIScreen.main
+        let scale = screen.scale
+        let nativeScale = screen.nativeScale
+        return String(format: "%.0f/%.0f", scale, nativeScale)
+    }
+    
     var body: some View {
         NavigationView {
             Form {
@@ -1866,6 +1891,39 @@ struct SettingsView: View {
                     Text("Backup and restore your widget app configurations in JSON format")
                         .font(.caption)
                         .foregroundColor(.secondary)
+                }
+                
+                Section(header: Text("DEV BETA").font(.headline)) {
+                    Toggle("Calendar Edge Day Testing", isOn: Binding(
+                        get: {
+                            let userDefaults = UserDefaults(suiteName: appGroupID)
+                            return userDefaults?.bool(forKey: "CalendarEdgeDayTesting") ?? false
+                        },
+                        set: { newValue in
+                            let userDefaults = UserDefaults(suiteName: appGroupID)
+                            userDefaults?.set(newValue, forKey: "CalendarEdgeDayTesting")
+                            UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                            // Refresh widgets to apply change
+                            WidgetCenter.shared.reloadAllTimelines()
+                        }
+                    ))
+                    
+                    Text("Always show the active day circle at left edge (Sundays) or right edge (Saturdays) for testing widget layout at column edges")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    
+                    // Display Zoom Info
+                    VStack(alignment: .leading, spacing: 4) {
+                        HStack {
+                            Text("iOS Display Zoom")
+                            Spacer()
+                            Text(displayZoomStatus)
+                                .foregroundColor(.secondary)
+                        }
+                        Text("Screen: \(screenSizeInfo) • Scale: \(scaleInfo)")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
                 }
                 
                 Section(header: Text("ABOUT").font(.headline)) {
