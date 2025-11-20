@@ -49,7 +49,7 @@ struct LauncherProvider: TimelineProvider {
         completion(timeline)
     }
     private func loadEntry() -> LauncherEntry {
-        let userDefaults = UserDefaults(suiteName: "group.com.Robledas.rocketlauncher.Rocket-Launcher")
+        let userDefaults = UserDefaults(suiteName: "group.com.robledas.rocketlauncher")
         var apps: [LauncherEntry.App] = []
         if let data = userDefaults?.data(forKey: "AppLaunchers"),
            let launchers = try? JSONDecoder().decode([AppLauncher].self, from: data) {
@@ -69,21 +69,21 @@ struct LauncherProvider: TimelineProvider {
         return LauncherEntry(date: Date(), apps: apps, backgroundColor: color, fontColor: fontColor, lineSpacing: lineSpacing, textAlignment: textAlignment, fontName: getSelectedFont(), iconsEnabled: getIconsEnabled())
     }
     private func getBackgroundColor() -> String {
-        let userDefaults = UserDefaults(suiteName: "group.com.Robledas.rocketlauncher.Rocket-Launcher")
+        let userDefaults = UserDefaults(suiteName: "group.com.robledas.rocketlauncher")
         return userDefaults?.string(forKey: "WidgetBackgroundColor") ?? "#242424"
     }
     private func getSelectedFont() -> String {
-        let userDefaults = UserDefaults(suiteName: "group.com.Robledas.rocketlauncher.Rocket-Launcher")
+        let userDefaults = UserDefaults(suiteName: "group.com.robledas.rocketlauncher")
         return userDefaults?.string(forKey: "WidgetFontName") ?? "System"
     }
     
     private func getFontColor() -> String {
-        let userDefaults = UserDefaults(suiteName: "group.com.Robledas.rocketlauncher.Rocket-Launcher")
+        let userDefaults = UserDefaults(suiteName: "group.com.robledas.rocketlauncher")
         return userDefaults?.string(forKey: "WidgetFontColor") ?? "#FFFFFF"
     }
 
     private func getIconsEnabled() -> Bool {
-        let userDefaults = UserDefaults(suiteName: "group.com.Robledas.rocketlauncher.Rocket-Launcher")
+        let userDefaults = UserDefaults(suiteName: "group.com.robledas.rocketlauncher")
         return userDefaults?.bool(forKey: "WidgetIconsEnabled") ?? true
     }
 }
@@ -206,7 +206,7 @@ private func frameAlignmentFor(_ alignment: TextAlignment) -> Alignment {
 
 // Helper to load apps for a specific widget index
 func loadAppsForWidget(widgetIndex: Int) -> [LauncherEntry.App] {
-    let userDefaults = UserDefaults(suiteName: "group.com.Robledas.rocketlauncher.Rocket-Launcher")
+    let userDefaults = UserDefaults(suiteName: "group.com.robledas.rocketlauncher")
     var apps: [LauncherEntry.App] = []
     if let data = userDefaults?.data(forKey: "AppLaunchers"),
        let launchers = try? JSONDecoder().decode([AppLauncher].self, from: data) {
@@ -221,7 +221,7 @@ func loadAppsForWidget(widgetIndex: Int) -> [LauncherEntry.App] {
 
 // MARK: - Icon loading helpers
 private func iconsDirectoryURL() -> URL? {
-    guard let container = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: "group.com.Robledas.rocketlauncher.Rocket-Launcher") else { return nil }
+    guard let container = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: "group.com.robledas.rocketlauncher") else { return nil }
     let dir = container.appendingPathComponent("icons", isDirectory: true)
     return dir
 }
@@ -371,26 +371,26 @@ struct CustomLauncherProvider: TimelineProvider {
         completion(timeline)
     }
     private func getBackgroundColor() -> String {
-        let userDefaults = UserDefaults(suiteName: "group.com.Robledas.rocketlauncher.Rocket-Launcher")
+        let userDefaults = UserDefaults(suiteName: "group.com.robledas.rocketlauncher")
         return userDefaults?.string(forKey: "WidgetBackgroundColor") ?? "#242424"
     }
     private func getSelectedFont() -> String {
-        let userDefaults = UserDefaults(suiteName: "group.com.Robledas.rocketlauncher.Rocket-Launcher")
+        let userDefaults = UserDefaults(suiteName: "group.com.robledas.rocketlauncher")
         return userDefaults?.string(forKey: "WidgetFontName") ?? "System"
     }
     
     private func getFontColor() -> String {
-        let userDefaults = UserDefaults(suiteName: "group.com.Robledas.rocketlauncher.Rocket-Launcher")
+        let userDefaults = UserDefaults(suiteName: "group.com.robledas.rocketlauncher")
         return userDefaults?.string(forKey: "WidgetFontColor") ?? "#FFFFFF"
     }
     
     private func getIconsEnabled() -> Bool {
-        let userDefaults = UserDefaults(suiteName: "group.com.Robledas.rocketlauncher.Rocket-Launcher")
+        let userDefaults = UserDefaults(suiteName: "group.com.robledas.rocketlauncher")
         return userDefaults?.bool(forKey: "WidgetIconsEnabled") ?? true
     }
     
     private func getSpacingAndAlignment() -> (Double, TextAlignment) {
-        let userDefaults = UserDefaults(suiteName: "group.com.Robledas.rocketlauncher.Rocket-Launcher")
+        let userDefaults = UserDefaults(suiteName: "group.com.robledas.rocketlauncher")
         let lineSpacing = userDefaults?.object(forKey: "WidgetLineSpacing") as? Double ?? -0.5
         let alignmentRaw = userDefaults?.string(forKey: "WidgetTextAlignment") ?? "leading"
         let textAlignment: TextAlignment = {
@@ -480,22 +480,22 @@ struct CalendarProvider: TimelineProvider {
     }
     
     private func getCalendarBackgroundColor() -> String {
-        let userDefaults = UserDefaults(suiteName: "group.com.Robledas.rocketlauncher.Rocket-Launcher")
+        let userDefaults = UserDefaults(suiteName: "group.com.robledas.rocketlauncher")
         return userDefaults?.string(forKey: "WidgetBackgroundColor") ?? "#242424"
     }
     
     private func getCalendarFontColor() -> String {
-        let userDefaults = UserDefaults(suiteName: "group.com.Robledas.rocketlauncher.Rocket-Launcher")
+        let userDefaults = UserDefaults(suiteName: "group.com.robledas.rocketlauncher")
         return userDefaults?.string(forKey: "WidgetFontColor") ?? "#FFFFFF"
     }
     
     private func getCalendarHighlightColor() -> String {
-        let userDefaults = UserDefaults(suiteName: "group.com.Robledas.rocketlauncher.Rocket-Launcher")
+        let userDefaults = UserDefaults(suiteName: "group.com.robledas.rocketlauncher")
         return userDefaults?.string(forKey: "CalendarHighlightColor") ?? "#FF3B30"
     }
     
     private func getEdgeDayIfEnabled() -> Int? {
-        let userDefaults = UserDefaults(suiteName: "group.com.Robledas.rocketlauncher.Rocket-Launcher")
+        let userDefaults = UserDefaults(suiteName: "group.com.robledas.rocketlauncher")
         let isEnabled = userDefaults?.bool(forKey: "CalendarEdgeDayTesting") ?? false
         
         guard isEnabled else { return nil }
@@ -1134,17 +1134,17 @@ struct FlipClockProvider: TimelineProvider {
     }
     
     private func getFlipClockBackgroundColor() -> String {
-        let userDefaults = UserDefaults(suiteName: "group.com.Robledas.rocketlauncher.Rocket-Launcher")
+        let userDefaults = UserDefaults(suiteName: "group.com.robledas.rocketlauncher")
         return userDefaults?.string(forKey: "WidgetBackgroundColor") ?? "#242424"
     }
     
     private func getFlipClockFontColor() -> String {
-        let userDefaults = UserDefaults(suiteName: "group.com.Robledas.rocketlauncher.Rocket-Launcher")
+        let userDefaults = UserDefaults(suiteName: "group.com.robledas.rocketlauncher")
         return userDefaults?.string(forKey: "WidgetFontColor") ?? "#FFFFFF"
     }
     
     private func getFlipClockHighlightColor() -> String {
-        let userDefaults = UserDefaults(suiteName: "group.com.Robledas.rocketlauncher.Rocket-Launcher")
+        let userDefaults = UserDefaults(suiteName: "group.com.robledas.rocketlauncher")
         return userDefaults?.string(forKey: "CalendarHighlightColor") ?? "#FF3B30"
     }
 }

@@ -15,8 +15,8 @@ import AudioToolbox
 import Network
 import WatchConnectivity
 
-// Centralized App Group ID
-let appGroupID = "group.com.Robledas.rocketlauncher"
+// Centralized App Group ID used across iOS app, widgets, and watch extensions.
+let appGroupID = "group.com.robledas.rocketlauncher"
 
 //
 
