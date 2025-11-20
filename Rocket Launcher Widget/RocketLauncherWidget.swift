@@ -804,12 +804,13 @@ struct DayCounterWidgetView: View {
         return screen.scale != screen.nativeScale
     }
     
-    // Dynamic sizes based on display zoom (4% increase when zoomed, 20% increase in standard)
+    // Dynamic sizes based on display zoom (4% increase when zoomed, tuned standard sizes)
     private var dayNumberFontSize: CGFloat {
         isDisplayZoomed ? 93.6 : 108
     }
     
     private var dateFontSize: CGFloat {
+        // Keep original visual size as requested
         isDisplayZoomed ? 16.64 : 19.2
     }
     
@@ -818,15 +819,17 @@ struct DayCounterWidgetView: View {
     }
     
     private var verticalSpacing: CGFloat {
-        isDisplayZoomed ? 8.32 : 9.6
+        // Slightly tighter spacing to give lines more vertical room overall
+        isDisplayZoomed ? 7.8 : 9.0
     }
     
     private var horizontalPadding: CGFloat {
-        isDisplayZoomed ? 12.48 : 14.4
+        // Slightly reduced horizontal padding to gain a bit more width
+        isDisplayZoomed ? 11.5 : 13.2
     }
     
     private var verticalPadding: CGFloat {
-        isDisplayZoomed ? 8.32 : 9.6
+        isDisplayZoomed ? 7.8 : 8.8
     }
     
     var body: some View {
@@ -839,12 +842,12 @@ struct DayCounterWidgetView: View {
                 .lineLimit(1)
                 .frame(maxWidth: .infinity, alignment: .center)
             
-            // Full date in format: Tuesday, 12 August 2025
+            // Full date in format: Monday, 17 November 2025
             Text(fullDateString)
                 .font(.system(size: dateFontSize, weight: .medium))
                 .foregroundColor(Color(hex: entry.fontColor))
                 .lineLimit(2)
-                .minimumScaleFactor(0.8)
+                .minimumScaleFactor(0.7)
                 .multilineTextAlignment(.center)
                 .frame(maxWidth: .infinity, alignment: .center)
             
@@ -853,6 +856,7 @@ struct DayCounterWidgetView: View {
                 .font(.system(size: dayOfYearFontSize, weight: .regular))
                 .foregroundColor(Color(hex: entry.fontColor).opacity(0.7))
                 .lineLimit(1)
+                .minimumScaleFactor(0.7)
                 .frame(maxWidth: .infinity, alignment: .center)
         }
         .padding(.horizontal, horizontalPadding)

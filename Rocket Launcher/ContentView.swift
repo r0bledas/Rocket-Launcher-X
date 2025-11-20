@@ -9,7 +9,6 @@ import SwiftUI
 import WidgetKit
 import UIKit
 import ActivityKit
-import ActivityKit
 import CoreMotion
 import UniformTypeIdentifiers
 import AudioToolbox
@@ -17,7 +16,7 @@ import Network
 import WatchConnectivity
 
 // Centralized App Group ID
-let appGroupID = "group.com.Robledas.rocketlauncher.Rocket-Launcher"
+let appGroupID = "group.com.Robledas.rocketlauncher"
 
 //
 
@@ -152,22 +151,6 @@ enum TextAlignmentOption: String, CaseIterable, Identifiable {
         case .leading: return "Left"
         case .center: return "Center"
         case .trailing: return "Right"
-        }
-    }
-}
-
-// MARK: - Icon Fetch Source Options
-
-enum IconFetchSourceOption: String, CaseIterable, Identifiable {
-    case itunes = "itunes"
-    case iconfinder = "iconfinder"
-    
-    var id: String { rawValue }
-    
-    var label: String {
-        switch self {
-        case .itunes: return "Apple"
-        case .iconfinder: return "Iconfinder"
         }
     }
 }
@@ -386,9 +369,11 @@ struct ContentView: View {
     private var mainView: some View {
         ZStack {
             VStack(spacing: 20) {
-                Image(systemName: "rocket")
-                    .font(.system(size: 60))
-                    .foregroundColor(.white)
+                Image(uiImage: UIImage(named: "AppIcon") ?? UIImage())
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 60, height: 60)
+                    .cornerRadius(13)
                 
                 Text("Rocket Launcher")
                     .font(.largeTitle)
@@ -1325,7 +1310,6 @@ struct WidgetConfigurationView: View {
     @State private var didJustApplyWidgets = false
     @State private var selectedAlignment: TextAlignmentOption = .leading
     @State private var iconsEnabled: Bool = true
-    @State private var iconFetchSource: IconFetchSourceOption = .itunes
     
     var body: some View {
         NavigationView {
@@ -1473,21 +1457,6 @@ struct WidgetConfigurationView: View {
                         .background(Color.gray.opacity(0.2))
                         .cornerRadius(12)
 
-                        // Icon Source Picker
-                        VStack(spacing: 12) {
-                            Text("Icon Source")
-                                .font(.headline)
-                                .foregroundColor(.white)
-                            Picker("Icon Source", selection: $iconFetchSource) {
-                                Text(IconFetchSourceOption.itunes.label).tag(IconFetchSourceOption.itunes)
-                                Text(IconFetchSourceOption.iconfinder.label).tag(IconFetchSourceOption.iconfinder)
-                            }
-                            .pickerStyle(.segmented)
-                        }
-                        .padding()
-                        .background(Color.gray.opacity(0.2))
-                        .cornerRadius(12)
-
                         // Apply Button
                         Button(action: {
                             UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
@@ -1569,7 +1538,6 @@ struct WidgetConfigurationView: View {
         userDefaults?.set(backgroundColor, forKey: "WidgetBackgroundColor")
         userDefaults?.set(selectedAlignment.rawValue, forKey: "WidgetTextAlignment")
         userDefaults?.set(iconsEnabled, forKey: "WidgetIconsEnabled")
-        userDefaults?.set(iconFetchSource.rawValue, forKey: "IconFetchSource")
         userDefaults?.synchronize()
     }
     
@@ -1587,12 +1555,6 @@ struct WidgetConfigurationView: View {
             selectedAlignment = .leading
         }
         iconsEnabled = userDefaults?.bool(forKey: "WidgetIconsEnabled") ?? true
-        if let sourceRaw = userDefaults?.string(forKey: "IconFetchSource"),
-           let source = IconFetchSourceOption(rawValue: sourceRaw) {
-            iconFetchSource = source
-        } else {
-            iconFetchSource = .itunes
-        }
         updateRGBFromHex()
     }
 }
@@ -1673,8 +1635,7 @@ struct WidgetLaunchersConfigView: View {
     private func bulkFetchIcons() {
         let group = DispatchGroup()
         let userDefaults = UserDefaults(suiteName: appGroupID)
-        let sourceRaw = userDefaults?.string(forKey: "IconFetchSource") ?? IconFetchSourceOption.itunes.rawValue
-        let source = IconFetchSourceOption(rawValue: sourceRaw) ?? .itunes
+        // Always use Apple (iTunes) as icon source
         for launcherIndex in store.launchers.indices {
             let name = store.launchers[launcherIndex].name.trimmingCharacters(in: .whitespacesAndNewlines)
             guard !name.isEmpty else { continue }
@@ -1690,12 +1651,7 @@ struct WidgetLaunchersConfigView: View {
                     group.leave()
                 }
             }
-            switch source {
-            case .itunes:
-                fetchIconForAppName(appName: name, completion: completion)
-            case .iconfinder:
-                fetchIconFromIconfinder(query: name, completion: completion)
-            }
+            fetchIconForAppName(appName: name, completion: completion)
         }
         group.notify(queue: .main) {
             store.save()
@@ -2319,55 +2275,6 @@ private func saveIconDataToAppGroup(data: Data, slotId: Int) -> String? {
     } catch {
         return nil
     }
-}
-
-// MARK: - Iconfinder API fetch
-private func fetchIconFromIconfinder(query: String, completion: @escaping (Result<Data, Error>) -> Void) {
-    let apiKey = "MXBBMz73Zl5XJrgGWjFe4YASi8rtkzIV0LQSYvPiunpeNWm6wmvG3ydyqHyplDrC"
-    guard let encoded = query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
-          let url = URL(string: "https://api.iconfinder.com/v4/icons/search?query=\(encoded)&count=1&premium=false") else {
-        completion(.failure(NSError(domain: "iconfinder", code: -1)))
-        return
-    }
-    var request = URLRequest(url: url)
-    request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
-    URLSession.shared.dataTask(with: request) { data, _, error in
-        if let error = error { completion(.failure(error)); return }
-        guard let data = data,
-              let json = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
-              let icons = json["icons"] as? [[String: Any]],
-              let first = icons.first,
-              let rasterSizes = first["raster_sizes"] as? [[String: Any]] else {
-            completion(.failure(NSError(domain: "iconfinder", code: -2)))
-            return
-        }
-        // Choose the largest PNG download_url
-        let sorted = rasterSizes.sorted { (a, b) -> Bool in
-            let sa = (a["size"] as? Int) ?? 0
-            let sb = (b["size"] as? Int) ?? 0
-            return sa > sb
-        }
-        for sizeEntry in sorted {
-            if let formats = sizeEntry["formats"] as? [[String: Any]] {
-                if let png = formats.first(where: { ($0["format"] as? String)?.lowercased() == "png" }),
-                   let urlStr = png["download_url"] as? String,
-                   let dlURL = URL(string: urlStr) {
-                    URLSession.shared.dataTask(with: dlURL) { imgData, _, err in
-                        if let err = err { completion(.failure(err)); return }
-                        guard let imgData = imgData else { completion(.failure(NSError(domain: "iconfinder", code: -3))); return }
-                        // ensure PNG output
-                        if let image = UIImage(data: imgData), let pngData = image.pngData() {
-                            completion(.success(pngData))
-                        } else {
-                            completion(.success(imgData))
-                        }
-                    }.resume()
-                    return
-                }
-            }
-        }
-        completion(.failure(NSError(domain: "iconfinder", code: -4)))
-    }.resume()
 }
 
 // MARK: - Config Card View
