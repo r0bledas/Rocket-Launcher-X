@@ -15,23 +15,23 @@ struct WidgetConfigurationView: View {
     @State private var blueComponent: Double = 36
     @State private var customHexInput = "#242424"
     
+    // Debounce work item
+    @State private var saveWorkItem: DispatchWorkItem?
+    
+    // App Group ID
+    let appGroupID = "group.rocketlauncher"
+    
     var body: some View {
         NavigationView {
             Form {
+                // New Full Widget Preview Section
+                Section(header: Text("Preview")) {
+                    WidgetPreviewView(backgroundColor: backgroundColor)
+                        .frame(height: 400) // Adjust height to fit content
+                        .listRowInsets(EdgeInsets()) // Remove default padding
+                }
+                
                 Section(header: Text("Background Color")) {
-                    // Color preview
-                    HStack {
-                        Text("Preview:")
-                        Spacer()
-                        RoundedRectangle(cornerRadius: 8)
-                            .fill(Color(hex: backgroundColor))
-                            .frame(width: 60, height: 40)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 8)
-                                    .stroke(Color.gray, lineWidth: 1)
-                            )
-                    }
-                    
                     // RGB Sliders
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Red: \(Int(redComponent))")
@@ -39,6 +39,7 @@ struct WidgetConfigurationView: View {
                             .accentColor(.red)
                             .onChange(of: redComponent) { _, _ in
                                 updateHexFromRGB()
+                                debouncedSave()
                             }
                     }
                     
@@ -48,6 +49,7 @@ struct WidgetConfigurationView: View {
                             .accentColor(.green)
                             .onChange(of: greenComponent) { _, _ in
                                 updateHexFromRGB()
+                                debouncedSave()
                             }
                     }
                     
@@ -57,6 +59,7 @@ struct WidgetConfigurationView: View {
                             .accentColor(.blue)
                             .onChange(of: blueComponent) { _, _ in
                                 updateHexFromRGB()
+                                debouncedSave()
                             }
                     }
                     
@@ -70,13 +73,15 @@ struct WidgetConfigurationView: View {
                                     if isValidHex(newValue) {
                                         backgroundColor = newValue
                                         updateRGBFromHex()
+                                        debouncedSave()
                                     }
                                 }
                             
-                            Button("Apply") {
+                            Button("Force Refresh") {
                                 if isValidHex(customHexInput) {
                                     backgroundColor = customHexInput
                                     updateRGBFromHex()
+                                    saveSettings()
                                 }
                             }
                             .disabled(!isValidHex(customHexInput))
@@ -90,6 +95,7 @@ struct WidgetConfigurationView: View {
                         greenComponent = 36
                         blueComponent = 36
                         customHexInput = "#242424"
+                        saveSettings()
                     }
                     .frame(maxWidth: .infinity)
                     .padding()
@@ -97,44 +103,50 @@ struct WidgetConfigurationView: View {
                     .foregroundColor(.white)
                     .cornerRadius(8)
                 }
-                
-                Section(header: Text("Widget Preview")) {
-                    // Widget preview
-                    VStack {
-                        Text("Widget Preview")
-                            .font(.headline)
-                            .padding(.bottom, 8)
-                        
-                        // Small widget preview
-                        VStack(spacing: 8) {
-                            Image(systemName: "gear")
-                                .font(.system(size: 24))
-                                .foregroundColor(.white)
-                            
-                            Text("Settings")
-                                .font(.caption)
-                                .fontWeight(.medium)
-                                .foregroundColor(.white)
-                                .multilineTextAlignment(.center)
-                        }
-                        .frame(width: 120, height: 120)
-                        .background(Color(hex: backgroundColor))
-                        .cornerRadius(16)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 16)
-                                .stroke(Color.gray, lineWidth: 1)
-                        )
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                }
             }
             .navigationTitle("Widget Configuration")
             .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Force Refresh") {
+                        saveSettings()
+                    }
+                }
+            }
         }
         .onAppear {
+            loadSettings()
+        }
+    }
+    
+    private func loadSettings() {
+        let userDefaults = UserDefaults(suiteName: appGroupID)
+        if let savedColor = userDefaults?.string(forKey: "WidgetBackgroundColor") {
+            backgroundColor = savedColor
+            customHexInput = savedColor
             updateRGBFromHex()
         }
+    }
+    
+    private func saveSettings() {
+        let userDefaults = UserDefaults(suiteName: appGroupID)
+        userDefaults?.set(backgroundColor, forKey: "WidgetBackgroundColor")
+        
+        // Reload all widgets
+        WidgetCenter.shared.reloadAllTimelines()
+        
+        // Optional: Haptic feedback
+        let generator = UINotificationFeedbackGenerator()
+        generator.notificationOccurred(.success)
+    }
+    
+    private func debouncedSave() {
+        saveWorkItem?.cancel()
+        let item = DispatchWorkItem {
+            saveSettings()
+        }
+        saveWorkItem = item
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5, execute: item)
     }
     
     private func updateHexFromRGB() {
@@ -167,6 +179,114 @@ struct WidgetConfigurationView: View {
     private func isValidHex(_ hex: String) -> Bool {
         let hexRegex = "^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$"
         return hex.range(of: hexRegex, options: .regularExpression) != nil
+    }
+}
+
+struct WidgetPreviewView: View {
+    let backgroundColor: String
+    
+    var body: some View {
+        ZStack {
+            Color(hex: backgroundColor)
+            
+            VStack(spacing: 20) {
+                // Top Section: Calendar
+                HStack(alignment: .top) {
+                    // Date Info
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("20")
+                            .font(.system(size: 60, weight: .bold))
+                            .foregroundColor(.white)
+                        
+                        Text("Thursday, 20")
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundColor(.white)
+                        Text("November 20...")
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundColor(.white)
+                        
+                        Text("324/365")
+                            .font(.system(size: 14, weight: .regular))
+                            .foregroundColor(.white.opacity(0.7))
+                            .padding(.top, 4)
+                    }
+                    
+                    Spacer()
+                    
+                    // Mini Calendar Grid
+                    VStack(spacing: 4) {
+                        // Header
+                        HStack(spacing: 4) {
+                            ForEach(["S", "M", "T", "W", "T", "F", "S"], id: \.self) { day in
+                                Text(day)
+                                    .font(.system(size: 10, weight: .bold))
+                                    .foregroundColor(.white)
+                                    .frame(width: 15)
+                            }
+                        }
+                        
+                        // Grid (Mock)
+                        ForEach(0..<5) { row in
+                            HStack(spacing: 4) {
+                                ForEach(0..<7) { col in
+                                    if row == 2 && col == 4 { // The "20th"
+                                        Circle()
+                                            .fill(Color.red)
+                                            .frame(width: 15, height: 15)
+                                            .overlay(Text("20").font(.system(size: 8)).foregroundColor(.white))
+                                    } else {
+                                        Text("\(row * 7 + col + 1)")
+                                            .font(.system(size: 8))
+                                            .foregroundColor(.white.opacity(0.8))
+                                            .frame(width: 15)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                .padding(.horizontal)
+                .padding(.top, 20)
+                
+                // Bottom Section: Apps
+                VStack(alignment: .leading, spacing: 12) {
+                    PreviewAppRow(icon: "safari", name: "Safari", color: .blue)
+                    PreviewAppRow(icon: "magnifyingglass", name: "Google", color: .green) // Approximate
+                    PreviewAppRow(icon: "phone.circle.fill", name: "WhatsApp", color: .green)
+                    PreviewAppRow(icon: "camera.fill", name: "Instagram", color: .purple) // Approximate
+                    PreviewAppRow(icon: "music.note", name: "TikTok", color: .black) // Approximate
+                    PreviewAppRow(icon: "play.rectangle.fill", name: "YouTube", color: .red)
+                    PreviewAppRow(icon: "hifispeaker.fill", name: "Spotify", color: .green)
+                    PreviewAppRow(icon: "sparkles", name: "Gemini", color: .blue)
+                }
+                .padding(.horizontal)
+                .padding(.bottom, 20)
+            }
+        }
+    }
+}
+
+struct PreviewAppRow: View {
+    let icon: String
+    let name: String
+    let color: Color
+    
+    var body: some View {
+        HStack(spacing: 12) {
+            Image(systemName: icon)
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(width: 30, height: 30)
+                .foregroundColor(color)
+                .background(Color.white)
+                .cornerRadius(8)
+            
+            Text(name)
+                .font(.system(size: 24, weight: .bold)) // Large text as per image
+                .foregroundColor(.white)
+            
+            Spacer()
+        }
     }
 }
 

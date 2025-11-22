@@ -23,7 +23,7 @@
    - ✅ Only README.md remains
 
 3. **Standardized App Group IDs**
-   - **New unified App Group ID**: `group.com.robledas.rocketlauncher`
+   - **New unified App Group ID**: `group.rocketlauncher`
    - ✅ Updated ContentView.swift (main app)
    - ✅ Updated RocketLauncherWidget.swift (all widget providers)
    - All hardcoded strings replaced with consistent lowercase format
@@ -35,17 +35,17 @@
 1. **Main iOS App Target** (`Rocket Launcher`)
    - Select target → Signing & Capabilities
    - Find App Groups capability
-   - Update to: `group.com.robledas.rocketlauncher`
+   - Update to: `group.rocketlauncher`
 
 2. **Widget Extension Target** (`Rocket Launcher Widget`)
    - Select target → Signing & Capabilities
    - Find App Groups capability
-   - Update to: `group.com.robledas.rocketlauncher`
+   - Update to: `group.rocketlauncher`
 
 3. **Watch App Target** (`Rocket Launcher Watch App`)
    - Select target → Signing & Capabilities
    - Find App Groups capability
-   - Update to: `group.com.robledas.rocketlauncher`
+   - Update to: `group.rocketlauncher`
 
 **Note**: All three targets must use the EXACT same App Group ID for data sharing to work.
 

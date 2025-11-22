@@ -13,10 +13,10 @@ import CoreMotion
 import UniformTypeIdentifiers
 import AudioToolbox
 import Network
-import WatchConnectivity
+
 
 // Centralized App Group ID used across iOS app, widgets, and watch extensions.
-let appGroupID = "group.com.robledas.rocketlauncher"
+let appGroupID = "group.rocketlauncher"
 
 //
 
@@ -199,6 +199,33 @@ class AppLauncherStore: ObservableObject {
             userDefaults?.set(encoded, forKey: "AppLaunchers")
         }
     }
+    
+    func bulkFetchIcons() {
+        let group = DispatchGroup()
+        // Always use Apple (iTunes) as icon source
+        for launcherIndex in launchers.indices {
+            let name = launchers[launcherIndex].name.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !name.isEmpty else { continue }
+            group.enter()
+            let completion: (Result<Data, Error>) -> Void = { result in
+                DispatchQueue.main.async {
+                    if case .success(let data) = result {
+                        if let fileName = saveIconDataToAppGroup(data: data, slotId: self.launchers[launcherIndex].id) {
+                            self.launchers[launcherIndex].iconFileName = fileName
+                            self.launchers[launcherIndex].showIcon = true
+                        }
+                    }
+                    group.leave()
+                }
+            }
+            fetchIconForAppName(appName: name, completion: completion)
+        }
+        group.notify(queue: .main) {
+            self.save()
+            WidgetCenter.shared.reloadAllTimelines()
+            UINotificationFeedbackGenerator().notificationOccurred(.success)
+        }
+    }
 }
 
 // MARK: - Haptics Helper
@@ -237,7 +264,7 @@ struct ContentView: View {
     // Settings button control
     @AppStorage("AlwaysShowSettingsButton", store: UserDefaults(suiteName: appGroupID)) private var alwaysShowSettingsButton: Bool = true
     // Page swiper state
-    @State private var selectedPage = 1 // Start with Rocket Launcher (center page)
+    @State private var selectedPage = 0 // Start with Rocket Launcher (main page)
     //
     
     // MultiTimeX Timer States
@@ -287,17 +314,13 @@ struct ContentView: View {
                 .ignoresSafeArea(.all, edges: .all)
             
             TabView(selection: $selectedPage) {
-                // Sales Counter Page (0) - Left Tab
-                salesCounterView
+                // Main Page (0) - Rocket Launcher (Main)
+                mainView
                     .tag(0)
                 
-                // Main Page (1) - Rocket Launcher (Center/Main)
-                mainView
-                    .tag(1)
-                
-                // Configuration Page (2) - MultiTimeX (Right)
+                // Configuration Page (1) - MultiTimeX (Right)
                 configurationView
-                    .tag(2)
+                    .tag(1)
             }
             .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
             .ignoresSafeArea(.all, edges: .all)
@@ -306,7 +329,7 @@ struct ContentView: View {
             VStack {
                 Spacer()
                 HStack(spacing: 8) {
-                    ForEach(0..<3, id: \.self) { index in
+                    ForEach(0..<2, id: \.self) { index in
                         Circle()
                             .fill(selectedPage == index ? Color.white : Color.white.opacity(0.4))
                             .frame(width: 8, height: 8)
@@ -331,13 +354,13 @@ struct ContentView: View {
             WidgetSetupView()
         }
         .sheet(isPresented: $showingWidgetConfiguration) {
-            WidgetConfigurationView()
+            WidgetConfigurationView(store: appLauncherStore)
         }
         .sheet(isPresented: $showingWidgetLaunchersConfig) {
             WidgetLaunchersConfigView(store: appLauncherStore)
         }
         .sheet(isPresented: $showingSettings) {
-            SettingsView()
+            SettingsView(store: appLauncherStore)
         }
         .onChange(of: scenePhase) { oldPhase, newPhase in
             if newPhase != .active {
@@ -468,7 +491,7 @@ struct ContentView: View {
                     HStack {
                         Spacer()
                         HStack(spacing: 8) {
-                            Text("Swipe left for Sales Counter • Swipe right for MultiTimeX")
+                            Text("Swipe left for MultiTimeX")
                                 .font(.caption)
                                 .foregroundColor(.gray)
                         }
@@ -506,43 +529,6 @@ struct ContentView: View {
                     Spacer()
                 }
                 .padding(.bottom, 80) // Position above page indicators
-            }
-        }
-    }
-    
-    // MARK: - Sales Counter View
-    private var salesCounterView: some View {
-        ZStack {
-            Color.black.ignoresSafeArea()
-            
-            VStack(spacing: 0) {
-                // Header
-                HStack {
-                    Spacer()
-                    Text("Sales Counter")
-                        .font(.title2)
-                        .fontWeight(.bold)
-                        .foregroundColor(.white)
-                    Spacer()
-                }
-                .padding(.horizontal, 20)
-                .padding(.top, 60)
-                
-                // Sales Counter Content
-                SalesCounterView()
-                    .padding(.top, 20)
-                
-                Spacer()
-                
-                // Navigation Hint
-                HStack(spacing: 4) {
-                    Text("Rocket Launcher")
-                        .font(.system(size: 9, weight: .medium))
-                    Image(systemName: "chevron.right")
-                        .font(.system(size: 7))
-                }
-                .foregroundColor(.secondary)
-                .padding(.bottom, 12)
             }
         }
     }
@@ -1295,7 +1281,9 @@ struct ContentView: View {
 }
 
 // MARK: - Widget Configuration View
+// MARK: - Widget Configuration View
 struct WidgetConfigurationView: View {
+    @ObservedObject var store: AppLauncherStore
     @Environment(\.dismiss) private var dismiss
     @Environment(\.scenePhase) private var scenePhase
     @State private var backgroundColor = "#242424"
@@ -1308,6 +1296,9 @@ struct WidgetConfigurationView: View {
     @State private var lastGreen: Double = 36
     @State private var lastBlue: Double = 36
     @State private var didJustApplyWidgets = false
+    @State private var saveWorkItem: DispatchWorkItem?
+    @AppStorage("HasPurchasedIconFeature", store: UserDefaults(suiteName: appGroupID)) private var hasPurchasedIconFeature: Bool = false
+    @State private var showIconPurchaseAlert = false
     @State private var selectedAlignment: TextAlignmentOption = .leading
     @State private var iconsEnabled: Bool = true
     
@@ -1449,13 +1440,60 @@ struct WidgetConfigurationView: View {
                         
                         // Global Icons Toggle
                         VStack(spacing: 12) {
-                            Toggle("Show Icons in Widgets", isOn: $iconsEnabled)
+                            HStack {
+                                Toggle(isOn: Binding(
+                                    get: { iconsEnabled && hasPurchasedIconFeature },
+                                    set: { newValue in
+                                        if hasPurchasedIconFeature {
+                                            iconsEnabled = newValue
+                                            if newValue {
+                                                store.bulkFetchIcons()
+                                            }
+                                        } else {
+                                            showIconPurchaseAlert = true
+                                        }
+                                    }
+                                )) {
+                                    HStack(spacing: 4) {
+                                        Image(systemName: "questionmark.square")
+                                        Text("Show Icons In Widgets")
+                                    }
+                                }
                                 .toggleStyle(SwitchToggleStyle(tint: .green))
                                 .foregroundColor(.white)
+                                
+                                if !hasPurchasedIconFeature {
+                                    Image(systemName: "lock.fill")
+                                        .foregroundColor(.orange)
+                                        .font(.caption)
+                                }
+                            }
+                            
+                            if !hasPurchasedIconFeature {
+                                Button(action: {
+                                    showIconPurchaseAlert = true
+                                }) {
+                                    HStack {
+                                        Image(systemName: "cart.fill")
+                                        Text("Unlock Icon Feature (~$19 MXN)")
+                                    }
+                                    .font(.subheadline)
+                                    .foregroundColor(.white)
+                                    .padding(.vertical, 8)
+                                    .padding(.horizontal, 16)
+                                    .background(Color.orange)
+                                    .cornerRadius(8)
+                                }
+                            }
                         }
                         .padding()
                         .background(Color.gray.opacity(0.2))
                         .cornerRadius(12)
+                        .alert("Purchase Required", isPresented: $showIconPurchaseAlert) {
+                            Button("OK") { }
+                        } message: {
+                            Text("This is a purchase simulator. In the production app, this would open the App Store purchase flow for the Icon Feature (~$19 MXN).")
+                        }
 
                         // Apply Button
                         Button(action: {
@@ -1565,22 +1603,65 @@ struct WidgetLaunchersConfigView: View {
     @FocusState private var focusedField: Int?
     @Environment(\.dismiss) private var dismiss
     @Environment(\.editMode) private var editMode
+    @AppStorage("HasPurchasedExtraWidgets", store: UserDefaults(suiteName: appGroupID)) private var hasPurchasedExtraWidgets: Bool = false
+    @State private var showPurchaseAlert = false
     
     var body: some View {
         NavigationView {
             List {
                 ForEach(0..<5, id: \.self) { widgetIndex in
-                    Section(header: Text("WIDGET #\(widgetIndex + 1)").font(.title2).fontWeight(.bold)) {
+                    let isLocked = widgetIndex >= 1 && !hasPurchasedExtraWidgets
+                    Section(header: HStack {
+                        Text("WIDGET #\(widgetIndex + 1)")
+                            .font(.title2)
+                            .fontWeight(.bold)
+                        if isLocked {
+                            Image(systemName: "lock.fill")
+                                .foregroundColor(.orange)
+                        }
+                    }) {
                         let start = widgetIndex * 8
                         let end = start + 8
                         let upperBound = min(end, store.launchers.count)
                         if start < upperBound {
-                            ForEach(store.launchers[start..<upperBound]) { launcher in
-                                let slotNumber = launcher.id - start
-                                LauncherSlotView(launcher: binding(for: launcher), slotNumber: slotNumber)
-                            }
-                            .onMove { indices, newOffset in
-                                reorderSlots(in: widgetIndex, indices: indices, newOffset: newOffset)
+                            if isLocked {
+                                // Locked state
+                                VStack(spacing: 16) {
+                                    Image(systemName: "lock.fill")
+                                        .font(.system(size: 40))
+                                        .foregroundColor(.orange)
+                                    
+                                    Text("Extra Widgets Locked")
+                                        .font(.headline)
+                                        .foregroundColor(.primary)
+                                    
+                                    Text("Purchase the Extra Widgets pack to unlock Widgets 2-5")
+                                        .font(.subheadline)
+                                        .foregroundColor(.secondary)
+                                        .multilineTextAlignment(.center)
+                                    
+                                    Button(action: {
+                                        showPurchaseAlert = true
+                                    }) {
+                                        Text("Unlock (~$49 MXN)")
+                                            .font(.headline)
+                                            .foregroundColor(.white)
+                                            .padding(.horizontal, 24)
+                                            .padding(.vertical, 12)
+                                            .background(Color.orange)
+                                            .cornerRadius(10)
+                                    }
+                                }
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 40)
+                            } else {
+                                ForEach(store.launchers[start..<upperBound]) { launcher in
+                                    let slotNumber = launcher.id - start
+                                    LauncherSlotView(launcher: binding(for: launcher), slotNumber: slotNumber)
+                                }
+                                .onMove { indices, newOffset in
+                                    reorderSlots(in: widgetIndex, indices: indices, newOffset: newOffset)
+                                }
                             }
                         } else {
                             Text("Slots missing. Use Settings → Clear and Reset All Widgets.")
@@ -1593,19 +1674,19 @@ struct WidgetLaunchersConfigView: View {
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     EditButton()
+                        .disabled(!hasPurchasedExtraWidgets) // Disable edit for locked widgets
                 }
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    HStack(spacing: 12) {
-                        Button("Fetch Icons") {
-                            UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                            bulkFetchIcons()
-                        }
-                        Button("Save") {
+                    Button("Save") {
                         store.save()
                         dismiss()
-                        }
                     }
                 }
+            }
+            .alert("Purchase Required", isPresented: $showPurchaseAlert) {
+                Button("OK") { }
+            } message: {
+                Text("This is a purchase simulator. In the production app, this would open the App Store purchase flow for the Extra Widgets pack (~$49 MXN).")
             }
         }
     }
@@ -1629,34 +1710,6 @@ struct WidgetLaunchersConfigView: View {
             if start + i < store.launchers.count {
                 store.launchers[start + i] = item
             }
-        }
-    }
-
-    private func bulkFetchIcons() {
-        let group = DispatchGroup()
-        let userDefaults = UserDefaults(suiteName: appGroupID)
-        // Always use Apple (iTunes) as icon source
-        for launcherIndex in store.launchers.indices {
-            let name = store.launchers[launcherIndex].name.trimmingCharacters(in: .whitespacesAndNewlines)
-            guard !name.isEmpty else { continue }
-            group.enter()
-            let completion: (Result<Data, Error>) -> Void = { result in
-                DispatchQueue.main.async {
-                    if case .success(let data) = result {
-                        if let fileName = saveIconDataToAppGroup(data: data, slotId: store.launchers[launcherIndex].id) {
-                            store.launchers[launcherIndex].iconFileName = fileName
-                            store.launchers[launcherIndex].showIcon = true
-                        }
-                    }
-                    group.leave()
-                }
-            }
-            fetchIconForAppName(appName: name, completion: completion)
-        }
-        group.notify(queue: .main) {
-            store.save()
-            WidgetCenter.shared.reloadAllTimelines()
-            UINotificationFeedbackGenerator().notificationOccurred(.success)
         }
     }
 }
@@ -1759,6 +1812,7 @@ struct LauncherSlotView: View {
 
 // MARK: - Settings View
 struct SettingsView: View {
+    @ObservedObject var store: AppLauncherStore
     @Environment(\.dismiss) private var dismiss
     @AppStorage("AlwaysShowSettingsButton", store: UserDefaults(suiteName: appGroupID)) private var alwaysShowSettingsButton: Bool = false
     // Import/Export functionality
@@ -1774,6 +1828,9 @@ struct SettingsView: View {
     @State private var importFeedbackMessage: String = ""
     // Confirmation state for clear and reset button
     @State private var confirmClearAndReset = false
+    // Purchase simulation state
+    @AppStorage("HasPurchasedExtraWidgets", store: UserDefaults(suiteName: appGroupID)) private var hasPurchasedExtraWidgets: Bool = false
+    @AppStorage("HasPurchasedIconFeature", store: UserDefaults(suiteName: appGroupID)) private var hasPurchasedIconFeature: Bool = false
     
     // Display zoom detection
     private var displayZoomStatus: String {
@@ -1849,6 +1906,19 @@ struct SettingsView: View {
                         .foregroundColor(.secondary)
                 }
                 
+                Section(header: Text("WIDGET CONFIGURATION").font(.headline)) {
+                    Button(action: {
+                        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                        store.bulkFetchIcons()
+                    }) {
+                        HStack {
+                            Image(systemName: "arrow.triangle.2.circlepath")
+                            Text("Refetch Icons")
+                        }
+                        .foregroundColor(.blue)
+                    }
+                }
+                
                 Section(header: Text("DEV BETA").font(.headline)) {
                     Toggle("Calendar Edge Day Testing", isOn: Binding(
                         get: {
@@ -1867,6 +1937,47 @@ struct SettingsView: View {
                     Text("Always show the active day circle at left edge (Sundays) or right edge (Saturdays) for testing widget layout at column edges")
                         .font(.caption)
                         .foregroundColor(.secondary)
+                    
+                    // Purchase Simulator
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("PURCHASE SIMULATOR")
+                            .font(.subheadline)
+                            .fontWeight(.bold)
+                            .foregroundColor(.orange)
+                        
+                        Toggle("Owns \"Extra Widgets\" (~$49 MXN)", isOn: $hasPurchasedExtraWidgets)
+                            .onChange(of: hasPurchasedExtraWidgets) { _, _ in
+                                UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                            }
+                        
+                        Text("Unlocks Widgets 2-5")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                            .padding(.leading, 16)
+                        
+                        Toggle("Owns \"Icon Feature\" (~$19 MXN)", isOn: $hasPurchasedIconFeature)
+                            .onChange(of: hasPurchasedIconFeature) { _, _ in
+                                UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                            }
+                        
+                        Text("Unlocks Icon display")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                            .padding(.leading, 16)
+                        
+                        Button(action: {
+                            UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
+                            hasPurchasedExtraWidgets = false
+                            hasPurchasedIconFeature = false
+                        }) {
+                            HStack {
+                                Image(systemName: "arrow.counterclockwise")
+                                Text("Reset All Purchases")
+                            }
+                            .foregroundColor(.red)
+                        }
+                    }
+                    .padding(.vertical, 8)
                     
                     // Display Zoom Info
                     VStack(alignment: .leading, spacing: 4) {
@@ -2054,6 +2165,10 @@ struct SettingsView: View {
             showingImportAlert = true
             UINotificationFeedbackGenerator().notificationOccurred(.success)
             
+            // Reload store and widgets
+            store.load()
+            WidgetCenter.shared.reloadAllTimelines()
+            
         } catch {
             importFeedbackMessage = "Failed to import: \(error.localizedDescription)"
             importSuccess = false
@@ -2105,6 +2220,9 @@ struct SettingsView: View {
             importSuccess = true
             showingImportAlert = true
             UINotificationFeedbackGenerator().notificationOccurred(.success)
+            
+            // Reload store
+            store.load()
             
         } catch {
             importFeedbackMessage = "Failed to clear widgets: \(error.localizedDescription)"

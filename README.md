@@ -14,7 +14,6 @@
 - **3 Calendar Widgets** - Medium, small day counter, and mini calendar viewer
 - **Flip Clock Widget** - Real-time animated digital clock
 - **MultiTimeX Timer** - Countdown timer with Live Activity support
-- **Sales Counter** - Track sales with Apple Watch sync via WatchConnectivity
 
 ## 🏗️ Architecture
 
@@ -23,8 +22,7 @@
 #### 1. **Main iOS App** (`Rocket Launcher/`)
 - **Rocket_LauncherApp.swift** - Main app entry point with URL scheme handling
 - **ContentView.swift** - Three-page tab interface:
-  - Page 0: Sales Counter with Apple Watch sync
-  - Page 1: Rocket Launcher (Main app launcher interface)
+  - Page 0: Rocket Launcher (Main app launcher interface)
   - Page 2: MultiTimeX Timer with Live Activity
 - **AppLauncherStore** - Manages 40 app launcher slots (5 widgets × 8 apps each)
 - **ShakeDetector** - CoreMotion-based shake detection for hidden settings
@@ -39,11 +37,11 @@
   - MultiTimeXLiveActivity (Live Activity)
 
 #### 3. **Apple Watch App** (`Rocket Launcher Watch App/`)
-- Sales counter with WatchConnectivity sync
-- Real-time bidirectional sync with iOS app
+#### 3. **Apple Watch App** (`Rocket Launcher Watch App/`)
+- Web Launcher and MultiTimeX Timer
 
 #### 4. **Shared App Group**
-- Group ID: `group.com.robledas.rocketlauncher`
+- Group ID: `group.rocketlauncher`
 - Shared UserDefaults for widget data, customization settings, and app configurations
 
 ## 🚀 Core Features
@@ -116,28 +114,7 @@ rocketlauncher://launch?scheme=<app-url-scheme>
 - Haptic feedback on start/stop
 - Only allows future times (validates input)
 
-### 5. Sales Counter with Apple Watch Sync
 
-**Location:** Page 0 (swipe left from main)
-
-- Track sales of multiple items (default: KitKat, Oreo)
-- Increment/decrement counts with +/- buttons
-- Calculate total revenue and profit automatically
-- Reset all counts
-- **Apple Watch sync** via WatchConnectivity
-- Real-time bidirectional updates between iPhone and Watch
-- Persistent storage in UserDefaults
-
-**Data Structure:**
-```swift
-struct SalesItem {
-    let id: String
-    var name: String
-    var unitPrice: Double
-    var unitCost: Double
-    var count: Int
-}
-```
 
 ## 📱 Screenshots
 
@@ -303,11 +280,6 @@ When enabled, the system randomly picks one edge day each time widgets refresh.
 - Shake device to reveal settings button
 - Enable "Always Show Settings Button" in settings
 
-**Sales counter not syncing with Watch?**
-- Ensure WatchConnectivity session is active
-- Check that both iPhone and Watch apps are running
-- Try restarting both devices
-
 **Calendar widgets showing wrong date?**
 - Check if "Calendar Edge Day Testing" is enabled in Dev Beta settings
 - Widgets refresh hourly; wait for next update or use "Refresh All Widgets"
@@ -321,8 +293,8 @@ When enabled, the system randomly picks one edge day each time widgets refresh.
 - **DayCounterWidget**: Hourly
 
 ### Data Persistence
-- **UserDefaults App Group**: `group.com.robledas.rocketlauncher`
-- **WatchConnectivity**: Real-time sync for sales counter
+- **UserDefaults App Group**: `group.rocketlauncher`
+
 - **JSON Export/Import**: Backup and restore all app launcher configurations
 
 ### Requirements
