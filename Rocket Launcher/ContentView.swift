@@ -281,6 +281,7 @@ struct ContentView: View {
     // Purchase alert state
     @State private var showingPurchaseAlert = false
     @State private var purchaseAlertMessage = ""
+    @State private var showingPaywall = false
     
     var progress: Double {
         guard initialTimeInterval > 0 else { return 0 }
@@ -532,28 +533,12 @@ struct ContentView: View {
                     if !storeManager.purchasedProductIDs.contains(RocketProducts.proLifetime) {
                         Button(action: {
                             UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-                            if let product = storeManager.products.first(where: { $0.id == RocketProducts.proLifetime }) {
-                                Task {
-                                    await storeManager.purchase(product)
-                                }
-                            } else {
-                                // Product not found - likely Scheme issue
-                                purchaseAlertMessage = "No products found.\n\nMake sure you selected 'RocketLauncher.storekit' in Xcode Scheme > Run > Options."
-                                showingPurchaseAlert = true
-                                Task {
-                                    await storeManager.loadProducts()
-                                }
-                            }
+                            showingPaywall = true
                         }) {
                             HStack {
-                                if storeManager.isLoading {
-                                    ProgressView()
-                                        .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                                } else {
-                                    Image(systemName: "crown.fill")
-                                        .foregroundColor(.yellow)
-                                }
-                                Text(storeManager.isLoading ? "Loading..." : "Unlock Pro Features")
+                                Image(systemName: "crown.fill")
+                                    .foregroundColor(.yellow)
+                                Text("Unlock Pro Features")
                                     .fontWeight(.bold)
                             }
                             .foregroundColor(.white)
