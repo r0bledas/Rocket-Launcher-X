@@ -367,6 +367,9 @@ struct ContentView: View {
         .sheet(isPresented: $showingSettings) {
             SettingsView(store: appLauncherStore)
         }
+        .sheet(isPresented: $showingPaywall) {
+            PaywallView()
+        }
         .onChange(of: scenePhase) { oldPhase, newPhase in
             if newPhase != .active {
                 blackoutHideWorkItem?.cancel()
