@@ -16,7 +16,67 @@
         }
       ],
       "productID" : "com.rocketlauncher.pro.lifetime",
-      "referenceName" : "Pro Lifetime",
+      "referenceName" : "Pro Lifetime Bundle",
+      "type" : "NonConsumable"
+    },
+    {
+      "displayPrice" : "2.99",
+      "familyShareable" : true,
+      "internalID" : "com.rocketlauncher.feature.widgets",
+      "localizations" : [
+        {
+          "description" : "Unlock Widgets 2-5",
+          "displayName" : "Extra Widgets Pack",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.rocketlauncher.feature.widgets",
+      "referenceName" : "Feature: Extra Widgets",
+      "type" : "NonConsumable"
+    },
+    {
+      "displayPrice" : "0.99",
+      "familyShareable" : true,
+      "internalID" : "com.rocketlauncher.feature.icons",
+      "localizations" : [
+        {
+          "description" : "Show app icons in widgets",
+          "displayName" : "Icon Feature",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.rocketlauncher.feature.icons",
+      "referenceName" : "Feature: Icons",
+      "type" : "NonConsumable"
+    },
+    {
+      "displayPrice" : "1.99",
+      "familyShareable" : true,
+      "internalID" : "com.rocketlauncher.feature.calendar",
+      "localizations" : [
+        {
+          "description" : "Unlock Calendar Widget",
+          "displayName" : "Calendar Widget",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.rocketlauncher.feature.calendar",
+      "referenceName" : "Feature: Calendar",
+      "type" : "NonConsumable"
+    },
+    {
+      "displayPrice" : "0.99",
+      "familyShareable" : true,
+      "internalID" : "com.rocketlauncher.feature.alignment",
+      "localizations" : [
+        {
+          "description" : "Customize text alignment",
+          "displayName" : "Text Alignment",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.rocketlauncher.feature.alignment",
+      "referenceName" : "Feature: Text Alignment",
       "type" : "NonConsumable"
     }
   ],

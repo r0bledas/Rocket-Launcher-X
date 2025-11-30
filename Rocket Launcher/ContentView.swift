@@ -546,9 +546,14 @@ struct ContentView: View {
                             }
                         }) {
                             HStack {
-                                Image(systemName: "crown.fill")
-                                    .foregroundColor(.yellow)
-                                Text("Unlock Pro Features")
+                                if storeManager.isLoading {
+                                    ProgressView()
+                                        .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                                } else {
+                                    Image(systemName: "crown.fill")
+                                        .foregroundColor(.yellow)
+                                }
+                                Text(storeManager.isLoading ? "Loading..." : "Unlock Pro Features")
                                     .fontWeight(.bold)
                             }
                             .foregroundColor(.white)
@@ -1506,8 +1511,14 @@ struct WidgetConfigurationView: View {
                                 Text(TextAlignmentOption.trailing.label).tag(TextAlignmentOption.trailing)
                             }
                             .pickerStyle(.segmented)
-                            .disabled(!hasPurchasedTextAlignment)
-                            .opacity(hasPurchasedTextAlignment ? 1.0 : 0.5)
+                            .disabled(!hasPurchasedTextAlignment || iconsEnabled)
+                            .opacity((hasPurchasedTextAlignment && !iconsEnabled) ? 1.0 : 0.5)
+                            
+                            if iconsEnabled {
+                                Text("Text alignment is locked to Left when icons are enabled.")
+                                    .font(.caption)
+                                    .foregroundColor(.orange)
+                            }
                             
                             if !hasPurchasedTextAlignment {
                                 Button(action: {
@@ -1535,6 +1546,7 @@ struct WidgetConfigurationView: View {
                                             iconsEnabled = newValue
                                             if newValue {
                                                 store.bulkFetchIcons()
+                                                selectedAlignment = .leading // Force left alignment
                                             }
                                         } else {
                                             showIconPurchaseAlert = true
@@ -2036,70 +2048,60 @@ struct SettingsView: View {
                         .foregroundColor(.secondary)
                     
                     // Purchase Simulator
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text("PURCHASE SIMULATOR")
-                            .font(.subheadline)
-                            .fontWeight(.bold)
-                            .foregroundColor(.orange)
-                        
-                        Toggle("Owns \"Extra Widgets\" (~$49 MXN)", isOn: $hasPurchasedExtraWidgets)
-                            .onChange(of: hasPurchasedExtraWidgets) { _, _ in
-                                UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                            }
-                        
-                        Text("Unlocks Widgets 2-5")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                            .padding(.leading, 16)
-                        
-                        Toggle("Owns \"Icon Feature\" (~$19 MXN)", isOn: $hasPurchasedIconFeature)
-                            .onChange(of: hasPurchasedIconFeature) { _, _ in
-                                UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                            }
-                        
-                        Text("Unlocks Icon display")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                            .padding(.leading, 16)
-                        
-                        Toggle("Owns \"Calendar Widget\" (~$29 MXN)", isOn: $hasPurchasedCalendar)
-                            .onChange(of: hasPurchasedCalendar) { _, _ in
-                                UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                                WidgetCenter.shared.reloadAllTimelines()
-                            }
-                        
-                        Text("Unlocks Calendar widget")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                            .padding(.leading, 16)
-                        
-                        Toggle("Owns \"Text Alignment\" (~$20 MXN)", isOn: $hasPurchasedTextAlignment)
-                            .onChange(of: hasPurchasedTextAlignment) { _, _ in
-                                UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                                WidgetCenter.shared.reloadAllTimelines()
-                            }
-                        
-                        Text("Unlocks text alignment options")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                            .padding(.leading, 16)
-                        
-                        Button(action: {
-                            UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
-                            hasPurchasedExtraWidgets = false
-                            hasPurchasedIconFeature = false
-                            hasPurchasedCalendar = false
-                            hasPurchasedTextAlignment = false
-                            storeManager.resetStatus()
-                        }) {
-                            HStack {
-                                Image(systemName: "arrow.counterclockwise")
-                                Text("Reset All Purchases (StoreKit & Local)")
-                            }
-                            .foregroundColor(.red)
+                    Text("PURCHASE SIMULATOR")
+                        .font(.subheadline)
+                        .fontWeight(.bold)
+                        .foregroundColor(.orange)
+                        .padding(.top, 8)
+                    
+                    Toggle("Owns \"Extra Widgets\"", isOn: $hasPurchasedExtraWidgets)
+                        .onChange(of: hasPurchasedExtraWidgets) { _, _ in
+                            UIImpactFeedbackGenerator(style: .light).impactOccurred()
                         }
+                        .listRowSeparator(.hidden)
+                    
+
+                    
+                    Toggle("Owns \"Icon Feature\"", isOn: $hasPurchasedIconFeature)
+                        .onChange(of: hasPurchasedIconFeature) { _, _ in
+                            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                        }
+                        .listRowSeparator(.hidden)
+                    
+
+                    
+                    Toggle("Owns \"Calendar Widget\"", isOn: $hasPurchasedCalendar)
+                        .onChange(of: hasPurchasedCalendar) { _, _ in
+                            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                            WidgetCenter.shared.reloadAllTimelines()
+                        }
+                        .listRowSeparator(.hidden)
+                    
+
+                    
+                    Toggle("Owns \"Text Alignment\"", isOn: $hasPurchasedTextAlignment)
+                        .onChange(of: hasPurchasedTextAlignment) { _, _ in
+                            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                            WidgetCenter.shared.reloadAllTimelines()
+                        }
+                        .listRowSeparator(.hidden)
+                    
+
+                    
+                    Button(action: {
+                        UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
+                        hasPurchasedExtraWidgets = false
+                        hasPurchasedIconFeature = false
+                        hasPurchasedCalendar = false
+                        hasPurchasedTextAlignment = false
+                        storeManager.resetStatus()
+                    }) {
+                        HStack {
+                            Image(systemName: "arrow.counterclockwise")
+                            Text("Reset All Purchases (StoreKit & Local)")
+                        }
+                        .foregroundColor(.red)
                     }
-                    .padding(.vertical, 8)
                     
                     // Display Zoom Info
                     VStack(alignment: .leading, spacing: 4) {

@@ -11,6 +11,12 @@ import StoreKit
 // Define our product IDs
 public enum RocketProducts {
     static let proLifetime = "com.rocketlauncher.pro.lifetime"
+    static let widgets = "com.rocketlauncher.feature.widgets"
+    static let icons = "com.rocketlauncher.feature.icons"
+    static let calendar = "com.rocketlauncher.feature.calendar"
+    static let alignment = "com.rocketlauncher.feature.alignment"
+    
+    static let all = [proLifetime, widgets, icons, calendar, alignment]
 }
 
 @MainActor
@@ -43,6 +49,7 @@ class StoreManager: ObservableObject {
         // Check initial status
         Task {
             await updatePurchasedProducts()
+            await loadProducts()
         }
     }
 
@@ -57,7 +64,7 @@ class StoreManager: ObservableObject {
         errorMessage = nil
         
         do {
-            let products = try await Product.products(for: [RocketProducts.proLifetime])
+            let products = try await Product.products(for: RocketProducts.all)
             self.products = products
             print("✅ StoreManager: Found \(products.count) products")
         } catch {
@@ -114,8 +121,8 @@ class StoreManager: ObservableObject {
             do {
                 let transaction = try checkVerified(result)
                 
-                // Check if this is our pro product
-                if transaction.productID == RocketProducts.proLifetime {
+                // Check if this is one of our products
+                if RocketProducts.all.contains(transaction.productID) {
                     // Check for revocation
                     if transaction.revocationDate == nil {
                         purchased.insert(transaction.productID)
@@ -155,21 +162,29 @@ class StoreManager: ObservableObject {
         }
     }
     
-    private func syncToAppGroup(isPro: Bool) {
+    private func syncToAppGroup(isPro: Bool) { // isPro argument is now ignored in favor of granular checks, but kept for signature compatibility if needed, though we should really just use internal state
         if let userDefaults = UserDefaults(suiteName: appGroupID) {
-            // We use a specific key that widgets check
-            // Note: In a real app, you might want to use Keychain for better security,
-            // but for this implementation, we'll stick to UserDefaults as per the existing architecture.
-            // We'll use a new key "IsProUser" to distinguish from the old "HasPurchased..." flags
-            userDefaults.set(isPro, forKey: "IsProUser")
+            let hasBundle = purchasedProductIDs.contains(RocketProducts.proLifetime)
             
-            // Also update the legacy flags if Pro is active, to maintain backward compatibility if needed
-            if isPro {
-                userDefaults.set(true, forKey: "HasPurchasedIconFeature")
-                // Add other legacy flags here if necessary
-            }
+            // Determine individual feature status (Bundle OR Individual Purchase)
+            let hasWidgets = hasBundle || purchasedProductIDs.contains(RocketProducts.widgets)
+            let hasIcons = hasBundle || purchasedProductIDs.contains(RocketProducts.icons)
+            let hasCalendar = hasBundle || purchasedProductIDs.contains(RocketProducts.calendar)
+            let hasAlignment = hasBundle || purchasedProductIDs.contains(RocketProducts.alignment)
             
-            print("🔄 StoreManager: Synced Pro status (\(isPro)) to App Group")
+            // Update App Group Flags
+            userDefaults.set(hasBundle, forKey: "IsProUser") // Legacy/Global flag
+            userDefaults.set(hasWidgets, forKey: "HasPurchasedExtraWidgets")
+            userDefaults.set(hasIcons, forKey: "HasPurchasedIconFeature")
+            userDefaults.set(hasCalendar, forKey: "HasPurchasedCalendar")
+            userDefaults.set(hasAlignment, forKey: "HasPurchasedTextAlignment")
+            
+            print("🔄 StoreManager: Synced status to App Group")
+            print("   - Bundle: \(hasBundle)")
+            print("   - Widgets: \(hasWidgets)")
+            print("   - Icons: \(hasIcons)")
+            print("   - Calendar: \(hasCalendar)")
+            print("   - Alignment: \(hasAlignment)")
         }
     }
 }
