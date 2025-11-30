@@ -11,6 +11,7 @@ import UIKit
 @main
 struct Rocket_LauncherApp: App {
     @StateObject private var urlHandler = URLHandler()
+    @StateObject private var storeManager = StoreManager()
     @State private var showLaunchFailureAlert = false
     @State private var failedScheme: String? = nil
     
@@ -18,6 +19,7 @@ struct Rocket_LauncherApp: App {
         WindowGroup {
             ContentView()
                 .environmentObject(urlHandler)
+                .environmentObject(storeManager)
                 .onOpenURL { url in
                     let didLaunch = urlHandler.handleURL(url) { failedScheme in
                         self.failedScheme = failedScheme

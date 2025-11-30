@@ -27,6 +27,8 @@ struct LauncherEntry: TimelineEntry {
     let textAlignment: TextAlignment
     let fontName: String
     let iconsEnabled: Bool
+    let isLocked: Bool
+    let widgetNumber: Int
     struct App: Hashable {
         let name: String
         let urlScheme: String
@@ -37,7 +39,7 @@ struct LauncherEntry: TimelineEntry {
 
 struct LauncherProvider: TimelineProvider {
     func placeholder(in context: Context) -> LauncherEntry {
-        LauncherEntry(date: Date(), apps: [], backgroundColor: getBackgroundColor(), fontColor: getFontColor(), lineSpacing: 0, textAlignment: .leading, fontName: getSelectedFont(), iconsEnabled: getIconsEnabled())
+        LauncherEntry(date: Date(), apps: [], backgroundColor: getBackgroundColor(), fontColor: getFontColor(), lineSpacing: 0, textAlignment: .leading, fontName: getSelectedFont(), iconsEnabled: getIconsEnabled(), isLocked: false, widgetNumber: 1)
     }
     func getSnapshot(in context: Context, completion: @escaping (LauncherEntry) -> ()) {
         let entry = loadEntry()
@@ -59,14 +61,18 @@ struct LauncherProvider: TimelineProvider {
         let fontColor = userDefaults?.string(forKey: "WidgetFontColor") ?? "#FFFFFF"
         let lineSpacing = userDefaults?.object(forKey: "WidgetLineSpacing") as? Double ?? -0.5
         let alignmentRaw = userDefaults?.string(forKey: "WidgetTextAlignment") ?? "leading"
+        let hasPurchased = userDefaults?.bool(forKey: "HasPurchasedTextAlignment") ?? false
         let textAlignment: TextAlignment = {
+            if !hasPurchased {
+                return .center // Default to center when not purchased
+            }
             switch alignmentRaw {
             case "center": return .center
             case "trailing": return .trailing
             default: return .leading
             }
         }()
-        return LauncherEntry(date: Date(), apps: apps, backgroundColor: color, fontColor: fontColor, lineSpacing: lineSpacing, textAlignment: textAlignment, fontName: getSelectedFont(), iconsEnabled: getIconsEnabled())
+        return LauncherEntry(date: Date(), apps: apps, backgroundColor: color, fontColor: fontColor, lineSpacing: lineSpacing, textAlignment: textAlignment, fontName: getSelectedFont(), iconsEnabled: getIconsEnabled(), isLocked: false, widgetNumber: 1)
     }
     private func getBackgroundColor() -> String {
         let userDefaults = UserDefaults(suiteName: "group.rocketlauncher")
@@ -84,7 +90,9 @@ struct LauncherProvider: TimelineProvider {
 
     private func getIconsEnabled() -> Bool {
         let userDefaults = UserDefaults(suiteName: "group.rocketlauncher")
-        return userDefaults?.bool(forKey: "WidgetIconsEnabled") ?? true
+        let hasPurchased = userDefaults?.bool(forKey: "HasPurchasedIconFeature") ?? false
+        let iconsEnabled = userDefaults?.bool(forKey: "WidgetIconsEnabled") ?? true
+        return hasPurchased && iconsEnabled
     }
 }
 
@@ -165,7 +173,38 @@ struct LauncherWidgetEntryView: View {
     
     var body: some View {
         ZStack {
-            if entry.apps.isEmpty || entry.apps.allSatisfy({ $0.name.isEmpty }) {
+            if entry.isLocked {
+                // Locked widget view
+                ZStack {
+                    // Blurred placeholder content
+                    VStack(alignment: .leading, spacing: entry.lineSpacing) {
+                        ForEach(0..<8) { _ in
+                            Text("App Name")
+                                .font(getCustomFont(name: entry.fontName, size: appFontSize, weight: .bold))
+                                .foregroundColor(Color(hex: entry.fontColor))
+                                .opacity(0.3)
+                                .padding(.vertical, verticalPadding)
+                        }
+                    }
+                    .padding(horizontalPadding)
+                    .blur(radius: 8)
+                    
+                    // Lock overlay
+                    VStack(spacing: 12) {
+                        Text("🔒")
+                            .font(.system(size: 80))
+                        
+                        Text("Widget #\(entry.widgetNumber) Locked")
+                            .font(.system(size: 18, weight: .bold))
+                            .foregroundColor(.white)
+                        
+                        Text("Tap to Unlock")
+                            .font(.system(size: 14))
+                            .foregroundColor(.white.opacity(0.8))
+                    }
+                    .padding()
+                }
+            } else if entry.apps.isEmpty || entry.apps.allSatisfy({ $0.name.isEmpty }) {
                 emptyStateView
             } else {
                 appButtonView
@@ -270,8 +309,10 @@ struct RocketLauncherWidget2: Widget {
                             Color(hex: entry.backgroundColor)
                         }
                     }
+                    .widgetURL(entry.isLocked ? URL(string: "rocketlauncher://purchase?widget=2") : nil)
             } else {
                 LauncherWidgetEntryView(entry: entry)
+                    .widgetURL(entry.isLocked ? URL(string: "rocketlauncher://purchase?widget=2") : nil)
             }
         }
         .configurationDisplayName("Widget #2")
@@ -294,8 +335,10 @@ struct RocketLauncherWidget3: Widget {
                             Color(hex: entry.backgroundColor)
                         }
                     }
+                    .widgetURL(entry.isLocked ? URL(string: "rocketlauncher://purchase?widget=3") : nil)
             } else {
                 LauncherWidgetEntryView(entry: entry)
+                    .widgetURL(entry.isLocked ? URL(string: "rocketlauncher://purchase?widget=3") : nil)
             }
         }
         .configurationDisplayName("Widget #3")
@@ -318,8 +361,10 @@ struct RocketLauncherWidget4: Widget {
                             Color(hex: entry.backgroundColor)
                         }
                     }
+                    .widgetURL(entry.isLocked ? URL(string: "rocketlauncher://purchase?widget=4") : nil)
             } else {
                 LauncherWidgetEntryView(entry: entry)
+                    .widgetURL(entry.isLocked ? URL(string: "rocketlauncher://purchase?widget=4") : nil)
             }
         }
         .configurationDisplayName("Widget #4")
@@ -342,8 +387,10 @@ struct RocketLauncherWidget5: Widget {
                             Color(hex: entry.backgroundColor)
                         }
                     }
+                    .widgetURL(entry.isLocked ? URL(string: "rocketlauncher://purchase?widget=5") : nil)
             } else {
                 LauncherWidgetEntryView(entry: entry)
+                    .widgetURL(entry.isLocked ? URL(string: "rocketlauncher://purchase?widget=5") : nil)
             }
         }
         .configurationDisplayName("Widget #5")
@@ -357,18 +404,31 @@ struct CustomLauncherProvider: TimelineProvider {
     let widgetIndex: Int
     func placeholder(in context: Context) -> LauncherEntry {
         let (lineSpacing, textAlignment) = getSpacingAndAlignment()
-        return LauncherEntry(date: Date(), apps: loadAppsForWidget(widgetIndex: widgetIndex), backgroundColor: getBackgroundColor(), fontColor: getFontColor(), lineSpacing: lineSpacing, textAlignment: textAlignment, fontName: getSelectedFont(), iconsEnabled: getIconsEnabled())
+        let hasPurchased = hasPurchasedExtraWidgets()
+        let isLocked = widgetIndex >= 1 && !hasPurchased
+        let apps = isLocked ? [] : loadAppsForWidget(widgetIndex: widgetIndex)
+        return LauncherEntry(date: Date(), apps: apps, backgroundColor: getBackgroundColor(), fontColor: getFontColor(), lineSpacing: lineSpacing, textAlignment: textAlignment, fontName: getSelectedFont(), iconsEnabled: getIconsEnabled(), isLocked: isLocked, widgetNumber: widgetIndex + 1)
     }
     func getSnapshot(in context: Context, completion: @escaping (LauncherEntry) -> ()) {
         let (lineSpacing, textAlignment) = getSpacingAndAlignment()
-        let entry = LauncherEntry(date: Date(), apps: loadAppsForWidget(widgetIndex: widgetIndex), backgroundColor: getBackgroundColor(), fontColor: getFontColor(), lineSpacing: lineSpacing, textAlignment: textAlignment, fontName: getSelectedFont(), iconsEnabled: getIconsEnabled())
+        let hasPurchased = hasPurchasedExtraWidgets()
+        let isLocked = widgetIndex >= 1 && !hasPurchased
+        let apps = isLocked ? [] : loadAppsForWidget(widgetIndex: widgetIndex)
+        let entry = LauncherEntry(date: Date(), apps: apps, backgroundColor: getBackgroundColor(), fontColor: getFontColor(), lineSpacing: lineSpacing, textAlignment: textAlignment, fontName: getSelectedFont(), iconsEnabled: getIconsEnabled(), isLocked: isLocked, widgetNumber: widgetIndex + 1)
         completion(entry)
     }
     func getTimeline(in context: Context, completion: @escaping (Timeline<LauncherEntry>) -> ()) {
         let (lineSpacing, textAlignment) = getSpacingAndAlignment()
-        let entry = LauncherEntry(date: Date(), apps: loadAppsForWidget(widgetIndex: widgetIndex), backgroundColor: getBackgroundColor(), fontColor: getFontColor(), lineSpacing: lineSpacing, textAlignment: textAlignment, fontName: getSelectedFont(), iconsEnabled: getIconsEnabled())
+        let hasPurchased = hasPurchasedExtraWidgets()
+        let isLocked = widgetIndex >= 1 && !hasPurchased
+        let apps = isLocked ? [] : loadAppsForWidget(widgetIndex: widgetIndex)
+        let entry = LauncherEntry(date: Date(), apps: apps, backgroundColor: getBackgroundColor(), fontColor: getFontColor(), lineSpacing: lineSpacing, textAlignment: textAlignment, fontName: getSelectedFont(), iconsEnabled: getIconsEnabled(), isLocked: isLocked, widgetNumber: widgetIndex + 1)
         let timeline = Timeline(entries: [entry], policy: .atEnd)
         completion(timeline)
+    }
+    private func hasPurchasedExtraWidgets() -> Bool {
+        let userDefaults = UserDefaults(suiteName: "group.rocketlauncher")
+        return userDefaults?.bool(forKey: "HasPurchasedExtraWidgets") ?? false
     }
     private func getBackgroundColor() -> String {
         let userDefaults = UserDefaults(suiteName: "group.rocketlauncher")
@@ -386,14 +446,20 @@ struct CustomLauncherProvider: TimelineProvider {
     
     private func getIconsEnabled() -> Bool {
         let userDefaults = UserDefaults(suiteName: "group.rocketlauncher")
-        return userDefaults?.bool(forKey: "WidgetIconsEnabled") ?? true
+        let hasPurchased = userDefaults?.bool(forKey: "HasPurchasedIconFeature") ?? false
+        let iconsEnabled = userDefaults?.bool(forKey: "WidgetIconsEnabled") ?? true
+        return hasPurchased && iconsEnabled
     }
     
     private func getSpacingAndAlignment() -> (Double, TextAlignment) {
         let userDefaults = UserDefaults(suiteName: "group.rocketlauncher")
         let lineSpacing = userDefaults?.object(forKey: "WidgetLineSpacing") as? Double ?? -0.5
         let alignmentRaw = userDefaults?.string(forKey: "WidgetTextAlignment") ?? "leading"
+        let hasPurchased = userDefaults?.bool(forKey: "HasPurchasedTextAlignment") ?? false
         let textAlignment: TextAlignment = {
+            if !hasPurchased {
+                return .center // Default to center when not purchased
+            }
             switch alignmentRaw {
             case "center": return .center
             case "trailing": return .trailing
@@ -412,26 +478,34 @@ struct CalendarEntry: TimelineEntry {
     let fontColor: String
     let highlightColor: String
     let overrideDay: Int? // For dev beta edge day testing
+    let isLocked: Bool
+    let widgetNumber: Int
 }
 
 struct CalendarProvider: TimelineProvider {
     func placeholder(in context: Context) -> CalendarEntry {
-        CalendarEntry(
+        let hasPurchased = hasPurchasedCalendar()
+        return CalendarEntry(
             date: Date(),
             backgroundColor: getCalendarBackgroundColor(),
             fontColor: getCalendarFontColor(),
             highlightColor: getCalendarHighlightColor(),
-            overrideDay: nil
+            overrideDay: nil,
+            isLocked: !hasPurchased,
+            widgetNumber: 1
         )
     }
     
     func getSnapshot(in context: Context, completion: @escaping (CalendarEntry) -> ()) {
+        let hasPurchased = hasPurchasedCalendar()
         let entry = CalendarEntry(
             date: Date(),
             backgroundColor: getCalendarBackgroundColor(),
             fontColor: getCalendarFontColor(),
             highlightColor: getCalendarHighlightColor(),
-            overrideDay: getEdgeDayIfEnabled()
+            overrideDay: getEdgeDayIfEnabled(),
+            isLocked: !hasPurchased,
+            widgetNumber: 1
         )
         completion(entry)
     }
@@ -439,6 +513,7 @@ struct CalendarProvider: TimelineProvider {
     func getTimeline(in context: Context, completion: @escaping (Timeline<CalendarEntry>) -> ()) {
         let now = Date()
         let calendar = Calendar.current
+        let hasPurchased = hasPurchasedCalendar()
         
         // Create entries for current time and next few hours
         var entries: [CalendarEntry] = []
@@ -452,7 +527,9 @@ struct CalendarProvider: TimelineProvider {
             backgroundColor: getCalendarBackgroundColor(),
             fontColor: getCalendarFontColor(),
             highlightColor: getCalendarHighlightColor(),
-            overrideDay: edgeDay
+            overrideDay: edgeDay,
+            isLocked: !hasPurchased,
+            widgetNumber: 1
         )
         entries.append(currentEntry)
         
@@ -464,7 +541,9 @@ struct CalendarProvider: TimelineProvider {
                     backgroundColor: getCalendarBackgroundColor(),
                     fontColor: getCalendarFontColor(),
                     highlightColor: getCalendarHighlightColor(),
-                    overrideDay: edgeDay
+                    overrideDay: edgeDay,
+                    isLocked: !hasPurchased,
+                    widgetNumber: 1
                 )
                 entries.append(entry)
             }
@@ -477,6 +556,11 @@ struct CalendarProvider: TimelineProvider {
         // Use .atEnd policy to allow manual refreshes to take effect immediately
         let timeline = Timeline(entries: entries, policy: .after(nextMidnight))
         completion(timeline)
+    }
+    
+    private func hasPurchasedCalendar() -> Bool {
+        let userDefaults = UserDefaults(suiteName: "group.rocketlauncher")
+        return userDefaults?.bool(forKey: "HasPurchasedCalendar") ?? false
     }
     
     private func getCalendarBackgroundColor() -> String {
@@ -565,6 +649,41 @@ struct CalendarWidgetView: View {
     }
     
     var body: some View {
+        ZStack {
+            if entry.isLocked {
+                // Locked widget view
+                ZStack {
+                    // Blurred placeholder
+                    HStack(spacing: 8) {
+                        VStack(spacing: 10) {
+                            Text("00")
+                                .font(.system(size: 90, weight: .bold))
+                                .foregroundColor(Color(hex: entry.fontColor))
+                                .opacity(0.3)
+                            Text("Date Placeholder")
+                                .font(.system(size: 15, weight: .medium))
+                                .foregroundColor(Color(hex: entry.fontColor))
+                                .opacity(0.3)
+                        }
+                        .frame(width: 150)
+                        Spacer()
+                    }
+                    .padding()
+                    .blur(radius: 8)
+                    
+                    // Lock overlay
+                    VStack(spacing: 12) {
+                        Text("🔒")
+                            .font(.system(size: 60))
+                        Text("Calendar Locked")
+                            .font(.system(size: 16, weight: .bold))
+                            .foregroundColor(.white)
+                        Text("Tap to Unlock")
+                            .font(.system(size: 12))
+                            .foregroundColor(.white.opacity(0.8))
+                    }
+                }
+            } else {
         HStack(spacing: 8) {
             // Left side - Date information
             VStack(spacing: 10) {
@@ -647,6 +766,8 @@ struct CalendarWidgetView: View {
         .padding(.horizontal, 14)
         .padding(.vertical, 12)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+            }
+        }
     }
     
     // MARK: - Computed Properties
@@ -750,8 +871,10 @@ struct CalendarWidget: Widget {
                             Color(hex: entry.backgroundColor)
                         }
                     }
+                    .widgetURL(entry.isLocked ? URL(string: "rocketlauncher://purchase?calendar=1") : nil)
             } else {
                 CalendarWidgetView(entry: entry)
+                    .widgetURL(entry.isLocked ? URL(string: "rocketlauncher://purchase?calendar=1") : nil)
             }
         }
         .configurationDisplayName("Calendar Widget")
@@ -763,7 +886,7 @@ struct CalendarWidget: Widget {
 #Preview(as: .systemMedium) {
     CalendarWidget()
 } timeline: {
-    CalendarEntry(date: Date(), backgroundColor: "#242424", fontColor: "#FFFFFF", highlightColor: "#FF3B30", overrideDay: nil)
+    CalendarEntry(date: Date(), backgroundColor: "#242424", fontColor: "#FFFFFF", highlightColor: "#FF3B30", overrideDay: nil, isLocked: false, widgetNumber: 1)
 }
 
 // MARK: - Day Counter Widget (Left side of calendar)

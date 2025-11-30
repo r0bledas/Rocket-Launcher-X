@@ -1,0 +1,34 @@
+{
+  "identifier" : "RocketLauncherConfig",
+  "nonRenewingSubscriptions" : [
+
+  ],
+  "products" : [
+    {
+      "displayPrice" : "4.99",
+      "familyShareable" : true,
+      "internalID" : "com.rocketlauncher.pro.lifetime",
+      "localizations" : [
+        {
+          "description" : "Unlock all widgets, icons, and customization",
+          "displayName" : "Rocket Launcher Pro",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.rocketlauncher.pro.lifetime",
+      "referenceName" : "Pro Lifetime",
+      "type" : "NonConsumable"
+    }
+  ],
+  "settings" : {
+    "_failTransactionsEnabled" : false,
+    "_storeKitError" : 0
+  },
+  "subscriptionGroups" : [
+
+  ],
+  "version" : {
+    "major" : 3,
+    "minor" : 0
+  }
+}

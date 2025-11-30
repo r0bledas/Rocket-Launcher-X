@@ -256,6 +256,7 @@ struct ContentView: View {
     @State private var blackoutHideWorkItem: DispatchWorkItem? = nil
     @State private var didJustRefreshWidgets = false
     @StateObject private var appLauncherStore = AppLauncherStore()
+    @EnvironmentObject var storeManager: StoreManager
     // Splash overlay state
     @State private var showSplash = true
     // Shake detection for settings
@@ -277,6 +278,9 @@ struct ContentView: View {
     @State private var showingCompletionAlert = false
     @State private var selectedDay = 0 // 0 for today, 1 for tomorrow
     @State private var liveActivity: Activity<MultiTimeXAttributes>? = nil
+    // Purchase alert state
+    @State private var showingPurchaseAlert = false
+    @State private var purchaseAlertMessage = ""
     
     var progress: Double {
         guard initialTimeInterval > 0 else { return 0 }
@@ -384,6 +388,31 @@ struct ContentView: View {
             // Only show splash on cold launch
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
                 showSplash = false
+            }
+        }
+        .onOpenURL { url in
+            handleDeepLink(url)
+        }
+        .alert("Purchase Required", isPresented: $showingPurchaseAlert) {
+            Button("OK") { }
+        } message: {
+            Text(purchaseAlertMessage)
+        }
+    }
+    
+    // MARK: - Deep Link Handler
+    private func handleDeepLink(_ url: URL) {
+        guard url.scheme == "rocketlauncher" else { return }
+        
+        if url.host == "purchase" {
+            // Trigger the purchase flow
+            if let product = storeManager.products.first(where: { $0.id == RocketProducts.proLifetime }) {
+                Task {
+                    await storeManager.purchase(product)
+                }
+            } else {
+                purchaseAlertMessage = "Could not load products. Please try again."
+                showingPurchaseAlert = true
             }
         }
     }
@@ -498,6 +527,41 @@ struct ContentView: View {
                         Spacer()
                     }
                     .padding(.top, 10)
+                    
+                    // Pro Purchase Button
+                    if !storeManager.purchasedProductIDs.contains(RocketProducts.proLifetime) {
+                        Button(action: {
+                            UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                            if let product = storeManager.products.first(where: { $0.id == RocketProducts.proLifetime }) {
+                                Task {
+                                    await storeManager.purchase(product)
+                                }
+                            } else {
+                                // Product not found - likely Scheme issue
+                                purchaseAlertMessage = "No products found.\n\nMake sure you selected 'RocketLauncher.storekit' in Xcode Scheme > Run > Options."
+                                showingPurchaseAlert = true
+                                Task {
+                                    await storeManager.loadProducts()
+                                }
+                            }
+                        }) {
+                            HStack {
+                                Image(systemName: "crown.fill")
+                                    .foregroundColor(.yellow)
+                                Text("Unlock Pro Features")
+                                    .fontWeight(.bold)
+                            }
+                            .foregroundColor(.white)
+                            .padding()
+                            .frame(maxWidth: .infinity)
+                            .background(
+                                LinearGradient(gradient: Gradient(colors: [Color.blue, Color.purple]), startPoint: .leading, endPoint: .trailing)
+                            )
+                            .cornerRadius(12)
+                            .shadow(color: .purple.opacity(0.4), radius: 5, x: 0, y: 2)
+                        }
+                        .padding(.top, 10)
+                    }
                 }
                 .padding(.horizontal, 40)
             }
@@ -1298,7 +1362,9 @@ struct WidgetConfigurationView: View {
     @State private var didJustApplyWidgets = false
     @State private var saveWorkItem: DispatchWorkItem?
     @AppStorage("HasPurchasedIconFeature", store: UserDefaults(suiteName: appGroupID)) private var hasPurchasedIconFeature: Bool = false
+    @AppStorage("HasPurchasedTextAlignment", store: UserDefaults(suiteName: appGroupID)) private var hasPurchasedTextAlignment: Bool = false
     @State private var showIconPurchaseAlert = false
+    @State private var showAlignmentPurchaseAlert = false
     @State private var selectedAlignment: TextAlignmentOption = .leading
     @State private var iconsEnabled: Bool = true
     
@@ -1424,15 +1490,36 @@ struct WidgetConfigurationView: View {
 
                         // Text Alignment
                         VStack(spacing: 12) {
-                            Text("Text Alignment")
-                                .font(.headline)
-                                .foregroundColor(.white)
+                            HStack {
+                                if !hasPurchasedTextAlignment {
+                                    Image(systemName: "lock.fill")
+                                        .foregroundColor(.gray)
+                                }
+                                Text("Text Alignment")
+                                    .font(.headline)
+                                    .foregroundColor(.white)
+                            }
+                            
                             Picker("Alignment", selection: $selectedAlignment) {
                                 Text(TextAlignmentOption.leading.label).tag(TextAlignmentOption.leading)
                                 Text(TextAlignmentOption.center.label).tag(TextAlignmentOption.center)
                                 Text(TextAlignmentOption.trailing.label).tag(TextAlignmentOption.trailing)
                             }
                             .pickerStyle(.segmented)
+                            .disabled(!hasPurchasedTextAlignment)
+                            .opacity(hasPurchasedTextAlignment ? 1.0 : 0.5)
+                            
+                            if !hasPurchasedTextAlignment {
+                                Button(action: {
+                                    UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                                    showAlignmentPurchaseAlert = true
+                                }) {
+                                    Text("Unlock Text Alignment (~$20 MXN)")
+                                        .font(.subheadline)
+                                        .foregroundColor(.blue)
+                                        .padding(.vertical, 8)
+                                }
+                            }
                         }
                         .padding()
                         .background(Color.gray.opacity(0.2))
@@ -1493,6 +1580,11 @@ struct WidgetConfigurationView: View {
                             Button("OK") { }
                         } message: {
                             Text("This is a purchase simulator. In the production app, this would open the App Store purchase flow for the Icon Feature (~$19 MXN).")
+                        }
+                        .alert("Purchase Required", isPresented: $showAlignmentPurchaseAlert) {
+                            Button("OK") { }
+                        } message: {
+                            Text("This is a purchase simulator. In the production app, this would open the App Store purchase flow for Text Alignment (~$20 MXN).")
                         }
 
                         // Apply Button
@@ -1625,35 +1717,37 @@ struct WidgetLaunchersConfigView: View {
                         let upperBound = min(end, store.launchers.count)
                         if start < upperBound {
                             if isLocked {
-                                // Locked state
-                                VStack(spacing: 16) {
-                                    Image(systemName: "lock.fill")
-                                        .font(.system(size: 40))
-                                        .foregroundColor(.orange)
-                                    
-                                    Text("Extra Widgets Locked")
-                                        .font(.headline)
-                                        .foregroundColor(.primary)
-                                    
-                                    Text("Purchase the Extra Widgets pack to unlock Widgets 2-5")
-                                        .font(.subheadline)
-                                        .foregroundColor(.secondary)
-                                        .multilineTextAlignment(.center)
-                                    
-                                    Button(action: {
-                                        showPurchaseAlert = true
-                                    }) {
-                                        Text("Unlock (~$49 MXN)")
-                                            .font(.headline)
-                                            .foregroundColor(.white)
-                                            .padding(.horizontal, 24)
-                                            .padding(.vertical, 12)
-                                            .background(Color.orange)
-                                            .cornerRadius(10)
+                                // Show blurred slots with overlay
+                                ZStack {
+                                    VStack(spacing: 0) {
+                                        ForEach(store.launchers[start..<upperBound]) { launcher in
+                                            let slotNumber = launcher.id - start
+                                            LauncherSlotView(launcher: binding(for: launcher), slotNumber: slotNumber)
+                                                .disabled(true)
+                                        }
                                     }
+                                    .blur(radius: 8)
+                                    
+                                    VStack(spacing: 16) {
+                                        Text("🔒")
+                                            .font(.system(size: 80))
+                                        
+                                        Button(action: {
+                                            showPurchaseAlert = true
+                                        }) {
+                                            Text("Unlock (~$49 MXN)")
+                                                .font(.headline)
+                                                .foregroundColor(.white)
+                                                .padding(.horizontal, 24)
+                                                .padding(.vertical, 12)
+                                                .background(Color.orange)
+                                                .cornerRadius(10)
+                                        }
+                                    }
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.vertical, 40)
+                                    .background(Color.black.opacity(0.3))
                                 }
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, 40)
                             } else {
                                 ForEach(store.launchers[start..<upperBound]) { launcher in
                                     let slotNumber = launcher.id - start
@@ -1813,6 +1907,7 @@ struct LauncherSlotView: View {
 // MARK: - Settings View
 struct SettingsView: View {
     @ObservedObject var store: AppLauncherStore
+    @EnvironmentObject var storeManager: StoreManager
     @Environment(\.dismiss) private var dismiss
     @AppStorage("AlwaysShowSettingsButton", store: UserDefaults(suiteName: appGroupID)) private var alwaysShowSettingsButton: Bool = false
     // Import/Export functionality
@@ -1831,6 +1926,8 @@ struct SettingsView: View {
     // Purchase simulation state
     @AppStorage("HasPurchasedExtraWidgets", store: UserDefaults(suiteName: appGroupID)) private var hasPurchasedExtraWidgets: Bool = false
     @AppStorage("HasPurchasedIconFeature", store: UserDefaults(suiteName: appGroupID)) private var hasPurchasedIconFeature: Bool = false
+    @AppStorage("HasPurchasedCalendar", store: UserDefaults(suiteName: appGroupID)) private var hasPurchasedCalendar: Bool = false
+    @AppStorage("HasPurchasedTextAlignment", store: UserDefaults(suiteName: appGroupID)) private var hasPurchasedTextAlignment: Bool = false
     
     // Display zoom detection
     private var displayZoomStatus: String {
@@ -1965,14 +2062,39 @@ struct SettingsView: View {
                             .foregroundColor(.secondary)
                             .padding(.leading, 16)
                         
+                        Toggle("Owns \"Calendar Widget\" (~$29 MXN)", isOn: $hasPurchasedCalendar)
+                            .onChange(of: hasPurchasedCalendar) { _, _ in
+                                UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                                WidgetCenter.shared.reloadAllTimelines()
+                            }
+                        
+                        Text("Unlocks Calendar widget")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                            .padding(.leading, 16)
+                        
+                        Toggle("Owns \"Text Alignment\" (~$20 MXN)", isOn: $hasPurchasedTextAlignment)
+                            .onChange(of: hasPurchasedTextAlignment) { _, _ in
+                                UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                                WidgetCenter.shared.reloadAllTimelines()
+                            }
+                        
+                        Text("Unlocks text alignment options")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                            .padding(.leading, 16)
+                        
                         Button(action: {
                             UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
                             hasPurchasedExtraWidgets = false
                             hasPurchasedIconFeature = false
+                            hasPurchasedCalendar = false
+                            hasPurchasedTextAlignment = false
+                            storeManager.resetStatus()
                         }) {
                             HStack {
                                 Image(systemName: "arrow.counterclockwise")
-                                Text("Reset All Purchases")
+                                Text("Reset All Purchases (StoreKit & Local)")
                             }
                             .foregroundColor(.red)
                         }
