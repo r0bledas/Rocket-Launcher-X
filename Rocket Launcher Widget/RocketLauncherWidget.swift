@@ -271,6 +271,22 @@ private func loadIconImage(fileName: String?) -> UIImage? {
     return UIImage(contentsOfFile: url.path)
 }
 
+private func getGlassModeEnabled() -> Bool {
+    let userDefaults = UserDefaults(suiteName: "group.rocketlauncher")
+    return userDefaults?.bool(forKey: "WidgetGlassModeEnabled") ?? false
+}
+
+private func widgetBackground(for backgroundColor: String) -> Color {
+    if getGlassModeEnabled() {
+        return Color.white.opacity(0.16)
+    }
+    let hex = backgroundColor.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
+    if hex == "00000000" || hex.lowercased() == "clear" {
+        return Color.black.opacity(0.95)
+    }
+    return Color(hex: backgroundColor)
+}
+
 struct RocketLauncherWidget: Widget {
     let kind: String = "RocketLauncherWidget"
     var body: some WidgetConfiguration {
@@ -278,12 +294,7 @@ struct RocketLauncherWidget: Widget {
             if #available(iOS 17.0, *) {
                 LauncherWidgetEntryView(entry: entry)
                     .containerBackground(for: .widget) {
-                        let hex = entry.backgroundColor.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
-                        if hex == "00000000" || hex.lowercased() == "clear" {
-                            Color.black.opacity(0.95)
-                        } else {
-                            Color(hex: entry.backgroundColor)
-                        }
+                        widgetBackground(for: entry.backgroundColor)
                     }
             } else {
                 LauncherWidgetEntryView(entry: entry)
@@ -302,12 +313,7 @@ struct RocketLauncherWidget2: Widget {
             if #available(iOS 17.0, *) {
                 LauncherWidgetEntryView(entry: entry)
                     .containerBackground(for: .widget) {
-                        let hex = entry.backgroundColor.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
-                        if hex == "00000000" || hex.lowercased() == "clear" {
-                            Color.black.opacity(0.95)
-                        } else {
-                            Color(hex: entry.backgroundColor)
-                        }
+                        widgetBackground(for: entry.backgroundColor)
                     }
                     .widgetURL(entry.isLocked ? URL(string: "rocketlauncher://purchase?widget=2") : nil)
             } else {
@@ -328,12 +334,7 @@ struct RocketLauncherWidget3: Widget {
             if #available(iOS 17.0, *) {
                 LauncherWidgetEntryView(entry: entry)
                     .containerBackground(for: .widget) {
-                        let hex = entry.backgroundColor.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
-                        if hex == "00000000" || hex.lowercased() == "clear" {
-                            Color.black.opacity(0.95)
-                        } else {
-                            Color(hex: entry.backgroundColor)
-                        }
+                        widgetBackground(for: entry.backgroundColor)
                     }
                     .widgetURL(entry.isLocked ? URL(string: "rocketlauncher://purchase?widget=3") : nil)
             } else {
@@ -354,12 +355,7 @@ struct RocketLauncherWidget4: Widget {
             if #available(iOS 17.0, *) {
                 LauncherWidgetEntryView(entry: entry)
                     .containerBackground(for: .widget) {
-                        let hex = entry.backgroundColor.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
-                        if hex == "00000000" || hex.lowercased() == "clear" {
-                            Color.black.opacity(0.95)
-                        } else {
-                            Color(hex: entry.backgroundColor)
-                        }
+                        widgetBackground(for: entry.backgroundColor)
                     }
                     .widgetURL(entry.isLocked ? URL(string: "rocketlauncher://purchase?widget=4") : nil)
             } else {
@@ -380,12 +376,7 @@ struct RocketLauncherWidget5: Widget {
             if #available(iOS 17.0, *) {
                 LauncherWidgetEntryView(entry: entry)
                     .containerBackground(for: .widget) {
-                        let hex = entry.backgroundColor.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
-                        if hex == "00000000" || hex.lowercased() == "clear" {
-                            Color.black.opacity(0.95)
-                        } else {
-                            Color(hex: entry.backgroundColor)
-                        }
+                        widgetBackground(for: entry.backgroundColor)
                     }
                     .widgetURL(entry.isLocked ? URL(string: "rocketlauncher://purchase?widget=5") : nil)
             } else {
@@ -864,12 +855,7 @@ struct CalendarWidget: Widget {
             if #available(iOS 17.0, *) {
                 CalendarWidgetView(entry: entry)
                     .containerBackground(for: .widget) {
-                        let hex = entry.backgroundColor.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
-                        if hex == "00000000" || hex.lowercased() == "clear" {
-                            Color.black.opacity(0.95)
-                        } else {
-                            Color(hex: entry.backgroundColor)
-                        }
+                        widgetBackground(for: entry.backgroundColor)
                     }
                     .widgetURL(entry.isLocked ? URL(string: "rocketlauncher://purchase?calendar=1") : nil)
             } else {
@@ -899,12 +885,7 @@ struct DayCounterWidget: Widget {
             if #available(iOS 17.0, *) {
                 DayCounterWidgetView(entry: entry)
                     .containerBackground(for: .widget) {
-                        let hex = entry.backgroundColor.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
-                        if hex == "00000000" || hex.lowercased() == "clear" {
-                            Color.black.opacity(0.95)
-                        } else {
-                            Color(hex: entry.backgroundColor)
-                        }
+                        widgetBackground(for: entry.backgroundColor)
                     }
             } else {
                 DayCounterWidgetView(entry: entry)
@@ -1019,12 +1000,7 @@ struct CalendarViewerWidget: Widget {
             if #available(iOS 17.0, *) {
                 CalendarViewerWidgetView(entry: entry)
                     .containerBackground(for: .widget) {
-                        let hex = entry.backgroundColor.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
-                        if hex == "00000000" || hex.lowercased() == "clear" {
-                            Color.black.opacity(0.95)
-                        } else {
-                            Color(hex: entry.backgroundColor)
-                        }
+                        widgetBackground(for: entry.backgroundColor)
                     }
             } else {
                 CalendarViewerWidgetView(entry: entry)
@@ -1280,12 +1256,7 @@ struct FlipClockWidget: Widget {
             if #available(iOS 17.0, *) {
                 FlipClockWidgetView(entry: entry)
                     .containerBackground(for: .widget) {
-                        let hex = entry.backgroundColor.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
-                        if hex == "00000000" || hex.lowercased() == "clear" {
-                            Color.black.opacity(0.95)
-                        } else {
-                            Color(hex: entry.backgroundColor)
-                        }
+                        widgetBackground(for: entry.backgroundColor)
                     }
             } else {
                 FlipClockWidgetView(entry: entry)
