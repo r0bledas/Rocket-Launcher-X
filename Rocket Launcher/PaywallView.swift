@@ -1,10 +1,3 @@
-//
-//  PaywallView.swift
-//  Rocket Launcher
-//
-//  Created by Raudel Alejandro on 19-07-2025.
-//
-
 import SwiftUI
 import StoreKit
 
@@ -12,89 +5,155 @@ struct PaywallView: View {
     @EnvironmentObject var storeManager: StoreManager
     @Environment(\.dismiss) var dismiss
     
+    private var lifetimeProduct: Product? {
+        storeManager.products.first(where: { $0.id == RocketProducts.proLifetime })
+    }
+    
+    private var foundersProduct: Product? {
+        storeManager.products.first(where: { $0.id == RocketProducts.futurePremiumFoundersYearly })
+    }
+    
+    private var yearlyProduct: Product? {
+        storeManager.products.first(where: { $0.id == RocketProducts.futurePremiumYearly })
+    }
+    
+    private var monthlyProduct: Product? {
+        storeManager.products.first(where: { $0.id == RocketProducts.futurePremiumMonthly })
+    }
+    
+    private var legacyProducts: [Product] {
+        storeManager.products.filter {
+            [RocketProducts.widgets, RocketProducts.icons, RocketProducts.calendar, RocketProducts.alignment].contains($0.id)
+        }
+    }
+    
     var body: some View {
         NavigationView {
             ScrollView {
-                VStack(spacing: 24) {
-                    // Header
+                VStack(spacing: 16) {
                     VStack(spacing: 8) {
                         Image(systemName: "rocket.fill")
-                            .font(.system(size: 60))
+                            .font(.system(size: 56))
                             .foregroundColor(.blue)
-                            .padding(.bottom, 8)
-                        
-                        Text("Unlock Full Potential")
+                        Text("Choose your plan")
                             .font(.largeTitle)
                             .fontWeight(.bold)
-                            .multilineTextAlignment(.center)
-                        
-                        Text("Supercharge your home screen with advanced widgets and customization.")
-                            .font(.body)
+                        Text("Free, Lifetime, or Future Premium")
                             .foregroundColor(.secondary)
-                            .multilineTextAlignment(.center)
-                            .padding(.horizontal)
                     }
-                    .padding(.top, 20)
+                    .padding(.top, 16)
                     
-                    // Bundle Hero Card
-                    if let bundleProduct = storeManager.products.first(where: { $0.id == RocketProducts.proLifetime }) {
-                        if !storeManager.purchasedProductIDs.contains(bundleProduct.id) {
-                            BundleCard(product: bundleProduct) {
-                                Task { await storeManager.purchase(bundleProduct) }
-                            }
-                        } else {
-                            PurchasedCard(title: "Pro Bundle Unlocked", icon: "crown.fill")
-                        }
-                    } else if storeManager.isLoading {
-                        ProgressView()
-                            .padding()
+                    TierCard(
+                        title: "Free",
+                        subtitle: "Core launcher features",
+                        badge: nil,
+                        buttonTitle: "Continue Free",
+                        isPurchased: true,
+                        color: .gray,
+                        action: { dismiss() }
+                    )
+                    
+                    if let lifetimeProduct {
+                        TierCard(
+                            title: "All Features Lifetime",
+                            subtitle: "Bulk discounted unlock for current premium features",
+                            badge: "One-time",
+                            buttonTitle: lifetimeProduct.displayPrice,
+                            isPurchased: storeManager.hasLifetimeAccess,
+                            color: .blue,
+                            action: { Task { await storeManager.purchase(lifetimeProduct) } }
+                        )
                     }
                     
-                    // Individual Features
-                    VStack(alignment: .leading, spacing: 16) {
-                        Text("Or choose individual features")
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text("Future Premium Subscription")
                             .font(.headline)
+                        Text("Unlock future premium drops while active")
+                            .font(.subheadline)
                             .foregroundColor(.secondary)
-                            .padding(.horizontal)
+                        Text("Save more with yearly billing")
+                            .font(.caption)
+                            .foregroundColor(.green)
                         
-                        // Extra Widgets
-                        FeatureRow(
-                            productID: RocketProducts.widgets,
-                            icon: "square.grid.2x2.fill",
-                            color: .orange,
-                            title: "Extra Widgets Pack",
-                            subtitle: "Unlock Widgets 2-5"
-                        )
-                        
-                        // Icons
-                        FeatureRow(
-                            productID: RocketProducts.icons,
-                            icon: "app.dashed",
-                            color: .green,
-                            title: "Icon Feature",
-                            subtitle: "Show app icons in widgets"
-                        )
-                        
-                        // Calendar
-                        FeatureRow(
-                            productID: RocketProducts.calendar,
-                            icon: "calendar",
-                            color: .red,
-                            title: "Calendar Widget",
-                            subtitle: "Access the calendar widget"
-                        )
-                        
-                        // Alignment
-                        FeatureRow(
-                            productID: RocketProducts.alignment,
-                            icon: "text.alignleft",
-                            color: .purple,
-                            title: "Text Alignment",
-                            subtitle: "Customize text alignment"
-                        )
+                        if storeManager.hasFuturePremiumSubscription {
+                            PurchasedCard(title: storeManager.hasFoundersSubscription ? "Founders Subscription Active" : "Future Premium Active", icon: "checkmark.seal.fill")
+                        } else {
+                            if storeManager.isFoundersEligible, let foundersProduct {
+                                Button(action: {
+                                    Task { await storeManager.purchase(foundersProduct) }
+                                }) {
+                                    HStack {
+                                        VStack(alignment: .leading, spacing: 2) {
+                                            Text("Founders Offer (one-time)")
+                                                .font(.subheadline).bold()
+                                            Text("Discount continues while subscription remains active")
+                                                .font(.caption)
+                                                .foregroundColor(.secondary)
+                                        }
+                                        Spacer()
+                                        Text(foundersProduct.displayPrice)
+                                            .fontWeight(.bold)
+                                    }
+                                    .padding(12)
+                                    .background(Color.orange.opacity(0.15))
+                                    .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.orange, lineWidth: 1))
+                                    .cornerRadius(12)
+                                }
+                                .buttonStyle(.plain)
+                                
+                                Button("Not now (hide one-time offer)") {
+                                    storeManager.markFoundersOfferConsumed()
+                                }
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                            }
+                            
+                            if let yearlyProduct {
+                                SubscriptionRow(title: "Yearly", product: yearlyProduct) {
+                                    Task { await storeManager.purchase(yearlyProduct) }
+                                }
+                            }
+                            
+                            if let monthlyProduct {
+                                SubscriptionRow(title: "Monthly", product: monthlyProduct) {
+                                    Task { await storeManager.purchase(monthlyProduct) }
+                                }
+                            }
+                        }
+                    }
+                    .padding()
+                    .background(Color(UIColor.secondarySystemBackground))
+                    .cornerRadius(16)
+                    
+                    if !legacyProducts.isEmpty {
+                        VStack(alignment: .leading, spacing: 10) {
+                            Text("Legacy Individual Unlocks")
+                                .font(.headline)
+                            Text("Kept for backward compatibility")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                            ForEach(legacyProducts, id: \.id) { product in
+                                Button(action: {
+                                    Task { await storeManager.purchase(product) }
+                                }) {
+                                    HStack {
+                                        Text(product.displayName)
+                                        Spacer()
+                                        Text(product.displayPrice)
+                                            .fontWeight(.bold)
+                                    }
+                                    .padding(10)
+                                    .background(Color.blue.opacity(0.08))
+                                    .cornerRadius(10)
+                                }
+                                .buttonStyle(.plain)
+                            }
+                        }
+                        .padding()
+                        .background(Color(UIColor.secondarySystemBackground))
+                        .cornerRadius(16)
                     }
                     
-                    // Restore Button
                     Button(action: {
                         Task { await storeManager.restorePurchases() }
                     }) {
@@ -102,10 +161,13 @@ struct PaywallView: View {
                             .font(.subheadline)
                             .foregroundColor(.blue)
                     }
-                    .padding(.top, 20)
-                    .padding(.bottom, 40)
+                    .padding(.top, 8)
+                    .padding(.bottom, 28)
                 }
                 .padding()
+            }
+            .onAppear {
+                Analytics.track("paywall_viewed")
             }
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -119,74 +181,76 @@ struct PaywallView: View {
     }
 }
 
-struct BundleCard: View {
+private struct TierCard: View {
+    let title: String
+    let subtitle: String
+    let badge: String?
+    let buttonTitle: String
+    let isPurchased: Bool
+    let color: Color
+    let action: () -> Void
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack {
+                Text(title).font(.headline)
+                Spacer()
+                if let badge {
+                    Text(badge)
+                        .font(.caption).bold()
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(color.opacity(0.2))
+                        .cornerRadius(8)
+                }
+            }
+            Text(subtitle)
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+            if isPurchased {
+                PurchasedCard(title: "Unlocked", icon: "checkmark.circle.fill")
+            } else {
+                Button(action: action) {
+                    Text(buttonTitle)
+                        .fontWeight(.bold)
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 10)
+                        .background(color)
+                        .cornerRadius(10)
+                }
+            }
+        }
+        .padding()
+        .background(Color(UIColor.secondarySystemBackground))
+        .cornerRadius(16)
+    }
+}
+
+private struct SubscriptionRow: View {
+    let title: String
     let product: Product
     let action: () -> Void
     
     var body: some View {
         Button(action: action) {
-            ZStack(alignment: .topTrailing) {
-                VStack(spacing: 16) {
-                    HStack {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("LIFETIME BUNDLE")
-                                .font(.caption)
-                                .fontWeight(.bold)
-                                .foregroundColor(.blue)
-                                .tracking(1)
-                            
-                            Text("Get Everything")
-                                .font(.title2)
-                                .fontWeight(.bold)
-                                .foregroundColor(.primary)
-                        }
-                        Spacer()
-                        Image(systemName: "crown.fill")
-                            .font(.largeTitle)
-                            .foregroundColor(.yellow)
-                    }
-                    
-                    Divider()
-                    
-                    HStack {
-                        VStack(alignment: .leading) {
-                            Text("Includes all 4 features")
-                                .font(.subheadline)
-                                .foregroundColor(.secondary)
-                        }
-                        Spacer()
-                        
-                        VStack(alignment: .trailing) {
-                            Text(product.displayPrice)
-                                .font(.title3)
-                                .fontWeight(.bold)
-                                .foregroundColor(.blue)
-                        }
-                    }
+            HStack {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(title)
+                        .fontWeight(.semibold)
+                    Text(product.displayName)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
                 }
-                .padding(20)
-                .background(Color(UIColor.secondarySystemBackground))
-                .cornerRadius(20)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 20)
-                        .stroke(Color.blue, lineWidth: 2)
-                )
-                
-                // Discount Badge
-                Text("SAVE 30%")
-                    .font(.caption)
+                Spacer()
+                Text(product.displayPrice)
                     .fontWeight(.bold)
-                    .foregroundColor(.white)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
-                    .background(Color.red)
-                    .cornerRadius(8)
-                    .offset(x: 10, y: -10)
-                    .shadow(radius: 2)
             }
+            .padding(10)
+            .background(Color.purple.opacity(0.1))
+            .cornerRadius(10)
         }
-        .buttonStyle(PlainButtonStyle())
-        .padding(.top, 10) // Space for the badge
+        .buttonStyle(.plain)
     }
 }
 
@@ -197,82 +261,19 @@ struct PurchasedCard: View {
     var body: some View {
         HStack {
             Image(systemName: icon)
-                .font(.title2)
+                .font(.title3)
                 .foregroundColor(.green)
             Text(title)
-                .font(.headline)
+                .font(.subheadline)
                 .foregroundColor(.green)
             Spacer()
-            Image(systemName: "checkmark.circle.fill")
-                .foregroundColor(.green)
         }
-        .padding()
+        .padding(10)
         .background(Color.green.opacity(0.1))
-        .cornerRadius(12)
+        .cornerRadius(10)
         .overlay(
-            RoundedRectangle(cornerRadius: 12)
+            RoundedRectangle(cornerRadius: 10)
                 .stroke(Color.green.opacity(0.3), lineWidth: 1)
         )
-    }
-}
-
-struct FeatureRow: View {
-    let productID: String
-    let icon: String
-    let color: Color
-    let title: String
-    let subtitle: String
-    
-    @EnvironmentObject var storeManager: StoreManager
-    
-    var body: some View {
-        HStack(spacing: 16) {
-            ZStack {
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(color.opacity(0.1))
-                    .frame(width: 48, height: 48)
-                
-                Image(systemName: icon)
-                    .font(.title2)
-                    .foregroundColor(color)
-            }
-            
-            VStack(alignment: .leading, spacing: 2) {
-                Text(title)
-                    .font(.headline)
-                    .foregroundColor(.primary)
-                Text(subtitle)
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-            }
-            
-            Spacer()
-            
-            if storeManager.purchasedProductIDs.contains(productID) || storeManager.purchasedProductIDs.contains(RocketProducts.proLifetime) {
-                Image(systemName: "checkmark")
-                    .foregroundColor(.green)
-                    .font(.headline)
-            } else {
-                if let product = storeManager.products.first(where: { $0.id == productID }) {
-                    Button(action: {
-                        Task { await storeManager.purchase(product) }
-                    }) {
-                        Text(product.displayPrice)
-                            .font(.subheadline)
-                            .fontWeight(.bold)
-                            .foregroundColor(.blue)
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 6)
-                            .background(Color.blue.opacity(0.1))
-                            .cornerRadius(16)
-                    }
-                } else {
-                    ProgressView()
-                }
-            }
-        }
-        .padding()
-        .background(Color(UIColor.secondarySystemBackground))
-        .cornerRadius(16)
     }
 }

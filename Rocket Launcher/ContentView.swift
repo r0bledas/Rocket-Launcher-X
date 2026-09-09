@@ -18,6 +18,83 @@ import Network
 // Centralized App Group ID used across iOS app, widgets, and watch extensions.
 let appGroupID = "group.rocketlauncher"
 
+struct AppCatalogItem: Identifiable, Hashable {
+    let id: String
+    let name: String
+    let scheme: String
+    let fallbackURL: String
+    let appStoreID: String
+    let category: String
+}
+
+enum AppCatalog {
+    static let items: [AppCatalogItem] = [
+        .init(id: "instagram", name: "Instagram", scheme: "instagram://", fallbackURL: "https://instagram.com", appStoreID: "389801252", category: "social"),
+        .init(id: "spotify", name: "Spotify", scheme: "spotify://", fallbackURL: "https://spotify.com", appStoreID: "324684580", category: "media"),
+        .init(id: "youtube", name: "YouTube", scheme: "youtube://", fallbackURL: "https://youtube.com", appStoreID: "544007664", category: "media"),
+        .init(id: "whatsapp", name: "WhatsApp", scheme: "whatsapp://", fallbackURL: "https://whatsapp.com", appStoreID: "310633997", category: "social"),
+        .init(id: "telegram", name: "Telegram", scheme: "tg://", fallbackURL: "https://telegram.org", appStoreID: "686449807", category: "social"),
+        .init(id: "x", name: "X", scheme: "twitter://", fallbackURL: "https://x.com", appStoreID: "333903271", category: "social"),
+        .init(id: "maps", name: "Maps", scheme: "maps://", fallbackURL: "https://maps.apple.com", appStoreID: "915056765", category: "navigation"),
+        .init(id: "music", name: "Apple Music", scheme: "music://", fallbackURL: "https://music.apple.com", appStoreID: "1108187390", category: "media"),
+        .init(id: "safari", name: "Safari", scheme: "https://", fallbackURL: "https://apple.com", appStoreID: "0", category: "browser"),
+        .init(id: "mail", name: "Mail", scheme: "mailto://", fallbackURL: "https://icloud.com/mail", appStoreID: "1108187098", category: "productivity")
+    ]
+}
+
+enum Analytics {
+    static func isEnabled() -> Bool {
+        UserDefaults(suiteName: appGroupID)?.bool(forKey: "AnonymousAnalyticsEnabled") ?? false
+    }
+    
+    static func track(_ event: String, properties: [String: String] = [:]) {
+        guard isEnabled() else { return }
+        var payload = properties
+        payload["event"] = event
+        payload["timestamp"] = ISO8601DateFormatter().string(from: Date())
+        print("📊 Analytics:", payload)
+    }
+}
+
+func schemeCategory(_ scheme: String) -> String {
+    let value = scheme.lowercased()
+    if value.contains("instagram") || value.contains("twitter") || value.contains("whatsapp") || value.contains("tg://") {
+        return "social"
+    }
+    if value.contains("spotify") || value.contains("youtube") || value.contains("music://") {
+        return "media"
+    }
+    if value.contains("maps") {
+        return "navigation"
+    }
+    if value.contains("mailto") {
+        return "productivity"
+    }
+    return "other"
+}
+
+private func canShowAd(placement: String) -> Bool {
+    guard let defaults = UserDefaults(suiteName: appGroupID) else { return false }
+    let countKey = "AdCount_\(placement)_\(Calendar.current.component(.day, from: Date()))"
+    let lastShownKey = "AdLastShown_\(placement)"
+    let todayCount = defaults.integer(forKey: countKey)
+    if todayCount >= 3 { return false }
+    let lastTimestamp = defaults.double(forKey: lastShownKey)
+    if lastTimestamp > 0, Date().timeIntervalSince1970 - lastTimestamp < 120 {
+        return false
+    }
+    return true
+}
+
+private func markAdImpression(placement: String) {
+    guard let defaults = UserDefaults(suiteName: appGroupID) else { return }
+    let countKey = "AdCount_\(placement)_\(Calendar.current.component(.day, from: Date()))"
+    let lastShownKey = "AdLastShown_\(placement)"
+    defaults.set(defaults.integer(forKey: countKey) + 1, forKey: countKey)
+    defaults.set(Date().timeIntervalSince1970, forKey: lastShownKey)
+    Analytics.track("ad_impression", properties: ["placement": placement])
+}
+
 //
 
 // MARK: - Shake Detection
@@ -165,13 +242,19 @@ struct AppLauncher: Identifiable, Codable {
     var urlScheme: String
     var iconFileName: String? // stored in App Group container under /icons
     var showIcon: Bool? // optional flag to enable/disable icon rendering
+    var appStoreID: String?
+    var sourceType: String?
+    var fallbackURL: String?
     
-    init(id: Int, name: String = "", urlScheme: String = "", iconFileName: String? = nil, showIcon: Bool? = false) {
+    init(id: Int, name: String = "", urlScheme: String = "", iconFileName: String? = nil, showIcon: Bool? = false, appStoreID: String? = nil, sourceType: String? = nil, fallbackURL: String? = nil) {
         self.id = id
         self.name = name
         self.urlScheme = urlScheme
         self.iconFileName = iconFileName
         self.showIcon = showIcon
+        self.appStoreID = appStoreID
+        self.sourceType = sourceType
+        self.fallbackURL = fallbackURL
     }
 }
 
@@ -202,7 +285,7 @@ class AppLauncherStore: ObservableObject {
     
     func bulkFetchIcons() {
         let group = DispatchGroup()
-        // Always use Apple (iTunes) as icon source
+        // Prefer deterministic Apple lookup by App Store ID, fallback to name search.
         for launcherIndex in launchers.indices {
             let name = launchers[launcherIndex].name.trimmingCharacters(in: .whitespacesAndNewlines)
             guard !name.isEmpty else { continue }
@@ -218,7 +301,11 @@ class AppLauncherStore: ObservableObject {
                     group.leave()
                 }
             }
-            fetchIconForAppName(appName: name, completion: completion)
+            if let appStoreID = launchers[launcherIndex].appStoreID, !appStoreID.isEmpty, appStoreID != "0" {
+                fetchIconForAppStoreID(appStoreID: appStoreID, completion: completion)
+            } else {
+                fetchIconForAppName(appName: name, completion: completion)
+            }
         }
         group.notify(queue: .main) {
             self.save()
@@ -257,6 +344,8 @@ struct ContentView: View {
     @State private var didJustRefreshWidgets = false
     @StateObject private var appLauncherStore = AppLauncherStore()
     @EnvironmentObject var storeManager: StoreManager
+    @AppStorage("ShowAds", store: UserDefaults(suiteName: appGroupID)) private var showAds: Bool = true
+    @State private var showSponsoredPlacement = false
     // Splash overlay state
     @State private var showSplash = true
     // Shake detection for settings
@@ -278,9 +367,6 @@ struct ContentView: View {
     @State private var showingCompletionAlert = false
     @State private var selectedDay = 0 // 0 for today, 1 for tomorrow
     @State private var liveActivity: Activity<MultiTimeXAttributes>? = nil
-    // Purchase alert state
-    @State private var showingPurchaseAlert = false
-    @State private var purchaseAlertMessage = ""
     @State private var showingPaywall = false
     
     var progress: Double {
@@ -393,14 +479,10 @@ struct ContentView: View {
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
                 showSplash = false
             }
+            showSponsoredPlacement = showAds && canShowAd(placement: "main_home")
         }
         .onOpenURL { url in
             handleDeepLink(url)
-        }
-        .alert("Purchase Required", isPresented: $showingPurchaseAlert) {
-            Button("OK") { }
-        } message: {
-            Text(purchaseAlertMessage)
         }
     }
     
@@ -409,15 +491,7 @@ struct ContentView: View {
         guard url.scheme == "rocketlauncher" else { return }
         
         if url.host == "purchase" {
-            // Trigger the purchase flow
-            if let product = storeManager.products.first(where: { $0.id == RocketProducts.proLifetime }) {
-                Task {
-                    await storeManager.purchase(product)
-                }
-            } else {
-                purchaseAlertMessage = "Could not load products. Please try again."
-                showingPurchaseAlert = true
-            }
+            showingPaywall = true
         }
     }
     
@@ -520,6 +594,13 @@ struct ContentView: View {
                         .cornerRadius(10)
                     }
                     
+                    if showSponsoredPlacement {
+                        SponsoredCardView {
+                            markAdImpression(placement: "main_home")
+                        }
+                            .padding(.top, 8)
+                    }
+                    
                     // Centered swipe hint
                     HStack {
                         Spacer()
@@ -533,7 +614,7 @@ struct ContentView: View {
                     .padding(.top, 10)
                     
                     // Pro Purchase Button
-                    if !storeManager.purchasedProductIDs.contains(RocketProducts.proLifetime) {
+                    if !storeManager.hasLifetimeAccess && !storeManager.hasFuturePremiumSubscription {
                         Button(action: {
                             UIImpactFeedbackGenerator(style: .medium).impactOccurred()
                             showingPaywall = true
@@ -1360,6 +1441,7 @@ struct WidgetConfigurationView: View {
     @State private var showAlignmentPurchaseAlert = false
     @State private var selectedAlignment: TextAlignmentOption = .leading
     @State private var iconsEnabled: Bool = true
+    @State private var glassModeEnabled: Bool = false
     
     var body: some View {
         NavigationView {
@@ -1586,6 +1668,18 @@ struct WidgetConfigurationView: View {
                         } message: {
                             Text("This is a purchase simulator. In the production app, this would open the App Store purchase flow for Text Alignment (~$20 MXN).")
                         }
+                        
+                        VStack(spacing: 12) {
+                            Toggle("iOS Glass/Tinted Widget Mode", isOn: $glassModeEnabled)
+                                .toggleStyle(SwitchToggleStyle(tint: .blue))
+                                .foregroundColor(.white)
+                            Text("Uses a translucent/tinted background style for widget compatibility.")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                        .padding()
+                        .background(Color.gray.opacity(0.2))
+                        .cornerRadius(12)
 
                         // Apply Button
                         Button(action: {
@@ -1668,6 +1762,7 @@ struct WidgetConfigurationView: View {
         userDefaults?.set(backgroundColor, forKey: "WidgetBackgroundColor")
         userDefaults?.set(selectedAlignment.rawValue, forKey: "WidgetTextAlignment")
         userDefaults?.set(iconsEnabled, forKey: "WidgetIconsEnabled")
+        userDefaults?.set(glassModeEnabled, forKey: "WidgetGlassModeEnabled")
         userDefaults?.synchronize()
     }
     
@@ -1685,6 +1780,7 @@ struct WidgetConfigurationView: View {
             selectedAlignment = .leading
         }
         iconsEnabled = userDefaults?.bool(forKey: "WidgetIconsEnabled") ?? true
+        glassModeEnabled = userDefaults?.bool(forKey: "WidgetGlassModeEnabled") ?? false
         updateRGBFromHex()
     }
 }
@@ -1696,7 +1792,8 @@ struct WidgetLaunchersConfigView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.editMode) private var editMode
     @AppStorage("HasPurchasedExtraWidgets", store: UserDefaults(suiteName: appGroupID)) private var hasPurchasedExtraWidgets: Bool = false
-    @State private var showPurchaseAlert = false
+    @AppStorage("HasPremiumCustomLinks", store: UserDefaults(suiteName: appGroupID)) private var hasPremiumCustomLinks: Bool = false
+    @State private var showingPaywall = false
     
     var body: some View {
         NavigationView {
@@ -1722,7 +1819,7 @@ struct WidgetLaunchersConfigView: View {
                                     VStack(spacing: 0) {
                                         ForEach(store.launchers[start..<upperBound]) { launcher in
                                             let slotNumber = launcher.id - start
-                                            LauncherSlotView(launcher: binding(for: launcher), slotNumber: slotNumber)
+                                            LauncherSlotView(launcher: binding(for: launcher), slotNumber: slotNumber, hasPremiumCustomLinks: hasPremiumCustomLinks)
                                                 .disabled(true)
                                         }
                                     }
@@ -1733,7 +1830,7 @@ struct WidgetLaunchersConfigView: View {
                                             .font(.system(size: 80))
                                         
                                         Button(action: {
-                                            showPurchaseAlert = true
+                                            showingPaywall = true
                                         }) {
                                             Text("Unlock (~$49 MXN)")
                                                 .font(.headline)
@@ -1751,7 +1848,7 @@ struct WidgetLaunchersConfigView: View {
                             } else {
                                 ForEach(store.launchers[start..<upperBound]) { launcher in
                                     let slotNumber = launcher.id - start
-                                    LauncherSlotView(launcher: binding(for: launcher), slotNumber: slotNumber)
+                                    LauncherSlotView(launcher: binding(for: launcher), slotNumber: slotNumber, hasPremiumCustomLinks: hasPremiumCustomLinks)
                                 }
                                 .onMove { indices, newOffset in
                                     reorderSlots(in: widgetIndex, indices: indices, newOffset: newOffset)
@@ -1777,10 +1874,8 @@ struct WidgetLaunchersConfigView: View {
                     }
                 }
             }
-            .alert("Purchase Required", isPresented: $showPurchaseAlert) {
-                Button("OK") { }
-            } message: {
-                Text("This is a purchase simulator. In the production app, this would open the App Store purchase flow for the Extra Widgets pack (~$49 MXN).")
+            .sheet(isPresented: $showingPaywall) {
+                PaywallView()
             }
         }
     }
@@ -1812,9 +1907,12 @@ struct WidgetLaunchersConfigView: View {
 struct LauncherSlotView: View {
     @Binding var launcher: AppLauncher
     let slotNumber: Int
+    let hasPremiumCustomLinks: Bool
     @Environment(\.editMode) private var editMode
     @State private var confirmClear = false
     @State private var testLaunchError: String? = nil
+    @State private var showAppPicker = false
+    @State private var showPremiumAlert = false
     // Removed per-slot icon UI to reduce clutter
 
     var body: some View {
@@ -1826,11 +1924,40 @@ struct LauncherSlotView: View {
                 TextField("App Name", text: $launcher.name)
                     .textInputAutocapitalization(.words)
                     .disableAutocorrection(true)
-                TextField("URL Scheme", text: $launcher.urlScheme)
-                    .keyboardType(.URL)
-                    .autocapitalization(.none)
-                    .disableAutocorrection(true)
+                
+                if hasPremiumCustomLinks {
+                    TextField("URL Scheme", text: $launcher.urlScheme)
+                        .keyboardType(.URL)
+                        .autocapitalization(.none)
+                        .disableAutocorrection(true)
+                } else {
+                    HStack {
+                        Text(launcher.urlScheme.isEmpty ? "URL Scheme is filled by app picker" : launcher.urlScheme)
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        Spacer()
+                        Button("Custom Link (Premium)") {
+                            showPremiumAlert = true
+                        }
+                        .font(.caption)
+                    }
+                }
+                
                 HStack(spacing: 16) {
+                    Button(action: {
+                        showAppPicker = true
+                    }) {
+                        Text("Pick App")
+                            .font(.subheadline)
+                            .fontWeight(.semibold)
+                            .foregroundColor(.white)
+                            .padding(.vertical, 6)
+                            .padding(.horizontal, 12)
+                            .background(Color.purple)
+                            .cornerRadius(8)
+                    }
+                    .buttonStyle(.borderless)
+                    
                     Button(action: {
                         UIImpactFeedbackGenerator(style: .light).impactOccurred()
                         let trimmed = launcher.urlScheme.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -1840,11 +1967,29 @@ struct LauncherSlotView: View {
                             return
                         }
                         testLaunchError = nil
+                        Analytics.track("widget_launch_tapped", properties: [
+                            "slot": "\(slotNumber)",
+                            "category": schemeCategory(trimmed)
+                        ])
                         HapticsHelper.handleURLLaunch()
                         UIApplication.shared.open(url) { success in
                             if !success {
-                                testLaunchError = "Failed to open. Check the scheme or LSApplicationQueriesSchemes."
-                                UINotificationFeedbackGenerator().notificationOccurred(.error)
+                                if let fallback = launcher.fallbackURL, let fallbackURL = URL(string: fallback) {
+                                    UIApplication.shared.open(fallbackURL)
+                                    testLaunchError = "App not installed. Opened fallback link."
+                                } else {
+                                    testLaunchError = "Failed to open. Check the scheme or LSApplicationQueriesSchemes."
+                                    UINotificationFeedbackGenerator().notificationOccurred(.error)
+                                }
+                                Analytics.track("widget_launch_failed", properties: [
+                                    "slot": "\(slotNumber)",
+                                    "category": schemeCategory(trimmed)
+                                ])
+                            } else {
+                                Analytics.track("widget_launch_success", properties: [
+                                    "slot": "\(slotNumber)",
+                                    "category": schemeCategory(trimmed)
+                                ])
                             }
                         }
                     }) {
@@ -1869,6 +2014,9 @@ struct LauncherSlotView: View {
                             launcher.urlScheme = ""
                             launcher.iconFileName = nil
                             launcher.showIcon = false
+                            launcher.appStoreID = nil
+                            launcher.sourceType = nil
+                            launcher.fallbackURL = nil
                             confirmClear = false
                         } else {
                             UIImpactFeedbackGenerator(style: .medium).impactOccurred()
@@ -1901,6 +2049,73 @@ struct LauncherSlotView: View {
             }
         }
         .padding(.vertical, 4)
+        .sheet(isPresented: $showAppPicker) {
+            AppCatalogPickerView { selected in
+                launcher.name = selected.name
+                launcher.urlScheme = selected.scheme
+                launcher.appStoreID = selected.appStoreID
+                launcher.sourceType = "catalog"
+                launcher.fallbackURL = selected.fallbackURL
+                Analytics.track("widget_slot_configured", properties: [
+                    "slot": "\(slotNumber)",
+                    "category": selected.category,
+                    "source": "catalog"
+                ])
+                fetchIconForAppStoreID(appStoreID: selected.appStoreID) { result in
+                    DispatchQueue.main.async {
+                        if case .success(let data) = result,
+                           let fileName = saveIconDataToAppGroup(data: data, slotId: launcher.id) {
+                            launcher.iconFileName = fileName
+                            launcher.showIcon = true
+                        }
+                    }
+                }
+            }
+        }
+        .alert("Premium Feature", isPresented: $showPremiumAlert) {
+            Button("OK") { }
+        } message: {
+            Text("Custom/manual links are part of premium access. Use Pick App in free mode.")
+        }
+    }
+}
+
+struct AppCatalogPickerView: View {
+    @Environment(\.dismiss) private var dismiss
+    @State private var query = ""
+    let onPick: (AppCatalogItem) -> Void
+    
+    private var filtered: [AppCatalogItem] {
+        if query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            return AppCatalog.items
+        }
+        let q = query.lowercased()
+        return AppCatalog.items.filter { $0.name.lowercased().contains(q) || $0.category.lowercased().contains(q) }
+    }
+    
+    var body: some View {
+        NavigationView {
+            List(filtered) { item in
+                Button(action: {
+                    onPick(item)
+                    dismiss()
+                }) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(item.name)
+                        Text(item.category.capitalized)
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                }
+            }
+            .navigationTitle("Pick App")
+            .searchable(text: $query)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Done") { dismiss() }
+                }
+            }
+        }
     }
 }
 
@@ -1928,6 +2143,8 @@ struct SettingsView: View {
     @AppStorage("HasPurchasedIconFeature", store: UserDefaults(suiteName: appGroupID)) private var hasPurchasedIconFeature: Bool = false
     @AppStorage("HasPurchasedCalendar", store: UserDefaults(suiteName: appGroupID)) private var hasPurchasedCalendar: Bool = false
     @AppStorage("HasPurchasedTextAlignment", store: UserDefaults(suiteName: appGroupID)) private var hasPurchasedTextAlignment: Bool = false
+    @AppStorage("AnonymousAnalyticsEnabled", store: UserDefaults(suiteName: appGroupID)) private var anonymousAnalyticsEnabled: Bool = false
+    @AppStorage("ShowAds", store: UserDefaults(suiteName: appGroupID)) private var showAds: Bool = true
     
     // Display zoom detection
     private var displayZoomStatus: String {
@@ -2014,6 +2231,15 @@ struct SettingsView: View {
                         }
                         .foregroundColor(.blue)
                     }
+                }
+                
+                Section(header: Text("PRIVACY & MONETIZATION").font(.headline)) {
+                    Toggle("Anonymous Analytics", isOn: $anonymousAnalyticsEnabled)
+                    Toggle("Show Ads (Free Tier)", isOn: $showAds)
+                        .disabled(!storeManager.purchasedProductIDs.isEmpty)
+                    Text("Only anonymous derived events are tracked (slot, category, launch success/failure). Raw custom links are never logged.")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
                 }
                 
                 Section(header: Text("DEV BETA").font(.headline)) {
@@ -2168,6 +2394,11 @@ struct SettingsView: View {
         }
         .sheet(isPresented: $showingShareSheet) {
             ShareSheet(items: shareItems)
+        }
+        .onAppear {
+            if !storeManager.purchasedProductIDs.isEmpty {
+                showAds = false
+            }
         }
     }
     
@@ -2348,6 +2579,30 @@ struct SettingsView: View {
     }
 }
 
+struct SponsoredCardView: View {
+    let onAppearAction: () -> Void
+    
+    var body: some View {
+        HStack(spacing: 10) {
+            Image(systemName: "megaphone.fill")
+                .foregroundColor(.yellow)
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Sponsored")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                Text("Upgrade to Pro for an ad-free experience.")
+                    .font(.subheadline)
+                    .foregroundColor(.white)
+            }
+            Spacer()
+        }
+        .padding(10)
+        .background(Color.white.opacity(0.08))
+        .cornerRadius(10)
+        .onAppear(perform: onAppearAction)
+    }
+}
+
 // MARK: - Share Sheet
 struct ShareSheet: UIViewControllerRepresentable {
     let items: [Any]
@@ -2455,6 +2710,37 @@ private func loadIconPreview(for launcher: AppLauncher) -> UIImage? {
 }
 
 // MARK: - Auto-fetch icons via iTunes Search API
+private func fetchIconForAppStoreID(appStoreID: String, completion: @escaping (Result<Data, Error>) -> Void) {
+    guard let url = URL(string: "https://itunes.apple.com/lookup?id=\(appStoreID)&country=us") else {
+        completion(.failure(NSError(domain: "itms", code: -10)))
+        return
+    }
+    URLSession.shared.dataTask(with: url) { data, _, error in
+        if let error = error {
+            completion(.failure(error)); return
+        }
+        guard let data = data,
+              let json = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
+              let results = json["results"] as? [[String: Any]],
+              let first = results.first else {
+            completion(.failure(NSError(domain: "itms", code: -11))); return
+        }
+        let urlString = (first["artworkUrl512"] as? String) ?? (first["artworkUrl100"] as? String)
+        guard let art = urlString, let u = URL(string: art) else {
+            completion(.failure(NSError(domain: "itms", code: -12))); return
+        }
+        URLSession.shared.dataTask(with: u) { imgData, _, err in
+            if let err = err { completion(.failure(err)); return }
+            guard let imgData = imgData else { completion(.failure(NSError(domain: "itms", code: -13))); return }
+            if let image = UIImage(data: imgData), let pngData = image.pngData() {
+                completion(.success(pngData))
+            } else {
+                completion(.success(imgData))
+            }
+        }.resume()
+    }.resume()
+}
+
 private func fetchIconForAppName(appName: String, completion: @escaping (Result<Data, Error>) -> Void) {
     // Query iTunes Search API for the app name (US store, software entity)
     let term = appName.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? appName

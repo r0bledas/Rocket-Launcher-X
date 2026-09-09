@@ -74,6 +74,7 @@ class URLHandler: ObservableObject {
                 
                 if let scheme = queryItems.first(where: { $0.name == "scheme" })?.value {
                     print("🎯 Launching with scheme param: \(scheme)")
+                    Analytics.track("widget_launch_tapped", properties: ["category": schemeCategory(scheme), "source": "widget"])
                     // Launch the target app immediately
                     launchApp(withScheme: scheme, onFailure: onFailure)
                     return true
@@ -81,6 +82,7 @@ class URLHandler: ObservableObject {
                 // Legacy: support ?app=...
                 if let appScheme = queryItems.first(where: { $0.name == "app" })?.value {
                     print("🎯 Launching with app param: \(appScheme)")
+                    Analytics.track("widget_launch_tapped", properties: ["category": schemeCategory(appScheme), "source": "widget"])
                     launchApp(withScheme: appScheme, onFailure: onFailure)
                     return true
                 }
@@ -103,8 +105,10 @@ class URLHandler: ObservableObject {
         UIApplication.shared.open(url, options: [:], completionHandler: { success in
             print("UIApplication.shared.open success: \(success)")
             if !success {
+                Analytics.track("widget_launch_failed", properties: ["category": schemeCategory(scheme), "source": "widget"])
                 onFailure?(scheme)
             } else {
+                Analytics.track("widget_launch_success", properties: ["category": schemeCategory(scheme), "source": "widget"])
                 // Add notification haptic for successful launch
                 let notificationGenerator = UINotificationFeedbackGenerator()
                 notificationGenerator.notificationOccurred(.success)

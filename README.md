@@ -10,7 +10,7 @@
 ## ✨ Overview
 
 **Rocket Launcher X** combines multiple productivity tools into one powerful iOS app:
-- **5 App Launcher Widgets** - Quick access to 40 apps via custom URL schemes
+- **5 App Launcher Widgets** - Quick access to 40 apps via app picker or premium custom URL schemes
 - **3 Calendar Widgets** - Medium, small day counter, and mini calendar viewer
 - **Flip Clock Widget** - Real-time animated digital clock
 - **MultiTimeX Timer** - Countdown timer with Live Activity support
@@ -51,9 +51,11 @@
 **Quick access to up to 40 apps via custom URL schemes**
 
 - **5 independent widgets**, each with 8 app slots
-- **Custom URL schemes** for launching any app
+- **App picker** with curated app catalog for one-tap setup
+- **Premium custom URL schemes** for launching any app
 - **Haptic feedback** on launch (heavy impact)
 - **Icon support** - Fetch and display app icons from iTunes/Iconfinder
+- **iOS glass/tinted mode toggle** - Optional translucent widget style
 - **Deep customization:**
   - Background color (RGB/Hex)
   - Font color
