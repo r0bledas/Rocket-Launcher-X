@@ -1076,6 +1076,7 @@ struct WidgetLaunchersConfigView: View {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Save") {
                         store.save()
+                        WidgetCenter.shared.reloadAllTimelines()
                         dismiss()
                     }
                 }
@@ -1539,6 +1540,7 @@ struct SettingsView: View {
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Done") {
+                        WidgetCenter.shared.reloadAllTimelines()
                         dismiss()
                     }
                 }

@@ -92,6 +92,8 @@ struct WidgetConfigurationView: View {
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Done") {
+                        applyColorToWidgets()
+                        WidgetCenter.shared.reloadAllTimelines()
                         dismiss()
                     }
                     .fontWeight(.semibold)
