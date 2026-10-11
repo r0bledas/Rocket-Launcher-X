@@ -9,13 +9,6 @@ import SwiftUI
 import WidgetKit
 import UIKit
 
-// MARK: - Color Preset Model
-struct ColorPreset: Identifiable {
-    let id = UUID()
-    let name: String
-    let hex: String
-}
-
 enum PreviewWidgetType: String, CaseIterable, Identifiable {
     case launcher = "Launcher"
     case calendar = "Calendar"
@@ -49,15 +42,6 @@ struct WidgetConfigurationView: View {
     @State private var showIconPurchaseAlert = false
     @State private var showAlignmentPurchaseAlert = false
     
-    private let presets: [ColorPreset] = [
-        ColorPreset(name: "Pitch Black", hex: "#000000"),
-        ColorPreset(name: "Rocket Dark", hex: "#242424"),
-        ColorPreset(name: "Space Gray", hex: "#1C1C1E"),
-        ColorPreset(name: "Deep Midnight", hex: "#0B132B"),
-        ColorPreset(name: "Charcoal", hex: "#2C3E50"),
-        ColorPreset(name: "Pure White", hex: "#FFFFFF")
-    ]
-    
     var body: some View {
         NavigationView {
             ZStack {
@@ -68,19 +52,16 @@ struct WidgetConfigurationView: View {
                         // Section 1: Live Widget Preview Header
                         livePreviewSection
                         
-                        // Section 2: Static Color Presets Palette
-                        staticColorPresetsSection
-                        
-                        // Section 3: Custom Color & Hex Input
+                        // Section 2: Custom Color & Hex Input
                         customColorSection
                         
-                        // Section 4: Text Alignment
+                        // Section 3: Text Alignment
                         textAlignmentSection
                         
-                        // Section 5: App Icons Toggle
+                        // Section 4: App Icons Toggle
                         iconsToggleSection
                         
-                        // Section 6: Apply to Widgets Action
+                        // Section 5: Apply to Widgets Action
                         applyButtonSection
                     }
                     .padding(.horizontal, 16)
@@ -182,7 +163,7 @@ struct WidgetConfigurationView: View {
                 Text("LIVE PREVIEW")
                     .font(.caption)
                     .fontWeight(.bold)
-                    .foregroundColor(.gray)
+                    .foregroundColor(.white)
                     .tracking(1)
                 
                 Spacer()
@@ -471,74 +452,7 @@ struct WidgetConfigurationView: View {
         return luminance > 0.7
     }
     
-    // MARK: - Section 2: Static Color Presets
-    private var staticColorPresetsSection: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            HStack {
-                Image(systemName: "paintpalette.fill")
-                    .foregroundColor(.blue)
-                Text("STATIC COLOR PRESETS")
-                    .font(.caption)
-                    .fontWeight(.bold)
-                    .foregroundColor(.gray)
-                    .tracking(1)
-            }
-            
-            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 10), count: 3), spacing: 10) {
-                ForEach(presets) { preset in
-                    let isSelected = customHexInput.uppercased() == preset.hex.uppercased()
-                    
-                    Button(action: {
-                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                        backgroundColor = Color(hex: preset.hex)
-                        customHexInput = preset.hex
-                    }) {
-                        HStack(spacing: 8) {
-                            ZStack {
-                                Circle()
-                                    .fill(Color(hex: preset.hex))
-                                    .frame(width: 22, height: 22)
-                                    .overlay(
-                                        Circle()
-                                            .stroke(Color.white.opacity(0.3), lineWidth: 1)
-                                    )
-                                
-                                if isSelected {
-                                    Image(systemName: "checkmark")
-                                        .font(.system(size: 11, weight: .bold))
-                                        .foregroundColor(preset.hex == "#FFFFFF" ? .black : .white)
-                                }
-                            }
-                            
-                            Text(preset.name)
-                                .font(.caption)
-                                .fontWeight(isSelected ? .bold : .medium)
-                                .foregroundColor(isSelected ? .white : .gray)
-                                .lineLimit(1)
-                            
-                            Spacer()
-                        }
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 10)
-                        .background(
-                            RoundedRectangle(cornerRadius: 12)
-                                .fill(isSelected ? Color.blue.opacity(0.2) : Color.gray.opacity(0.15))
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 12)
-                                        .stroke(isSelected ? Color.blue : Color.clear, lineWidth: 1.5)
-                                )
-                        )
-                    }
-                    .buttonStyle(PlainButtonStyle())
-                }
-            }
-        }
-        .padding(16)
-        .background(Color.gray.opacity(0.12))
-        .cornerRadius(16)
-    }
-    
-    // MARK: - Section 3: Custom Color & Hex Input
+    // MARK: - Section 2: Custom Color & Hex Input
     private var customColorSection: some View {
         VStack(alignment: .leading, spacing: 14) {
             HStack {
@@ -547,7 +461,7 @@ struct WidgetConfigurationView: View {
                 Text("CUSTOM COLOR & HEX")
                     .font(.caption)
                     .fontWeight(.bold)
-                    .foregroundColor(.gray)
+                    .foregroundColor(.white)
                     .tracking(1)
             }
             
@@ -618,7 +532,7 @@ struct WidgetConfigurationView: View {
                 Text("TEXT ALIGNMENT")
                     .font(.caption)
                     .fontWeight(.bold)
-                    .foregroundColor(.gray)
+                    .foregroundColor(.white)
                     .tracking(1)
                 
                 if !hasPurchasedTextAlignment {
