@@ -5,7 +5,7 @@
   ],
   "products" : [
     {
-      "displayPrice" : "4.99",
+      "displayPrice" : "19.99",
       "familyShareable" : true,
       "internalID" : "com.rocketlauncher.pro.lifetime",
       "localizations" : [
@@ -20,7 +20,7 @@
       "type" : "NonConsumable"
     },
     {
-      "displayPrice" : "2.99",
+      "displayPrice" : "9.99",
       "familyShareable" : true,
       "internalID" : "com.rocketlauncher.feature.widgets",
       "localizations" : [
@@ -35,7 +35,7 @@
       "type" : "NonConsumable"
     },
     {
-      "displayPrice" : "0.99",
+      "displayPrice" : "9.99",
       "familyShareable" : true,
       "internalID" : "com.rocketlauncher.feature.icons",
       "localizations" : [
@@ -50,7 +50,7 @@
       "type" : "NonConsumable"
     },
     {
-      "displayPrice" : "1.99",
+      "displayPrice" : "3.99",
       "familyShareable" : true,
       "internalID" : "com.rocketlauncher.feature.calendar",
       "localizations" : [
@@ -65,7 +65,7 @@
       "type" : "NonConsumable"
     },
     {
-      "displayPrice" : "0.99",
+      "displayPrice" : "1.99",
       "familyShareable" : true,
       "internalID" : "com.rocketlauncher.feature.alignment",
       "localizations" : [

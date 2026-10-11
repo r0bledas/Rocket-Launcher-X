@@ -84,7 +84,6 @@
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "964549352E6CDE33007C6127"
             BuildableName = "Rocket Launcher Watch App.app"
-            BlueprintName = "Rocket Launcher Watch App"
             ReferencedContainer = "container:Rocket Launcher.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
@@ -101,7 +100,6 @@
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "964549352E6CDE33007C6127"
             BuildableName = "Rocket Launcher Watch App.app"
-            BlueprintName = "Rocket Launcher Watch App"
             ReferencedContainer = "container:Rocket Launcher.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>

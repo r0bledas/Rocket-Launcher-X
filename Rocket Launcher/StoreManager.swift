@@ -170,7 +170,8 @@ class StoreManager: ObservableObject {
             let hasWidgets = hasBundle || purchasedProductIDs.contains(RocketProducts.widgets)
             let hasIcons = hasBundle || purchasedProductIDs.contains(RocketProducts.icons)
             let hasCalendar = hasBundle || purchasedProductIDs.contains(RocketProducts.calendar)
-            let hasAlignment = hasBundle || purchasedProductIDs.contains(RocketProducts.alignment)
+            // Alignment is included in Bundle OR Alignment Purchase OR Icons Purchase
+            let hasAlignment = hasBundle || purchasedProductIDs.contains(RocketProducts.alignment) || purchasedProductIDs.contains(RocketProducts.icons)
             
             // Update App Group Flags
             userDefaults.set(hasBundle, forKey: "IsProUser") // Legacy/Global flag

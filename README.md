@@ -12,8 +12,6 @@
 **Rocket Launcher X** combines multiple productivity tools into one powerful iOS app:
 - **5 App Launcher Widgets** - Quick access to 40 apps via custom URL schemes
 - **3 Calendar Widgets** - Medium, small day counter, and mini calendar viewer
-- **Flip Clock Widget** - Real-time animated digital clock
-- **MultiTimeX Timer** - Countdown timer with Live Activity support
 
 ## 🏗️ Architecture
 
@@ -21,9 +19,7 @@
 
 #### 1. **Main iOS App** (`Rocket Launcher/`)
 - **Rocket_LauncherApp.swift** - Main app entry point with URL scheme handling
-- **ContentView.swift** - Three-page tab interface:
-  - Page 0: Rocket Launcher (Main app launcher interface)
-  - Page 2: MultiTimeX Timer with Live Activity
+- **ContentView.swift** - Main launcher interface
 - **AppLauncherStore** - Manages 40 app launcher slots (5 widgets × 8 apps each)
 - **ShakeDetector** - CoreMotion-based shake detection for hidden settings
 
@@ -33,12 +29,9 @@
   - CalendarWidget (Medium)
   - DayCounterWidget (Small)
   - CalendarViewerWidget (Small)
-  - FlipClockWidget (Small)
-  - MultiTimeXLiveActivity (Live Activity)
 
 #### 3. **Apple Watch App** (`Rocket Launcher Watch App/`)
-#### 3. **Apple Watch App** (`Rocket Launcher Watch App/`)
-- Web Launcher and MultiTimeX Timer
+- Web Launcher
 
 #### 4. **Shared App Group**
 - Group ID: `group.rocketlauncher`
@@ -93,28 +86,6 @@ rocketlauncher://launch?scheme=<app-url-scheme>
 - Compact monthly calendar grid
 - Current day highlighted
 - Weekday headers (S M T W T F S)
-
-### 3. FlipClockWidget (Small)
-- Real-time digital clock display
-- Blinking colon animation (toggles every second)
-- 3D rotation effect
-- Monospaced font for clean alignment
-- Timeline updates every 0.5 seconds
-
-### 4. MultiTimeX Countdown Timer
-
-**Location:** Page 2 (swipe right from main)
-
-- Set target time with day selector (Today/Tomorrow)
-- Large countdown display with hours, minutes, seconds
-- Progress bar with percentage
-- **Live Activity support** for always-on display
-- Completion alert when timer reaches zero
-- Landscape mode support with dynamic font scaling
-- Haptic feedback on start/stop
-- Only allows future times (validates input)
-
-
 
 ## 📱 Screenshots
 
@@ -289,7 +260,6 @@ When enabled, the system randomly picks one edge day each time widgets refresh.
 ### Widget Timeline Updates
 - **App Launcher Widgets**: On-demand (when app data changes)
 - **Calendar Widgets**: Hourly + major refresh at midnight
-- **FlipClockWidget**: Every 0.5 seconds for smooth animation
 - **DayCounterWidget**: Hourly
 
 ### Data Persistence

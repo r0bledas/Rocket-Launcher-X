@@ -8,10 +8,8 @@
 import SwiftUI
 import WidgetKit
 import UIKit
-import ActivityKit
 import CoreMotion
 import UniformTypeIdentifiers
-import AudioToolbox
 import Network
 
 
@@ -264,53 +262,10 @@ struct ContentView: View {
     @State private var showingSettings = false
     // Settings button control
     @AppStorage("AlwaysShowSettingsButton", store: UserDefaults(suiteName: appGroupID)) private var alwaysShowSettingsButton: Bool = true
-    // Page swiper state
-    @State private var selectedPage = 0 // Start with Rocket Launcher (main page)
-    //
-    
-    // MultiTimeX Timer States
-    @State private var targetTime = Date()
-    @State private var timeRemaining: TimeInterval = 0
-    @State private var timer: Timer?
-    @State private var isRunning = false
-    @State private var initialTimeInterval: TimeInterval = 0
-    @State private var currentTime = Date()
-    @State private var showingCompletionAlert = false
-    @State private var selectedDay = 0 // 0 for today, 1 for tomorrow
-    @State private var liveActivity: Activity<MultiTimeXAttributes>? = nil
     // Purchase alert state
     @State private var showingPurchaseAlert = false
     @State private var purchaseAlertMessage = ""
     @State private var showingPaywall = false
-    
-    var progress: Double {
-        guard initialTimeInterval > 0 else { return 0 }
-        return 1 - (timeRemaining / initialTimeInterval)
-    }
-    
-    // Computed property to check if selected time is valid (in the future)
-    private var isSelectedTimeValid: Bool {
-        var components = Calendar.current.dateComponents([.year, .month, .day, .hour, .minute], from: targetTime)
-        
-        if selectedDay == 1 { // If tomorrow is selected
-            if let today = Calendar.current.date(byAdding: .day, value: 1, to: Date()) {
-                let tomorrowComponents = Calendar.current.dateComponents([.year, .month, .day], from: today)
-                components.year = tomorrowComponents.year
-                components.month = tomorrowComponents.month
-                components.day = tomorrowComponents.day
-            }
-        } else { // If today is selected
-            let todayComponents = Calendar.current.dateComponents([.year, .month, .day], from: Date())
-            components.year = todayComponents.year
-            components.month = todayComponents.month
-            components.day = todayComponents.day
-        }
-        
-        if let adjustedTargetTime = Calendar.current.date(from: components) {
-            return adjustedTargetTime.timeIntervalSinceNow > 0
-        }
-        return false
-    }
     
     var body: some View {
         ZStack {
@@ -318,31 +273,8 @@ struct ContentView: View {
             Color.black
                 .ignoresSafeArea(.all, edges: .all)
             
-            TabView(selection: $selectedPage) {
-                // Main Page (0) - Rocket Launcher (Main)
-                mainView
-                    .tag(0)
-                
-                // Configuration Page (1) - MultiTimeX (Right)
-                configurationView
-                    .tag(1)
-            }
-            .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
-            .ignoresSafeArea(.all, edges: .all)
-            
-            // Page indicator dots at the bottom
-            VStack {
-                Spacer()
-                HStack(spacing: 8) {
-                    ForEach(0..<2, id: \.self) { index in
-                        Circle()
-                            .fill(selectedPage == index ? Color.white : Color.white.opacity(0.4))
-                            .frame(width: 8, height: 8)
-                            .animation(.easeInOut(duration: 0.3), value: selectedPage)
-                    }
-                }
-                .padding(.bottom, 20)
-            }
+            mainView
+                .ignoresSafeArea(.all, edges: .all)
             
             // Blackout overlay
             if showBlackout {
@@ -369,6 +301,7 @@ struct ContentView: View {
         }
         .sheet(isPresented: $showingPaywall) {
             PaywallView()
+                .environmentObject(storeManager)
         }
         .onChange(of: scenePhase) { oldPhase, newPhase in
             if newPhase != .active {
@@ -519,18 +452,6 @@ struct ContentView: View {
                         .background(Color.gray.opacity(0.3))
                         .cornerRadius(10)
                     }
-                    
-                    // Centered swipe hint
-                    HStack {
-                        Spacer()
-                        HStack(spacing: 8) {
-                            Text("Swipe left for MultiTimeX")
-                                .font(.caption)
-                                .foregroundColor(.gray)
-                        }
-                        Spacer()
-                    }
-                    .padding(.top, 10)
                     
                     // Pro Purchase Button
                     if !storeManager.purchasedProductIDs.contains(RocketProducts.proLifetime) {
@@ -826,300 +747,6 @@ struct ContentView: View {
         }
     } */
     
-    // MARK: - Configuration View (MultiTimeX)
-    private var configurationView: some View {
-        ZStack {
-            Color.black.ignoresSafeArea()
-            
-            VStack {
-                // Header hidden while running to avoid duplicate titles in landscape
-                if !isRunning {
-                    HStack {
-                        Spacer()
-                        
-                        Text("MultiTimeX")
-                            .font(.title2)
-                            .fontWeight(.bold)
-                            .foregroundColor(.white)
-                        
-                        Spacer()
-                    }
-                    .padding(.horizontal, 20)
-                    .padding(.top, 60)
-                }
-                
-                if isRunning {
-                    GeometryReader { proxy in
-                        let isLandscape = proxy.size.width > proxy.size.height
-                        let portraitBaseFont: CGFloat = 94.0
-                        let dynamicFontSize = isLandscape ? portraitBaseFont * 1.5 : portraitBaseFont
-
-                        ZStack {
-                            // Centered timer content
-                            VStack(spacing: 4) {
-                                Spacer()
-                                Text(timeString(from: timeRemaining))
-                                    .font(.system(size: dynamicFontSize, weight: .bold))
-                                    .foregroundColor(timeRemaining > 0 ? .white : .red)
-                                    .minimumScaleFactor(0.4)
-                                    .contentTransition(.numericText())
-                                    .animation(.smooth, value: timeRemaining)
-                                    .lineLimit(1)
-                                    .multilineTextAlignment(.center)
-                                    .padding(.horizontal, 16)
-
-                                Text("until \(timeFormatter.string(from: targetTime))")
-                                    .font(.system(size: 14))
-                                    .foregroundColor(.gray)
-                                    .multilineTextAlignment(.center)
-
-                                GeometryReader { geometry in
-                                    ZStack(alignment: .leading) {
-                                        Rectangle()
-                                            .foregroundColor(.gray.opacity(0.3))
-
-                                        Rectangle()
-                                            .foregroundColor(timeRemaining > 0 ? .green : .red)
-                                            .frame(width: geometry.size.width * progress)
-                                            .animation(.smooth(duration: 0.3), value: progress)
-                                    }
-                                }
-                                .frame(height: 15)
-                                .cornerRadius(8)
-                                .padding(.horizontal, 40)
-
-                                Text("\(Int(progress * 100))%")
-                                    .font(.system(size: 14, weight: .medium))
-                                    .foregroundColor(.gray)
-                                    .contentTransition(.numericText())
-                                    .animation(.smooth, value: progress)
-                                Spacer()
-                            }
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
-
-                            // Compact Stop button at top-right
-                            VStack {
-                                HStack {
-                                    Spacer()
-                                    Button(action: {
-                                        stopTimer()
-                                        triggerMultiTimeXHapticFeedback()
-                                    }) {
-                                        HStack(spacing: 6) {
-                                            Image(systemName: "stop.fill")
-                                            Text("Stop")
-                                                .fontWeight(.semibold)
-                                        }
-                                        .font(.system(size: 14))
-                                        .foregroundColor(.white)
-                                        .padding(.vertical, 8)
-                                        .padding(.horizontal, 12)
-                                        .background(Color.red)
-                                        .cornerRadius(10)
-                                        .shadow(color: .black.opacity(0.3), radius: 6, x: 0, y: 3)
-                                    }
-                                }
-                                .padding(.top, proxy.safeAreaInsets.top + 12)
-                                .padding(.trailing, 30)
-                                Spacer()
-                            }
-                            .transition(.move(edge: .top))
-                            .animation(.smooth(duration: 0.25), value: isRunning)
-                        }
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        .padding(.bottom, proxy.safeAreaInsets.bottom + 16)
-                    }
-                } else {
-                    VStack {
-                        Spacer()
-                        
-                        VStack(spacing: 25) {
-                            Text("Select Target Time")
-                                .font(.title2)
-                                .fontWeight(.semibold)
-                                .foregroundColor(.white)
-                            
-                            Picker("Day", selection: $selectedDay) {
-                                Text("Today").tag(0)
-                                Text("Tomorrow").tag(1)
-                            }
-                            .pickerStyle(.segmented)
-                            .padding(.horizontal, 40)
-                            
-                            DatePicker("Target Time",
-                                     selection: $targetTime,
-                                     displayedComponents: [.hourAndMinute])
-                                .labelsHidden()
-                                .datePickerStyle(.wheel)
-                                .frame(maxWidth: .infinity)
-                                .frame(height: 150)
-                                .padding(.horizontal, 20)
-                            
-                            Button(action: {
-                                if isSelectedTimeValid {
-                                    startTimer()
-                                    triggerMultiTimeXHapticFeedback()
-                                } else {
-                                    // Negative haptic feedback for invalid selection
-                                    UINotificationFeedbackGenerator().notificationOccurred(.error)
-                                }
-                            }) {
-                                Text("Start Timer")
-                                    .font(.headline)
-                                    .foregroundColor(.white)
-                                    .frame(maxWidth: .infinity)
-                                    .padding()
-                                    .background(isSelectedTimeValid ? Color.green : Color.gray)
-                                    .cornerRadius(10)
-                                    .animation(.easeInOut(duration: 0.2), value: isSelectedTimeValid)
-                            }
-                            .padding(.horizontal, 40)
-                            .disabled(!isSelectedTimeValid)
-                        }
-                        .padding(.vertical, 20)
-                        
-                        Spacer()
-                    }
-                }
-                
-                Text("Made by Ra-Rauw!")
-                    .font(.caption)
-                    .foregroundColor(.gray)
-                    .padding(.bottom, 20)
-                
-                // Navigation Hint
-                HStack(spacing: 4) {
-                    Image(systemName: "chevron.left")
-                        .font(.system(size: 7))
-                    Text("Rocket Launcher")
-                        .font(.system(size: 9, weight: .medium))
-                }
-                .foregroundColor(.secondary)
-                .padding(.bottom, 12)
-            }
-            .alert("Time's Up!", isPresented: $showingCompletionAlert) {
-                Button("OK", role: .cancel) { }
-            }
-        }
-    }
-    
-    // MARK: - MultiTimeX Timer Functions
-    private func startTimer() {
-        // Adjust target time based on selected day
-        var components = Calendar.current.dateComponents([.year, .month, .day, .hour, .minute], from: targetTime)
-        if selectedDay == 1 { // If tomorrow is selected
-            if let today = Calendar.current.date(byAdding: .day, value: 1, to: Date()) {
-                let tomorrowComponents = Calendar.current.dateComponents([.year, .month, .day], from: today)
-                components.year = tomorrowComponents.year
-                components.month = tomorrowComponents.month
-                components.day = tomorrowComponents.day
-            }
-        } else { // If today is selected
-            let todayComponents = Calendar.current.dateComponents([.year, .month, .day], from: Date())
-            components.year = todayComponents.year
-            components.month = todayComponents.month
-            components.day = todayComponents.day
-        }
-        
-        if let adjustedTargetTime = Calendar.current.date(from: components) {
-            // Only start if the target time is in the future
-            if adjustedTargetTime.timeIntervalSinceNow > 0 {
-                targetTime = adjustedTargetTime
-                timeRemaining = targetTime.timeIntervalSinceNow
-                initialTimeInterval = timeRemaining
-                isRunning = true
-                startLiveActivity(endDate: targetTime)
-                currentTime = Date()
-                
-                
-                let updateInterval = 0.1
-                
-                timer = Timer.scheduledTimer(withTimeInterval: updateInterval, repeats: true) { _ in
-                    withAnimation {
-                        timeRemaining = targetTime.timeIntervalSinceNow
-                        currentTime = Date()
-                        
-                        if timeRemaining <= 0 {
-                            AudioServicesPlaySystemSound(kSystemSoundID_Vibrate)
-                            stopTimer()
-                        }
-                        updateLiveActivityProgress()
-                    }
-                }
-            }
-        }
-    }
-    
-    private func stopTimer() {
-        timer?.invalidate()
-        timer = nil
-        isRunning = false
-        endLiveActivity()
-        
-        
-        if timeRemaining <= 0 {
-            showingCompletionAlert = true
-        }
-    }
-
-    // MARK: - Live Activity helpers
-    private func startLiveActivity(endDate: Date) {
-        guard ActivityAuthorizationInfo().areActivitiesEnabled else { return }
-        let initial = MultiTimeXAttributes.ContentState(endDate: endDate, percentComplete: 0)
-        do {
-            let activity = try Activity<MultiTimeXAttributes>.request(
-                attributes: MultiTimeXAttributes(),
-                content: ActivityContent(state: initial, staleDate: nil),
-                pushType: nil
-            )
-            liveActivity = activity
-        } catch {
-            print("Failed to start Live Activity: \(error)")
-        }
-    }
-
-    private func updateLiveActivityProgress() {
-        guard let activity = liveActivity else { return }
-        let total = max(1, initialTimeInterval)
-        let done = max(0, total - max(0, timeRemaining))
-        let pct = min(1.0, max(0.0, done / total))
-        let state = MultiTimeXAttributes.ContentState(endDate: targetTime, percentComplete: pct)
-        Task { await activity.update(ActivityContent(state: state, staleDate: nil)) }
-    }
-
-    private func endLiveActivity() {
-        guard let activity = liveActivity else { return }
-        let final = MultiTimeXAttributes.ContentState(endDate: Date(), percentComplete: 1.0)
-        Task { await activity.end(ActivityContent(state: final, staleDate: nil), dismissalPolicy: .immediate) }
-        liveActivity = nil
-    }
-    
-    private func timeString(from timeInterval: TimeInterval) -> String {
-        let absInterval = abs(timeInterval)
-        let hours = Int(absInterval) / 3600
-        let minutes = Int(absInterval) / 60 % 60
-        let seconds = Int(absInterval) % 60
-        
-        if hours > 0 {
-            return String(format: "%02d:%02d:%02d", hours, minutes, seconds)
-        } else {
-            return String(format: "%02d:%02d", minutes, seconds)
-        }
-    }
-    
-    private let timeFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.timeStyle = .short
-        formatter.amSymbol = "AM"
-        formatter.pmSymbol = "PM"
-        return formatter
-    }()
-    
-    private func triggerMultiTimeXHapticFeedback() {
-        let generator = UIImpactFeedbackGenerator(style: .medium)
-        generator.impactOccurred()
-    }
-    
     // MARK: - Ping Testing Functions
     
     /* private func pingAllServices() {
@@ -1337,355 +964,31 @@ struct ContentView: View {
     // Removed loadSettings() in favor of @AppStorage
 }
 
-// MARK: - Widget Configuration View
-// MARK: - Widget Configuration View
-struct WidgetConfigurationView: View {
-    @ObservedObject var store: AppLauncherStore
-    @Environment(\.dismiss) private var dismiss
-    @Environment(\.scenePhase) private var scenePhase
-    @State private var backgroundColor = "#242424"
-    @State private var redComponent: Double = 36
-    @State private var greenComponent: Double = 36
-    @State private var blueComponent: Double = 36
-    @State private var customHexInput = "#242424"
-    // For slider haptics
-    @State private var lastRed: Double = 36
-    @State private var lastGreen: Double = 36
-    @State private var lastBlue: Double = 36
-    @State private var didJustApplyWidgets = false
-    @State private var saveWorkItem: DispatchWorkItem?
-    @AppStorage("HasPurchasedIconFeature", store: UserDefaults(suiteName: appGroupID)) private var hasPurchasedIconFeature: Bool = false
-    @AppStorage("HasPurchasedTextAlignment", store: UserDefaults(suiteName: appGroupID)) private var hasPurchasedTextAlignment: Bool = false
-    @State private var showIconPurchaseAlert = false
-    @State private var showAlignmentPurchaseAlert = false
-    @State private var selectedAlignment: TextAlignmentOption = .leading
-    @State private var iconsEnabled: Bool = true
-    
-    var body: some View {
-        NavigationView {
-            ZStack {
-                Color.black.ignoresSafeArea()
-                
-                ScrollView {
-                    VStack(spacing: 20) {
-                        // Widget Background Color Preview
-                        VStack(spacing: 12) {
-                            Text("Widget Background Color")
-                                .font(.title2)
-                                .fontWeight(.bold)
-                                .foregroundColor(.white)
-                            RoundedRectangle(cornerRadius: 12)
-                                .fill(Color(hex: backgroundColor))
-                                .frame(height: 100)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 12)
-                                        .stroke(Color.gray, lineWidth: 2)
-                                )
-                                .shadow(radius: 10)
-                        }
-                        .padding()
-                        
-                        // RGB Controls
-                        VStack(spacing: 16) {
-                            Text("RGB Controls")
-                                .font(.headline)
-                                .foregroundColor(.white)
-                            VStack(alignment: .leading, spacing: 12) {
-                                HStack {
-                                    Text("Red: \(Int(redComponent))")
-                                        .foregroundColor(.white)
-                                        .frame(width: 80, alignment: .leading)
-                                    Slider(value: $redComponent, in: 0...255, step: 1)
-                                        .tint(.red)
-                                        .onChange(of: redComponent) { old, new in
-                                            updateHexFromRGB()
-                                            if Int(new) != Int(lastRed) {
-                                                UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-                                                lastRed = new
-                                            }
-                                        }
-                                }
-                                HStack {
-                                    Text("Green: \(Int(greenComponent))")
-                                        .foregroundColor(.white)
-                                        .frame(width: 80, alignment: .leading)
-                                    Slider(value: $greenComponent, in: 0...255, step: 1)
-                                        .tint(.green)
-                                        .onChange(of: greenComponent) { old, new in
-                                            updateHexFromRGB()
-                                            if Int(new) != Int(lastGreen) {
-                                                UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-                                                lastGreen = new
-                                            }
-                                        }
-                                }
-                                HStack {
-                                    Text("Blue: \(Int(blueComponent))")
-                                        .foregroundColor(.white)
-                                        .frame(width: 80, alignment: .leading)
-                                    Slider(value: $blueComponent, in: 0...255, step: 1)
-                                        .tint(.blue)
-                                        .onChange(of: blueComponent) { old, new in
-                                            updateHexFromRGB()
-                                            if Int(new) != Int(lastBlue) {
-                                                UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-                                                lastBlue = new
-                                            }
-                                        }
-                                }
-                            }
-                            .padding()
-                            .background(Color.gray.opacity(0.2))
-                            .cornerRadius(12)
-                        }
-                        
-                        // Custom Hex Input
-                        VStack(spacing: 12) {
-                            Text("Custom Hex Color")
-                                .font(.headline)
-                                .foregroundColor(.white)
-                            HStack {
-                                Text("#")
-                                    .font(.title2)
-                                    .foregroundColor(.secondary)
-                                    .padding(.leading, 8)
-                                TextField("Enter hex color", text: $customHexInput)
-                                    .textFieldStyle(RoundedBorderTextFieldStyle())
-                                    .onChange(of: customHexInput) { _, newValue in
-                                        let sanitized = sanitizeHexInput(newValue)
-                                        if isValidHex(sanitized) {
-                                            backgroundColor = "#" + sanitized
-                                            updateRGBFromHex()
-                                        }
-                                        customHexInput = sanitized
-                                    }
-                                Button(action: {
-                                    let sanitized = sanitizeHexInput(customHexInput)
-                                    if isValidHex(sanitized) {
-                                        backgroundColor = "#" + sanitized
-                                        updateRGBFromHex()
-                                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                                    }
-                                }) {
-                                    Text("Apply")
-                                }
-                                .disabled(!isValidHex(sanitizeHexInput(customHexInput)))
-                                .padding(.horizontal, 12)
-                                .padding(.vertical, 8)
-                                .background(isValidHex(sanitizeHexInput(customHexInput)) ? Color.blue : Color.gray)
-                                .foregroundColor(.white)
-                                .cornerRadius(8)
-                            }
-                        }
-                        .padding()
-                        .background(Color.gray.opacity(0.2))
-                        .cornerRadius(12)
 
-                        // Text Alignment
-                        VStack(spacing: 12) {
-                            HStack {
-                                if !hasPurchasedTextAlignment {
-                                    Image(systemName: "lock.fill")
-                                        .foregroundColor(.gray)
-                                }
-                                Text("Text Alignment")
-                                    .font(.headline)
-                                    .foregroundColor(.white)
-                            }
-                            
-                            Picker("Alignment", selection: $selectedAlignment) {
-                                Text(TextAlignmentOption.leading.label).tag(TextAlignmentOption.leading)
-                                Text(TextAlignmentOption.center.label).tag(TextAlignmentOption.center)
-                                Text(TextAlignmentOption.trailing.label).tag(TextAlignmentOption.trailing)
-                            }
-                            .pickerStyle(.segmented)
-                            .disabled(!hasPurchasedTextAlignment || iconsEnabled)
-                            .opacity((hasPurchasedTextAlignment && !iconsEnabled) ? 1.0 : 0.5)
-                            
-                            if iconsEnabled {
-                                Text("Text alignment is locked to Left when icons are enabled.")
-                                    .font(.caption)
-                                    .foregroundColor(.orange)
-                            }
-                            
-                            if !hasPurchasedTextAlignment {
-                                Button(action: {
-                                    UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-                                    showAlignmentPurchaseAlert = true
-                                }) {
-                                    Text("Unlock Text Alignment (~$20 MXN)")
-                                        .font(.subheadline)
-                                        .foregroundColor(.blue)
-                                        .padding(.vertical, 8)
-                                }
-                            }
-                        }
-                        .padding()
-                        .background(Color.gray.opacity(0.2))
-                        .cornerRadius(12)
-                        
-                        // Global Icons Toggle
-                        VStack(spacing: 12) {
-                            HStack {
-                                Toggle(isOn: Binding(
-                                    get: { iconsEnabled && hasPurchasedIconFeature },
-                                    set: { newValue in
-                                        if hasPurchasedIconFeature {
-                                            iconsEnabled = newValue
-                                            if newValue {
-                                                store.bulkFetchIcons()
-                                                selectedAlignment = .leading // Force left alignment
-                                            }
-                                        } else {
-                                            showIconPurchaseAlert = true
-                                        }
-                                    }
-                                )) {
-                                    HStack(spacing: 4) {
-                                        Image(systemName: "questionmark.square")
-                                        Text("Show Icons In Widgets")
-                                    }
-                                }
-                                .toggleStyle(SwitchToggleStyle(tint: .green))
-                                .foregroundColor(.white)
-                                
-                                if !hasPurchasedIconFeature {
-                                    Image(systemName: "lock.fill")
-                                        .foregroundColor(.orange)
-                                        .font(.caption)
-                                }
-                            }
-                            
-                            if !hasPurchasedIconFeature {
-                                Button(action: {
-                                    showIconPurchaseAlert = true
-                                }) {
-                                    HStack {
-                                        Image(systemName: "cart.fill")
-                                        Text("Unlock Icon Feature (~$19 MXN)")
-                                    }
-                                    .font(.subheadline)
-                                    .foregroundColor(.white)
-                                    .padding(.vertical, 8)
-                                    .padding(.horizontal, 16)
-                                    .background(Color.orange)
-                                    .cornerRadius(8)
-                                }
-                            }
-                        }
-                        .padding()
-                        .background(Color.gray.opacity(0.2))
-                        .cornerRadius(12)
-                        .alert("Purchase Required", isPresented: $showIconPurchaseAlert) {
-                            Button("OK") { }
-                        } message: {
-                            Text("This is a purchase simulator. In the production app, this would open the App Store purchase flow for the Icon Feature (~$19 MXN).")
-                        }
-                        .alert("Purchase Required", isPresented: $showAlignmentPurchaseAlert) {
-                            Button("OK") { }
-                        } message: {
-                            Text("This is a purchase simulator. In the production app, this would open the App Store purchase flow for Text Alignment (~$20 MXN).")
-                        }
 
-                        // Apply Button
-                        Button(action: {
-                            UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
-                            applyColorToWidgets()
-                            refreshAllWidgets()
-                            withTransaction(Transaction(animation: nil)) {
-                                didJustApplyWidgets = true
-                            }
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-                                withTransaction(Transaction(animation: nil)) {
-                                    didJustApplyWidgets = false
-                                }
-                            }
-                        }) {
-                            HStack(alignment: .center, spacing: 12) {
-                                Image(systemName: "checkmark.circle.fill")
-                                    .font(.title2)
-                                Text(didJustApplyWidgets ? "Applied ✅" : "Apply to Widgets")
-                                    .font(.headline)
-                                    .fontWeight(.semibold)
-                            }
-                            .foregroundColor(.white)
-                            .padding()
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .background(Color.green)
-                            .cornerRadius(12)
-                        }
-                    }
-                    .padding()
-                }
-            }
-            .navigationTitle("Widget Configuration")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Done") {
-                        dismiss()
-                    }
-                    .foregroundColor(.white)
-                }
-            }
-        }
-        .onAppear {
-            loadSettings()
-        }
-    }
-    
-    // Helper methods for RGB/Hex conversion
-    private func sanitizeHexInput(_ input: String) -> String {
-        let trimmed = input.trimmingCharacters(in: .whitespacesAndNewlines)
-        if trimmed.hasPrefix("#") {
-            return String(trimmed.dropFirst())
-        }
-        return trimmed
-    }
-    private func updateHexFromRGB() {
-        let hex = String(format: "%02X%02X%02X", Int(redComponent), Int(greenComponent), Int(blueComponent))
-        backgroundColor = "#" + hex
-        customHexInput = hex
-    }
-    private func updateRGBFromHex() {
-        let hex = sanitizeHexInput(backgroundColor)
-        if let color = UIColor(hex: "#" + hex) {
-            var red: CGFloat = 0, green: CGFloat = 0, blue: CGFloat = 0, alpha: CGFloat = 0
-            color.getRed(&red, green: &green, blue: &blue, alpha: &alpha)
-            redComponent = Double(red * 255)
-            greenComponent = Double(green * 255)
-            blueComponent = Double(blue * 255)
-        }
-    }
-    private func isValidHex(_ hex: String) -> Bool {
-        let hexPattern = "^[0-9A-Fa-f]{6}$"
-        return hex.range(of: hexPattern, options: .regularExpression) != nil
-    }
-    
-    // Apply color settings to widgets
-    private func applyColorToWidgets() {
-        let userDefaults = UserDefaults(suiteName: appGroupID)
-        userDefaults?.set(backgroundColor, forKey: "WidgetBackgroundColor")
-        userDefaults?.set(selectedAlignment.rawValue, forKey: "WidgetTextAlignment")
-        userDefaults?.set(iconsEnabled, forKey: "WidgetIconsEnabled")
-        userDefaults?.synchronize()
-    }
-    
-    // Load existing settings
-    private func loadSettings() {
-        let userDefaults = UserDefaults(suiteName: appGroupID)
-        let savedBackgroundColor = userDefaults?.string(forKey: "WidgetBackgroundColor") ?? "#242424"
-        let sanitized = sanitizeHexInput(savedBackgroundColor)
-        backgroundColor = "#" + sanitized
-        customHexInput = sanitized
-        if let alignmentRaw = userDefaults?.string(forKey: "WidgetTextAlignment"),
-           let option = TextAlignmentOption(rawValue: alignmentRaw) {
-            selectedAlignment = option
+// Extension to convert Color to Hex string
+extension Color {
+    func toHex() -> String {
+        let uiColor = UIColor(self)
+        var red: CGFloat = 0
+        var green: CGFloat = 0
+        var blue: CGFloat = 0
+        var alpha: CGFloat = 0
+        
+        uiColor.getRed(&red, green: &green, blue: &blue, alpha: &alpha)
+        
+        if alpha < 1.0 {
+            return String(format: "#%02X%02X%02X%02X", 
+                          Int(alpha * 255),
+                          Int(red * 255), 
+                          Int(green * 255), 
+                          Int(blue * 255))
         } else {
-            selectedAlignment = .leading
+            return String(format: "#%02X%02X%02X", 
+                          Int(red * 255), 
+                          Int(green * 255), 
+                          Int(blue * 255))
         }
-        iconsEnabled = userDefaults?.bool(forKey: "WidgetIconsEnabled") ?? true
-        updateRGBFromHex()
     }
 }
 
@@ -1928,6 +1231,8 @@ struct SettingsView: View {
     @AppStorage("HasPurchasedIconFeature", store: UserDefaults(suiteName: appGroupID)) private var hasPurchasedIconFeature: Bool = false
     @AppStorage("HasPurchasedCalendar", store: UserDefaults(suiteName: appGroupID)) private var hasPurchasedCalendar: Bool = false
     @AppStorage("HasPurchasedTextAlignment", store: UserDefaults(suiteName: appGroupID)) private var hasPurchasedTextAlignment: Bool = false
+    // Calendar widget tap settings (local state for immediate UI updates)
+    @State private var calendarUseCustomURL: Bool = UserDefaults(suiteName: appGroupID)?.bool(forKey: "CalendarWidgetUseCustomURL") ?? false
     
     // Display zoom detection
     private var displayZoomStatus: String {
@@ -2016,6 +1321,62 @@ struct SettingsView: View {
                     }
                 }
                 
+                Section(header: Text("CALENDAR WIDGET").font(.headline)) {
+                    Toggle("Enable Tap to Open", isOn: Binding(
+                        get: {
+                            let userDefaults = UserDefaults(suiteName: appGroupID)
+                            return userDefaults?.bool(forKey: "CalendarWidgetTapEnabled") ?? false
+                        },
+                        set: { newValue in
+                            let userDefaults = UserDefaults(suiteName: appGroupID)
+                            userDefaults?.set(newValue, forKey: "CalendarWidgetTapEnabled")
+                            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                            WidgetCenter.shared.reloadAllTimelines()
+                        }
+                    ))
+                    
+                    Picker("Tap Action", selection: $calendarUseCustomURL) {
+                        Text("Open Calendar App").tag(false)
+                        Text("Custom URL Scheme").tag(true)
+                    }
+                    .pickerStyle(.menu)
+                    .onChange(of: calendarUseCustomURL) { _, newValue in
+                        let userDefaults = UserDefaults(suiteName: appGroupID)
+                        userDefaults?.set(newValue, forKey: "CalendarWidgetUseCustomURL")
+                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                        WidgetCenter.shared.reloadAllTimelines()
+                    }
+                    
+                    if calendarUseCustomURL {
+                        TextField("Custom URL Scheme", text: Binding(
+                            get: {
+                                let userDefaults = UserDefaults(suiteName: appGroupID)
+                                return userDefaults?.string(forKey: "CalendarWidgetCustomURL") ?? ""
+                            },
+                            set: { newValue in
+                                let userDefaults = UserDefaults(suiteName: appGroupID)
+                                userDefaults?.set(newValue, forKey: "CalendarWidgetCustomURL")
+                            }
+                        ))
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled()
+                        .keyboardType(.URL)
+                        .onSubmit {
+                            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                            WidgetCenter.shared.reloadAllTimelines()
+                        }
+                        
+                        Text("Example: fantastical2:// or google-calendar://")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    
+                    Text("When enabled, tapping the calendar widget will open the selected app")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+                
+                #if DEBUG
                 Section(header: Text("DEV BETA").font(.headline)) {
                     Toggle("Calendar Edge Day Testing", isOn: Binding(
                         get: {
@@ -2104,6 +1465,7 @@ struct SettingsView: View {
                             .foregroundColor(.secondary)
                     }
                 }
+                #endif
                 
                 Section(header: Text("ABOUT").font(.headline)) {
                     HStack {
@@ -2118,6 +1480,44 @@ struct SettingsView: View {
                         Spacer()
                         Text("2025.08.22")
                             .foregroundColor(.secondary)
+                    }
+                }
+                
+                Section(header: Text("LEGAL").font(.headline)) {
+                    // Privacy Policy Link
+                    Button(action: {
+                        // TODO: Replace with your actual Privacy Policy URL before App Store submission
+                        if let url = URL(string: "https://example.com/privacy-policy") {
+                            UIApplication.shared.open(url)
+                        }
+                    }) {
+                        HStack {
+                            Image(systemName: "hand.raised.fill")
+                                .foregroundColor(.blue)
+                            Text("Privacy Policy")
+                                .foregroundColor(.primary)
+                            Spacer()
+                            Image(systemName: "arrow.up.right.square")
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                    
+                    // Terms of Service Link
+                    Button(action: {
+                        // TODO: Replace with your actual Terms of Service URL before App Store submission
+                        if let url = URL(string: "https://example.com/terms-of-service") {
+                            UIApplication.shared.open(url)
+                        }
+                    }) {
+                        HStack {
+                            Image(systemName: "doc.text.fill")
+                                .foregroundColor(.blue)
+                            Text("Terms of Service")
+                                .foregroundColor(.primary)
+                            Spacer()
+                            Image(systemName: "arrow.up.right.square")
+                                .foregroundColor(.secondary)
+                        }
                     }
                 }
                 
@@ -2421,7 +1821,7 @@ struct DocumentPickerPNG: UIViewControllerRepresentable {
 }
 
 // MARK: - Icon storage helpers
-private func iconsDirectoryURL() -> URL? {
+func iconsDirectoryURL() -> URL? {
     guard let container = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: appGroupID) else { return nil }
     let dir = container.appendingPathComponent("icons", isDirectory: true)
     if !FileManager.default.fileExists(atPath: dir.path) {
@@ -2448,7 +1848,7 @@ private func saveIconToAppGroup(url: URL, slotId: Int) -> String? {
     }
 }
 
-private func loadIconPreview(for launcher: AppLauncher) -> UIImage? {
+func loadIconPreview(for launcher: AppLauncher) -> UIImage? {
     guard let fileName = launcher.iconFileName, let dir = iconsDirectoryURL() else { return nil }
     let url = dir.appendingPathComponent(fileName)
     return UIImage(contentsOfFile: url.path)

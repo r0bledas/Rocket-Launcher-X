@@ -12,6 +12,8 @@ struct PaywallView: View {
     @EnvironmentObject var storeManager: StoreManager
     @Environment(\.dismiss) var dismiss
     
+    @State private var showErrorAlert = false
+    
     var body: some View {
         NavigationView {
             ScrollView {
@@ -34,12 +36,13 @@ struct PaywallView: View {
                             .multilineTextAlignment(.center)
                             .padding(.horizontal)
                     }
-                    .padding(.top, 20)
+                    .padding(.top, 0)
                     
                     // Bundle Hero Card
                     if let bundleProduct = storeManager.products.first(where: { $0.id == RocketProducts.proLifetime }) {
                         if !storeManager.purchasedProductIDs.contains(bundleProduct.id) {
                             BundleCard(product: bundleProduct) {
+                                UIImpactFeedbackGenerator(style: .medium).impactOccurred()
                                 Task { await storeManager.purchase(bundleProduct) }
                             }
                         } else {
@@ -72,7 +75,7 @@ struct PaywallView: View {
                             icon: "app.dashed",
                             color: .green,
                             title: "Icon Feature",
-                            subtitle: "Show app icons in widgets"
+                            subtitle: "Includes Text Alignment"
                         )
                         
                         // Calendar
@@ -105,15 +108,32 @@ struct PaywallView: View {
                     .padding(.top, 20)
                     .padding(.bottom, 40)
                 }
-                .padding()
+                .padding([.horizontal, .bottom])
             }
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Close") {
+                    Button(action: {
                         dismiss()
+                    }) {
+                        Image(systemName: "xmark")
+                            .font(.system(size: 12, weight: .bold))
+                            .foregroundColor(.secondary)
+                            .padding(8)
+                            .background(Color.secondary.opacity(0.2))
+                            .clipShape(Circle())
                     }
                 }
+            }
+            .onChange(of: storeManager.errorMessage) { _, newValue in
+                if newValue != nil {
+                    showErrorAlert = true
+                }
+            }
+            .alert("Purchase Error", isPresented: $showErrorAlert) {
+                Button("OK") { storeManager.errorMessage = nil }
+            } message: {
+                Text(storeManager.errorMessage ?? "Unknown error")
             }
         }
     }
@@ -173,7 +193,7 @@ struct BundleCard: View {
                 )
                 
                 // Discount Badge
-                Text("SAVE 30%")
+                Text("SAVE 25%")
                     .font(.caption)
                     .fontWeight(.bold)
                     .foregroundColor(.white)
@@ -226,37 +246,45 @@ struct FeatureRow: View {
     @EnvironmentObject var storeManager: StoreManager
     
     var body: some View {
-        HStack(spacing: 16) {
-            ZStack {
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(color.opacity(0.1))
-                    .frame(width: 48, height: 48)
-                
-                Image(systemName: icon)
-                    .font(.title2)
-                    .foregroundColor(color)
-            }
-            
-            VStack(alignment: .leading, spacing: 2) {
-                Text(title)
-                    .font(.headline)
-                    .foregroundColor(.primary)
-                Text(subtitle)
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-            }
-            
-            Spacer()
-            
-            if storeManager.purchasedProductIDs.contains(productID) || storeManager.purchasedProductIDs.contains(RocketProducts.proLifetime) {
-                Image(systemName: "checkmark")
-                    .foregroundColor(.green)
-                    .font(.headline)
+        Button(action: {
+            // Allow tap even if owned (StoreKit will handle "already owned" alert)
+            // This prevents "dead clicks" if UI is out of sync
+            if let product = storeManager.products.first(where: { $0.id == productID }) {
+                UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                print("🔘 FeatureRow tapped for \(product.id)")
+                Task { await storeManager.purchase(product) }
             } else {
-                if let product = storeManager.products.first(where: { $0.id == productID }) {
-                    Button(action: {
-                        Task { await storeManager.purchase(product) }
-                    }) {
+                print("❌ FeatureRow: Product not found for \(productID)")
+            }
+        }) {
+            HStack(spacing: 16) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(color.opacity(0.1))
+                        .frame(width: 48, height: 48)
+                    
+                    Image(systemName: icon)
+                        .font(.title2)
+                        .foregroundColor(color)
+                }
+                
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(title)
+                        .font(.headline)
+                        .foregroundColor(.primary)
+                    Text(subtitle)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+                
+                Spacer()
+                
+                if storeManager.purchasedProductIDs.contains(productID) || storeManager.purchasedProductIDs.contains(RocketProducts.proLifetime) {
+                    Image(systemName: "checkmark")
+                        .foregroundColor(.green)
+                        .font(.headline)
+                } else {
+                    if let product = storeManager.products.first(where: { $0.id == productID }) {
                         Text(product.displayPrice)
                             .font(.subheadline)
                             .fontWeight(.bold)
@@ -265,14 +293,15 @@ struct FeatureRow: View {
                             .padding(.vertical, 6)
                             .background(Color.blue.opacity(0.1))
                             .cornerRadius(16)
+                    } else {
+                        ProgressView()
                     }
-                } else {
-                    ProgressView()
                 }
             }
+            .padding()
+            .background(Color(UIColor.secondarySystemBackground))
+            .cornerRadius(16)
         }
-        .padding()
-        .background(Color(UIColor.secondarySystemBackground))
-        .cornerRadius(16)
+        .buttonStyle(PlainButtonStyle())
     }
 }

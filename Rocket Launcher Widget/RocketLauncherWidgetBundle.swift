@@ -19,7 +19,5 @@ struct RocketLauncherWidgetBundle: WidgetBundle {
         CalendarWidget()
         DayCounterWidget()
         CalendarViewerWidget()
-        FlipClockWidget()
-        MultiTimeXLiveActivity()
     }
 }

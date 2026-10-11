@@ -3,7 +3,7 @@
 //  Rocket Launcher Widget
 //
 //  Created by Raudel Alejandro on 19-07-2025.
-//
+//hello :)))
 
 import WidgetKit
 import SwiftUI
@@ -102,112 +102,130 @@ struct LauncherWidgetEntryView: View {
     // Detect if iOS Display Zoom is enabled
     private var isDisplayZoomed: Bool {
         let screen = UIScreen.main
-        return screen.scale != screen.nativeScale
+        return screen.scale != screen.nativeScale || screen.bounds.width <= 375
     }
     
-    // Dynamic sizes based on display zoom (9.5% reduction when zoomed)
-    private var appFontSize: CGFloat {
-        isDisplayZoomed ? 32.58 : 36
-    }
-    
-    private var iconSize: CGFloat {
-        isDisplayZoomed ? 27.15 : 30
-    }
-    
-    private var iconCornerRadius: CGFloat {
-        isDisplayZoomed ? 5.8825 : 6.5
-    }
-    
-    private var horizontalPadding: CGFloat {
-        isDisplayZoomed ? 21.72 : 24
-    }
-    
-    private var iconSpacing: CGFloat {
-        isDisplayZoomed ? 7.24 : 8
-    }
-    
-    private var verticalPadding: CGFloat {
-        isDisplayZoomed ? 1.3575 : 1.5
-    }
-    
-    private var leadingAdjustment: CGFloat {
-        isDisplayZoomed ? -13.575 : -15
+    // Calculate responsive scale factor from actual widget container geometry
+    private func layoutScale(for size: CGSize) -> CGFloat {
+        let extraSpacing = max(0, CGFloat(entry.lineSpacing) * 7.0)
+        let referenceWidth: CGFloat = 355.0
+        let referenceHeight: CGFloat = 390.0 + extraSpacing
+        let widthScale = size.width > 0 ? (size.width / referenceWidth) : (isDisplayZoomed ? 0.82 : 1.0)
+        let heightScale = size.height > 0 ? (size.height / referenceHeight) : (isDisplayZoomed ? 0.82 : 1.0)
+        return min(1.0, min(widthScale, heightScale))
     }
     
     private var emptyStateView: some View {
-                Text("👻")
-                    .font(.system(size: 60))
-                    .foregroundColor(.white.opacity(0.5))
+        Text("👻")
+            .font(.system(size: 60))
+            .foregroundColor(.white.opacity(0.5))
     }
     
-    private var appButtonView: some View {
-                VStack(alignment: horizontalAlignmentFor(entry.textAlignment), spacing: entry.lineSpacing) {
-            ForEach(Array(entry.apps.prefix(8).enumerated()), id: \.offset) { idx, app in
-                        if !app.name.isEmpty && !app.urlScheme.isEmpty {
-                            Link(destination: URL(string: "rocketlauncher://launch?scheme=\(app.urlScheme.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "")")!) {
-                                HStack(spacing: iconSpacing) {
-                                     if entry.iconsEnabled, (app.showIcon ?? false), let image = loadIconImage(fileName: app.iconFileName) {
-                                         Image(uiImage: image)
-                                             .resizable()
-                                             .interpolation(.high)
-                                             .aspectRatio(contentMode: .fit)
-                                             .frame(width: iconSize, height: iconSize)
-                                             .clipShape(RoundedRectangle(cornerRadius: iconCornerRadius))
-                                     }
-                                    Text(app.name)
-                                        .font(getCustomFont(name: entry.fontName, size: appFontSize, weight: .bold))
-                                        .foregroundColor(Color(hex: entry.fontColor))
-                                        .frame(maxWidth: .infinity, alignment: frameAlignmentFor(entry.textAlignment))
-                                        .multilineTextAlignment(entry.textAlignment)
-                                        .padding(.vertical, verticalPadding)
+    @ViewBuilder
+    private func appButtonView(scale: CGFloat) -> some View {
+        let appFontSize: CGFloat = 36.0 * scale
+        let iconSize: CGFloat = 30.0 * scale
+        let iconCornerRadius: CGFloat = 6.5 * scale
+        let horizontalPadding: CGFloat = 24.0 * scale
+        let iconSpacing: CGFloat = 8.0 * scale
+        let verticalPadding: CGFloat = 1.5 * scale
+        let leadingAdjustment: CGFloat = -15.0 * scale
+        let systemContentMargin: CGFloat = 16.0 * scale
+        let scaledLineSpacing: CGFloat = CGFloat(entry.lineSpacing) * scale
+        
+        VStack(alignment: horizontalAlignmentFor(entry.textAlignment), spacing: scaledLineSpacing) {
+            ForEach(Array(entry.apps.prefix(8).enumerated()), id: \.offset) { _, app in
+                if !app.name.isEmpty && !app.urlScheme.isEmpty {
+                    Link(destination: URL(string: "rocketlauncher://launch?scheme=\(app.urlScheme.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "")")!) {
+                        HStack(spacing: iconSpacing) {
+                            if entry.iconsEnabled, (app.showIcon ?? false), let image = loadIconImage(fileName: app.iconFileName) {
+                                if #available(iOS 18.0, *) {
+                                    Image(uiImage: image)
+                                        .resizable()
+                                        .interpolation(.high)
+                                        .widgetAccentedRenderingMode(.fullColor)
+                                        .aspectRatio(contentMode: .fit)
+                                        .frame(width: iconSize, height: iconSize)
+                                        .clipShape(RoundedRectangle(cornerRadius: iconCornerRadius))
+                                } else {
+                                    Image(uiImage: image)
+                                        .resizable()
+                                        .interpolation(.high)
+                                        .aspectRatio(contentMode: .fit)
+                                        .frame(width: iconSize, height: iconSize)
+                                        .clipShape(RoundedRectangle(cornerRadius: iconCornerRadius))
                                 }
                             }
-                            .buttonStyle(PlainButtonStyle())
-
+                            Text(app.name)
+                                .font(getCustomFont(name: entry.fontName, size: appFontSize, weight: .bold))
+                                .foregroundColor(Color(hex: entry.fontColor))
+                                .lineLimit(1)
+                                .frame(maxWidth: .infinity, alignment: frameAlignmentFor(entry.textAlignment))
+                                .multilineTextAlignment(entry.textAlignment)
+                                .padding(.vertical, verticalPadding)
                         }
                     }
+                    .buttonStyle(PlainButtonStyle())
                 }
-                .padding(horizontalPadding)
-                .padding(.leading, (entry.textAlignment == .leading && entry.iconsEnabled && entry.apps.contains { $0.showIcon ?? false }) ? leadingAdjustment : 0)
+            }
+        }
+        .padding(.horizontal, horizontalPadding)
+        .padding(.leading, (entry.textAlignment == .leading && entry.iconsEnabled && entry.apps.contains { $0.showIcon ?? false }) ? leadingAdjustment : 0)
+        .padding(.horizontal, systemContentMargin)
     }
     
     var body: some View {
         ZStack {
-            if entry.isLocked {
-                // Locked widget view
-                ZStack {
-                    // Blurred placeholder content
-                    VStack(alignment: .leading, spacing: entry.lineSpacing) {
-                        ForEach(0..<8) { _ in
-                            Text("App Name")
-                                .font(getCustomFont(name: entry.fontName, size: appFontSize, weight: .bold))
-                                .foregroundColor(Color(hex: entry.fontColor))
-                                .opacity(0.3)
-                                .padding(.vertical, verticalPadding)
+            StaticWidgetBackground(hexColor: entry.backgroundColor)
+            
+            GeometryReader { geo in
+                let scale = layoutScale(for: geo.size)
+                let appFontSize: CGFloat = 36.0 * scale
+                let horizontalPadding: CGFloat = 24.0 * scale
+                let verticalPadding: CGFloat = 1.5 * scale
+                let systemContentMargin: CGFloat = 16.0 * scale
+                let scaledLineSpacing: CGFloat = CGFloat(entry.lineSpacing) * scale
+                
+                Group {
+                    if entry.isLocked {
+                        // Locked widget view
+                        ZStack {
+                            // Blurred placeholder content
+                            VStack(alignment: .leading, spacing: scaledLineSpacing) {
+                                ForEach(0..<8) { _ in
+                                    Text("App Name")
+                                        .font(getCustomFont(name: entry.fontName, size: appFontSize, weight: .bold))
+                                        .foregroundColor(Color(hex: entry.fontColor))
+                                        .opacity(0.3)
+                                        .padding(.vertical, verticalPadding)
+                                }
+                            }
+                            .padding(.horizontal, horizontalPadding)
+                            .padding(.horizontal, systemContentMargin)
+                            .blur(radius: 8)
+                            
+                            // Lock overlay
+                            VStack(spacing: 12 * scale) {
+                                Text("🔒")
+                                    .font(.system(size: 80 * scale))
+                                
+                                Text("Widget #\(entry.widgetNumber) Locked")
+                                    .font(.system(size: 18 * scale, weight: .bold))
+                                    .foregroundColor(.white)
+                                
+                                Text("Tap to Unlock")
+                                    .font(.system(size: 14 * scale))
+                                    .foregroundColor(.white.opacity(0.8))
+                            }
+                            .padding()
                         }
+                    } else if entry.apps.isEmpty || entry.apps.allSatisfy({ $0.name.isEmpty }) {
+                        emptyStateView
+                    } else {
+                        appButtonView(scale: scale)
                     }
-                    .padding(horizontalPadding)
-                    .blur(radius: 8)
-                    
-                    // Lock overlay
-                    VStack(spacing: 12) {
-                        Text("🔒")
-                            .font(.system(size: 80))
-                        
-                        Text("Widget #\(entry.widgetNumber) Locked")
-                            .font(.system(size: 18, weight: .bold))
-                            .foregroundColor(.white)
-                        
-                        Text("Tap to Unlock")
-                            .font(.system(size: 14))
-                            .foregroundColor(.white.opacity(0.8))
-                    }
-                    .padding()
                 }
-            } else if entry.apps.isEmpty || entry.apps.allSatisfy({ $0.name.isEmpty }) {
-                emptyStateView
-            } else {
-                appButtonView
+                .frame(width: geo.size.width, height: geo.size.height, alignment: .center)
             }
         }
     }
@@ -271,24 +289,49 @@ private func loadIconImage(fileName: String?) -> UIImage? {
     return UIImage(contentsOfFile: url.path)
 }
 
+// MARK: - Static Color Background & Container Helpers
+
+struct StaticWidgetBackground: View {
+    let hexColor: String
+    
+    var body: some View {
+        let hex = hexColor.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
+        let resolvedColor = (hex == "00000000" || hex.lowercased() == "clear") ? Color.black.opacity(0.95) : Color(hex: hexColor)
+        
+        resolvedColor
+            .ignoresSafeArea()
+    }
+}
+
+extension View {
+    @ViewBuilder
+    func widgetContainerBackgroundModifier() -> some View {
+        if #available(iOS 17.0, *) {
+            self.containerBackground(Color.clear, for: .widget)
+        } else {
+            self
+        }
+    }
+}
+
+extension WidgetConfiguration {
+    func disableContentMarginsIfNeeded() -> some WidgetConfiguration {
+        if #available(iOS 17.0, *) {
+            return self.contentMarginsDisabled()
+        } else {
+            return self
+        }
+    }
+}
+
 struct RocketLauncherWidget: Widget {
     let kind: String = "RocketLauncherWidget"
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: kind, provider: LauncherProvider()) { entry in
-            if #available(iOS 17.0, *) {
-                LauncherWidgetEntryView(entry: entry)
-                    .containerBackground(for: .widget) {
-                        let hex = entry.backgroundColor.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
-                        if hex == "00000000" || hex.lowercased() == "clear" {
-                            Color.black.opacity(0.95)
-                        } else {
-                            Color(hex: entry.backgroundColor)
-                        }
-                    }
-            } else {
-                LauncherWidgetEntryView(entry: entry)
-            }
+            LauncherWidgetEntryView(entry: entry)
+                .widgetContainerBackgroundModifier()
         }
+        .disableContentMarginsIfNeeded()
         .configurationDisplayName("Widget #1")
         .description("Display and launch your favorite apps (Widget #1).")
         .supportedFamilies([.systemLarge])
@@ -299,22 +342,11 @@ struct RocketLauncherWidget2: Widget {
     let kind: String = "RocketLauncherWidget2"
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: kind, provider: CustomLauncherProvider(widgetIndex: 1)) { entry in
-            if #available(iOS 17.0, *) {
-                LauncherWidgetEntryView(entry: entry)
-                    .containerBackground(for: .widget) {
-                        let hex = entry.backgroundColor.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
-                        if hex == "00000000" || hex.lowercased() == "clear" {
-                            Color.black.opacity(0.95)
-                        } else {
-                            Color(hex: entry.backgroundColor)
-                        }
-                    }
-                    .widgetURL(entry.isLocked ? URL(string: "rocketlauncher://purchase?widget=2") : nil)
-            } else {
-                LauncherWidgetEntryView(entry: entry)
-                    .widgetURL(entry.isLocked ? URL(string: "rocketlauncher://purchase?widget=2") : nil)
-            }
+            LauncherWidgetEntryView(entry: entry)
+                .widgetContainerBackgroundModifier()
+                .widgetURL(entry.isLocked ? URL(string: "rocketlauncher://purchase?widget=2") : nil)
         }
+        .disableContentMarginsIfNeeded()
         .configurationDisplayName("Widget #2")
         .description("Display and launch your favorite apps (Widget #2).")
         .supportedFamilies([.systemLarge])
@@ -325,22 +357,11 @@ struct RocketLauncherWidget3: Widget {
     let kind: String = "RocketLauncherWidget3"
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: kind, provider: CustomLauncherProvider(widgetIndex: 2)) { entry in
-            if #available(iOS 17.0, *) {
-                LauncherWidgetEntryView(entry: entry)
-                    .containerBackground(for: .widget) {
-                        let hex = entry.backgroundColor.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
-                        if hex == "00000000" || hex.lowercased() == "clear" {
-                            Color.black.opacity(0.95)
-                        } else {
-                            Color(hex: entry.backgroundColor)
-                        }
-                    }
-                    .widgetURL(entry.isLocked ? URL(string: "rocketlauncher://purchase?widget=3") : nil)
-            } else {
-                LauncherWidgetEntryView(entry: entry)
-                    .widgetURL(entry.isLocked ? URL(string: "rocketlauncher://purchase?widget=3") : nil)
-            }
+            LauncherWidgetEntryView(entry: entry)
+                .widgetContainerBackgroundModifier()
+                .widgetURL(entry.isLocked ? URL(string: "rocketlauncher://purchase?widget=3") : nil)
         }
+        .disableContentMarginsIfNeeded()
         .configurationDisplayName("Widget #3")
         .description("Display and launch your favorite apps (Widget #3).")
         .supportedFamilies([.systemLarge])
@@ -351,22 +372,11 @@ struct RocketLauncherWidget4: Widget {
     let kind: String = "RocketLauncherWidget4"
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: kind, provider: CustomLauncherProvider(widgetIndex: 3)) { entry in
-            if #available(iOS 17.0, *) {
-                LauncherWidgetEntryView(entry: entry)
-                    .containerBackground(for: .widget) {
-                        let hex = entry.backgroundColor.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
-                        if hex == "00000000" || hex.lowercased() == "clear" {
-                            Color.black.opacity(0.95)
-                        } else {
-                            Color(hex: entry.backgroundColor)
-                        }
-                    }
-                    .widgetURL(entry.isLocked ? URL(string: "rocketlauncher://purchase?widget=4") : nil)
-            } else {
-                LauncherWidgetEntryView(entry: entry)
-                    .widgetURL(entry.isLocked ? URL(string: "rocketlauncher://purchase?widget=4") : nil)
-            }
+            LauncherWidgetEntryView(entry: entry)
+                .widgetContainerBackgroundModifier()
+                .widgetURL(entry.isLocked ? URL(string: "rocketlauncher://purchase?widget=4") : nil)
         }
+        .disableContentMarginsIfNeeded()
         .configurationDisplayName("Widget #4")
         .description("Display and launch your favorite apps (Widget #4).")
         .supportedFamilies([.systemLarge])
@@ -377,22 +387,11 @@ struct RocketLauncherWidget5: Widget {
     let kind: String = "RocketLauncherWidget5"
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: kind, provider: CustomLauncherProvider(widgetIndex: 4)) { entry in
-            if #available(iOS 17.0, *) {
-                LauncherWidgetEntryView(entry: entry)
-                    .containerBackground(for: .widget) {
-                        let hex = entry.backgroundColor.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
-                        if hex == "00000000" || hex.lowercased() == "clear" {
-                            Color.black.opacity(0.95)
-                        } else {
-                            Color(hex: entry.backgroundColor)
-                        }
-                    }
-                    .widgetURL(entry.isLocked ? URL(string: "rocketlauncher://purchase?widget=5") : nil)
-            } else {
-                LauncherWidgetEntryView(entry: entry)
-                    .widgetURL(entry.isLocked ? URL(string: "rocketlauncher://purchase?widget=5") : nil)
-            }
+            LauncherWidgetEntryView(entry: entry)
+                .widgetContainerBackgroundModifier()
+                .widgetURL(entry.isLocked ? URL(string: "rocketlauncher://purchase?widget=5") : nil)
         }
+        .disableContentMarginsIfNeeded()
         .configurationDisplayName("Widget #5")
         .description("Display and launch your favorite apps (Widget #5).")
         .supportedFamilies([.systemLarge])
@@ -480,6 +479,7 @@ struct CalendarEntry: TimelineEntry {
     let overrideDay: Int? // For dev beta edge day testing
     let isLocked: Bool
     let widgetNumber: Int
+    let tapURL: URL? // URL to open when widget is tapped
 }
 
 struct CalendarProvider: TimelineProvider {
@@ -492,7 +492,8 @@ struct CalendarProvider: TimelineProvider {
             highlightColor: getCalendarHighlightColor(),
             overrideDay: nil,
             isLocked: !hasPurchased,
-            widgetNumber: 1
+            widgetNumber: 1,
+            tapURL: getCalendarTapURL()
         )
     }
     
@@ -505,7 +506,8 @@ struct CalendarProvider: TimelineProvider {
             highlightColor: getCalendarHighlightColor(),
             overrideDay: getEdgeDayIfEnabled(),
             isLocked: !hasPurchased,
-            widgetNumber: 1
+            widgetNumber: 1,
+            tapURL: getCalendarTapURL()
         )
         completion(entry)
     }
@@ -520,6 +522,7 @@ struct CalendarProvider: TimelineProvider {
         
         // Get edge day once for this timeline
         let edgeDay = getEdgeDayIfEnabled()
+        let tapURL = getCalendarTapURL()
         
         // Current entry
         let currentEntry = CalendarEntry(
@@ -529,7 +532,8 @@ struct CalendarProvider: TimelineProvider {
             highlightColor: getCalendarHighlightColor(),
             overrideDay: edgeDay,
             isLocked: !hasPurchased,
-            widgetNumber: 1
+            widgetNumber: 1,
+            tapURL: tapURL
         )
         entries.append(currentEntry)
         
@@ -543,7 +547,8 @@ struct CalendarProvider: TimelineProvider {
                     highlightColor: getCalendarHighlightColor(),
                     overrideDay: edgeDay,
                     isLocked: !hasPurchased,
-                    widgetNumber: 1
+                    widgetNumber: 1,
+                    tapURL: tapURL
                 )
                 entries.append(entry)
             }
@@ -576,6 +581,39 @@ struct CalendarProvider: TimelineProvider {
     private func getCalendarHighlightColor() -> String {
         let userDefaults = UserDefaults(suiteName: "group.rocketlauncher")
         return userDefaults?.string(forKey: "CalendarHighlightColor") ?? "#FF3B30"
+    }
+    
+    private func getCalendarTapURL() -> URL? {
+        let userDefaults = UserDefaults(suiteName: "group.rocketlauncher")
+        
+        // Check if tap is enabled
+        guard userDefaults?.bool(forKey: "CalendarWidgetTapEnabled") == true else {
+            return nil
+        }
+        
+        // Determine the target scheme
+        let targetScheme: String
+        
+        if userDefaults?.bool(forKey: "CalendarWidgetUseCustomURL") == true {
+            // Use custom URL scheme
+            if let customURL = userDefaults?.string(forKey: "CalendarWidgetCustomURL"),
+               !customURL.isEmpty {
+                targetScheme = customURL
+            } else {
+                return nil
+            }
+        } else {
+            // Default to opening the Calendar app
+            targetScheme = "calshow://"
+        }
+        
+        // Route through the main app like app launcher widgets do
+        // This ensures proper haptic feedback and URL handling
+        if let encodedScheme = targetScheme.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) {
+            return URL(string: "rocketlauncher://launch?scheme=\(encodedScheme)")
+        }
+        
+        return nil
     }
     
     private func getEdgeDayIfEnabled() -> Int? {
@@ -648,124 +686,162 @@ struct CalendarWidgetView: View {
         return luminance > 0.7
     }
     
+    private var isDisplayZoomed: Bool {
+        let screen = UIScreen.main
+        return screen.scale != screen.nativeScale || screen.bounds.width <= 375
+    }
+    
+    private func layoutScale(for size: CGSize) -> CGFloat {
+        let referenceWidth: CGFloat = 348.0
+        let referenceHeight: CGFloat = 162.0
+        let widthScale = size.width > 0 ? (size.width / referenceWidth) : (isDisplayZoomed ? 0.85 : 1.0)
+        let heightScale = size.height > 0 ? (size.height / referenceHeight) : (isDisplayZoomed ? 0.85 : 1.0)
+        return min(1.0, min(widthScale, heightScale))
+    }
+    
     var body: some View {
         ZStack {
-            if entry.isLocked {
-                // Locked widget view
-                ZStack {
-                    // Blurred placeholder
-                    HStack(spacing: 8) {
-                        VStack(spacing: 10) {
-                            Text("00")
-                                .font(.system(size: 90, weight: .bold))
-                                .foregroundColor(Color(hex: entry.fontColor))
-                                .opacity(0.3)
-                            Text("Date Placeholder")
-                                .font(.system(size: 15, weight: .medium))
-                                .foregroundColor(Color(hex: entry.fontColor))
-                                .opacity(0.3)
-                        }
-                        .frame(width: 150)
-                        Spacer()
-                    }
-                    .padding()
-                    .blur(radius: 8)
-                    
-                    // Lock overlay
-                    VStack(spacing: 12) {
-                        Text("🔒")
-                            .font(.system(size: 60))
-                        Text("Calendar Locked")
-                            .font(.system(size: 16, weight: .bold))
-                            .foregroundColor(.white)
-                        Text("Tap to Unlock")
-                            .font(.system(size: 12))
-                            .foregroundColor(.white.opacity(0.8))
-                    }
-                }
-            } else {
-        HStack(spacing: 8) {
-            // Left side - Date information
-            VStack(spacing: 10) {
-                // Large day number - centered and bigger
-                Text(dayString)
-                    .font(.system(size: 90, weight: .bold))
-                    .foregroundColor(Color(hex: entry.fontColor))
-                    .minimumScaleFactor(0.4)
-                    .lineLimit(1)
-                    .frame(maxWidth: .infinity, alignment: .center)
-                
-                // Full date in format: Tuesday, 12 August 2025
-                Text(fullDateString)
-                    .font(.system(size: 15, weight: .medium))
-                    .foregroundColor(Color(hex: entry.fontColor))
-                    .lineLimit(2)
-                    .minimumScaleFactor(0.8)
-                    .multilineTextAlignment(.center)
-                    .frame(maxWidth: .infinity, alignment: .center)
-                
-                // Day of year
-                Text(dayOfYearString)
-                    .font(.system(size: 13, weight: .regular))
-                    .foregroundColor(Color(hex: entry.fontColor).opacity(0.7))
-                    .lineLimit(1)
-                    .frame(maxWidth: .infinity, alignment: .center)
-            }
-            .frame(width: 150)
-            .padding(.leading, 10)
+            StaticWidgetBackground(hexColor: entry.backgroundColor)
             
-            Spacer() // Add spacer to push calendar to the right
-            
-            // Right side - Mini calendar
-            VStack(spacing: 3) {
-                // Calendar header (S M T W T F S)
-                HStack(spacing: 1) {
-                    ForEach(["S", "M", "T", "W", "T", "F", "S"], id: \.self) { day in
-                        Text(day)
-                            .font(.system(size: 12, weight: .medium))
-                            .foregroundColor(isWeekend(dayLetter: day) ?
-                                           Color(hex: entry.fontColor).opacity(0.4) : // Weekend days dimmed
-                                           Color(hex: entry.fontColor)) // Weekdays full color
-                            .frame(width: 22, height: 17)
-                    }
-                }
+            GeometryReader { geo in
+                let s = layoutScale(for: geo.size)
+                let cellWidth: CGFloat = 21.0 * s
+                let headerHeight: CGFloat = 16.0 * s
+                let dayCellHeight: CGFloat = 18.5 * s
+                let circleSize: CGFloat = 18.5 * s
+                let gridSpacing: CGFloat = 1.0 * s
                 
-                // Calendar grid
-                LazyVGrid(columns: Array(repeating: GridItem(.fixed(22), spacing: 1), count: 7), spacing: 1) {
-                    ForEach(calendarDays.prefix(42), id: \.self) { day in
-                        if day > 0 {
-                            if day == currentDay {
-                                ZStack {
-                                    Circle()
-                                        .fill(Color(hex: entry.highlightColor))
-                                        .frame(width: 20, height: 20)
-                                        .overlay(
-                                            Circle()
-                                                .stroke(Color.black.opacity(0.15), lineWidth: 0.8)
-                                        )
-                                    Text("\(day)")
-                                        .font(.system(size: 11, weight: .bold))
-                                        .foregroundColor(isHighlightLight ? Color.black.opacity(0.9) : .white)
+                Group {
+                    if entry.isLocked {
+                        // Locked widget view
+                        ZStack {
+                            // Blurred placeholder
+                            HStack(spacing: 8 * s) {
+                                VStack(spacing: 8 * s) {
+                                    Text("00")
+                                        .font(.system(size: 80 * s, weight: .bold))
+                                        .foregroundColor(Color(hex: entry.fontColor))
+                                        .opacity(0.3)
+                                    Text("Date Placeholder")
+                                        .font(.system(size: 14.5 * s, weight: .medium))
+                                        .foregroundColor(Color(hex: entry.fontColor))
+                                        .opacity(0.3)
                                 }
-                                .frame(width: 22, height: 20)
-                            } else {
-                                Text("\(day)")
-                                    .font(.system(size: 11, weight: .medium))
-                                    .foregroundColor(isWeekend(day: day) ? Color(hex: entry.fontColor).opacity(0.5) : Color(hex: entry.fontColor))
-                                    .frame(width: 22, height: 20)
+                                .frame(width: 140 * s)
+                                Spacer()
                             }
-                        } else {
-                            Color.clear
-                                .frame(width: 22, height: 20)
+                            .padding(16 * s)
+                            .blur(radius: 8)
+                            
+                            // Lock overlay
+                            VStack(spacing: 10 * s) {
+                                Text("🔒")
+                                    .font(.system(size: 54 * s))
+                                Text("Calendar Locked")
+                                    .font(.system(size: 16 * s, weight: .bold))
+                                    .foregroundColor(.white)
+                                Text("Tap to Unlock")
+                                    .font(.system(size: 12 * s))
+                                    .foregroundColor(.white.opacity(0.8))
+                            }
                         }
+                    } else {
+                        HStack(spacing: 8 * s) {
+                            // Left side - Date information
+                            VStack(spacing: 5 * s) {
+                                // Large day number - centered and bigger
+                                Text(dayString)
+                                    .font(.system(size: 80 * s, weight: .bold))
+                                    .foregroundColor(Color(hex: entry.fontColor))
+                                    .minimumScaleFactor(0.4)
+                                    .lineLimit(1)
+                                    .frame(maxWidth: .infinity, alignment: .center)
+                                
+                                // Full date in format: Tuesday, 12 August 2025
+                                Text(fullDateString)
+                                    .font(.system(size: 14.5 * s, weight: .medium))
+                                    .foregroundColor(Color(hex: entry.fontColor))
+                                    .lineLimit(2)
+                                    .minimumScaleFactor(0.75)
+                                    .multilineTextAlignment(.center)
+                                    .fixedSize(horizontal: false, vertical: true)
+                                    .frame(maxWidth: .infinity, alignment: .center)
+                                
+                                // Day of year
+                                Text(dayOfYearString)
+                                    .font(.system(size: 12.5 * s, weight: .regular))
+                                    .foregroundColor(Color(hex: entry.fontColor).opacity(0.7))
+                                    .lineLimit(1)
+                                    .minimumScaleFactor(0.75)
+                                    .frame(maxWidth: .infinity, alignment: .center)
+                            }
+                            .frame(width: 140 * s)
+                            
+                            Spacer(minLength: 4 * s) // Push calendar to the right
+                            
+                            // Right side - Mini calendar
+                            VStack(spacing: 2.5 * s) {
+                                // Calendar header (S M T W T F S)
+                                HStack(spacing: gridSpacing) {
+                                    ForEach(["S", "M", "T", "W", "T", "F", "S"], id: \.self) { day in
+                                        Text(day)
+                                            .font(.system(size: 11.5 * s, weight: .medium))
+                                            .foregroundColor(isWeekend(dayLetter: day) ?
+                                                           Color(hex: entry.fontColor).opacity(0.4) : // Weekend days dimmed
+                                                           Color(hex: entry.fontColor)) // Weekdays full color
+                                            .frame(width: cellWidth, height: headerHeight)
+                                    }
+                                }
+                                
+                                // Calendar grid
+                                LazyVGrid(columns: Array(repeating: GridItem(.fixed(cellWidth), spacing: gridSpacing), count: 7), spacing: gridSpacing) {
+                                    ForEach(calendarDays.prefix(42), id: \.self) { day in
+                                        if day > 0 {
+                                            if day == currentDay {
+                                                ZStack {
+                                                    if #available(iOS 18.0, *) {
+                                                        Image(systemName: "circle.fill")
+                                                            .resizable()
+                                                            .widgetAccentedRenderingMode(.fullColor)
+                                                            .foregroundStyle(Color(hex: entry.highlightColor))
+                                                            .frame(width: circleSize, height: circleSize)
+                                                            .overlay(
+                                                                Circle()
+                                                                    .stroke(Color.black.opacity(0.15), lineWidth: 0.8 * s)
+                                                            )
+                                                    } else {
+                                                        Circle()
+                                                            .fill(Color(hex: entry.highlightColor))
+                                                            .frame(width: circleSize, height: circleSize)
+                                                            .overlay(
+                                                                Circle()
+                                                                    .stroke(Color.black.opacity(0.15), lineWidth: 0.8 * s)
+                                                            )
+                                                    }
+                                                    Text("\(day)")
+                                                        .font(.system(size: 10.5 * s, weight: .bold))
+                                                        .foregroundColor(isHighlightLight ? Color.black.opacity(0.9) : .white)
+                                                }
+                                                .frame(width: cellWidth, height: dayCellHeight)
+                                            } else {
+                                                Text("\(day)")
+                                                    .font(.system(size: 10.5 * s, weight: .medium))
+                                                    .foregroundColor(isWeekend(day: day) ? Color(hex: entry.fontColor).opacity(0.5) : Color(hex: entry.fontColor))
+                                                    .frame(width: cellWidth, height: dayCellHeight)
+                                            }
+                                        } else {
+                                            Color.clear
+                                                .frame(width: cellWidth, height: dayCellHeight)
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        .padding(.horizontal, 16 * s)
+                        .padding(.vertical, 10 * s)
                     }
                 }
-            }
-            .padding(.trailing, 16)
-        }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 12)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .frame(width: geo.size.width, height: geo.size.height, alignment: .center)
             }
         }
     }
@@ -861,32 +937,15 @@ struct CalendarWidget: Widget {
     
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: kind, provider: CalendarProvider()) { entry in
-            if #available(iOS 17.0, *) {
-                CalendarWidgetView(entry: entry)
-                    .containerBackground(for: .widget) {
-                        let hex = entry.backgroundColor.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
-                        if hex == "00000000" || hex.lowercased() == "clear" {
-                            Color.black.opacity(0.95)
-                        } else {
-                            Color(hex: entry.backgroundColor)
-                        }
-                    }
-                    .widgetURL(entry.isLocked ? URL(string: "rocketlauncher://purchase?calendar=1") : nil)
-            } else {
-                CalendarWidgetView(entry: entry)
-                    .widgetURL(entry.isLocked ? URL(string: "rocketlauncher://purchase?calendar=1") : nil)
-            }
+            CalendarWidgetView(entry: entry)
+                .widgetContainerBackgroundModifier()
+                .widgetURL(entry.isLocked ? URL(string: "rocketlauncher://purchase?calendar=1") : entry.tapURL)
         }
+        .disableContentMarginsIfNeeded()
         .configurationDisplayName("Calendar Widget")
         .description("Displays the current date with a mini monthly calendar.")
         .supportedFamilies([.systemMedium])
     }
-}
-
-#Preview(as: .systemMedium) {
-    CalendarWidget()
-} timeline: {
-    CalendarEntry(date: Date(), backgroundColor: "#242424", fontColor: "#FFFFFF", highlightColor: "#FF3B30", overrideDay: nil, isLocked: false, widgetNumber: 1)
 }
 
 // MARK: - Day Counter Widget (Left side of calendar)
@@ -896,20 +955,11 @@ struct DayCounterWidget: Widget {
     
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: kind, provider: CalendarProvider()) { entry in
-            if #available(iOS 17.0, *) {
-                DayCounterWidgetView(entry: entry)
-                    .containerBackground(for: .widget) {
-                        let hex = entry.backgroundColor.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
-                        if hex == "00000000" || hex.lowercased() == "clear" {
-                            Color.black.opacity(0.95)
-                        } else {
-                            Color(hex: entry.backgroundColor)
-                        }
-                    }
-            } else {
-                DayCounterWidgetView(entry: entry)
-            }
+            DayCounterWidgetView(entry: entry)
+                .widgetContainerBackgroundModifier()
+                .widgetURL(entry.tapURL)
         }
+        .disableContentMarginsIfNeeded()
         .configurationDisplayName("Day Counter")
         .description("Displays the current day number, date, and day of year.")
         .supportedFamilies([.systemSmall])
@@ -924,67 +974,55 @@ struct DayCounterWidgetView: View {
     // Detect if iOS Display Zoom is enabled
     private var isDisplayZoomed: Bool {
         let screen = UIScreen.main
-        return screen.scale != screen.nativeScale
+        return screen.scale != screen.nativeScale || screen.bounds.width <= 375
     }
     
-    // Dynamic sizes based on display zoom (4% increase when zoomed, tuned standard sizes)
-    private var dayNumberFontSize: CGFloat {
-        isDisplayZoomed ? 93.6 : 108
-    }
-    
-    private var dateFontSize: CGFloat {
-        // Keep original visual size as requested
-        isDisplayZoomed ? 16.64 : 19.2
-    }
-    
-    private var dayOfYearFontSize: CGFloat {
-        isDisplayZoomed ? 14.56 : 16.8
-    }
-    
-    private var verticalSpacing: CGFloat {
-        // Slightly tighter spacing to give lines more vertical room overall
-        isDisplayZoomed ? 7.8 : 9.0
-    }
-    
-    private var horizontalPadding: CGFloat {
-        // Slightly reduced horizontal padding to gain a bit more width
-        isDisplayZoomed ? 11.5 : 13.2
-    }
-    
-    private var verticalPadding: CGFloat {
-        isDisplayZoomed ? 7.8 : 8.8
+    private func layoutScale(for size: CGSize) -> CGFloat {
+        let referenceSize: CGFloat = 165.0
+        let widthScale = size.width > 0 ? (size.width / referenceSize) : (isDisplayZoomed ? 0.86 : 1.0)
+        let heightScale = size.height > 0 ? (size.height / referenceSize) : (isDisplayZoomed ? 0.86 : 1.0)
+        return min(1.0, min(widthScale, heightScale))
     }
     
     var body: some View {
-        VStack(spacing: verticalSpacing) {
-            // Large day number - centered and bigger
-            Text(dayString)
-                .font(.system(size: dayNumberFontSize, weight: .bold))
-                .foregroundColor(Color(hex: entry.fontColor))
-                .minimumScaleFactor(0.5)
-                .lineLimit(1)
-                .frame(maxWidth: .infinity, alignment: .center)
+        ZStack {
+            StaticWidgetBackground(hexColor: entry.backgroundColor)
             
-            // Full date in format: Monday, 17 November 2025
-            Text(fullDateString)
-                .font(.system(size: dateFontSize, weight: .medium))
-                .foregroundColor(Color(hex: entry.fontColor))
-                .lineLimit(2)
-                .minimumScaleFactor(0.7)
-                .multilineTextAlignment(.center)
-                .frame(maxWidth: .infinity, alignment: .center)
-            
-            // Day of year
-            Text(dayOfYearString)
-                .font(.system(size: dayOfYearFontSize, weight: .regular))
-                .foregroundColor(Color(hex: entry.fontColor).opacity(0.7))
-                .lineLimit(1)
-                .minimumScaleFactor(0.7)
-                .frame(maxWidth: .infinity, alignment: .center)
+            GeometryReader { geo in
+                let s = layoutScale(for: geo.size)
+                
+                VStack(spacing: 7.0 * s) {
+                    // Large day number - centered and bigger
+                    Text(dayString)
+                        .font(.system(size: 98.0 * s, weight: .bold))
+                        .foregroundColor(Color(hex: entry.fontColor))
+                        .minimumScaleFactor(0.5)
+                        .lineLimit(1)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                    
+                    // Full date in format: Monday, 17 November 2025
+                    Text(fullDateString)
+                        .font(.system(size: 17.5 * s, weight: .medium))
+                        .foregroundColor(Color(hex: entry.fontColor))
+                        .lineLimit(2)
+                        .minimumScaleFactor(0.7)
+                        .multilineTextAlignment(.center)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                    
+                    // Day of year
+                    Text(dayOfYearString)
+                        .font(.system(size: 15.0 * s, weight: .regular))
+                        .foregroundColor(Color(hex: entry.fontColor).opacity(0.7))
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.7)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                }
+                .padding(.horizontal, 12.0 * s)
+                .padding(.vertical, 8.0 * s)
+                .frame(width: geo.size.width, height: geo.size.height, alignment: .center)
+            }
         }
-        .padding(.horizontal, horizontalPadding)
-        .padding(.vertical, verticalPadding)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
     
     private var dayString: String {
@@ -1016,20 +1054,11 @@ struct CalendarViewerWidget: Widget {
     
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: kind, provider: CalendarProvider()) { entry in
-            if #available(iOS 17.0, *) {
-                CalendarViewerWidgetView(entry: entry)
-                    .containerBackground(for: .widget) {
-                        let hex = entry.backgroundColor.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
-                        if hex == "00000000" || hex.lowercased() == "clear" {
-                            Color.black.opacity(0.95)
-                        } else {
-                            Color(hex: entry.backgroundColor)
-                        }
-                    }
-            } else {
-                CalendarViewerWidgetView(entry: entry)
-            }
+            CalendarViewerWidgetView(entry: entry)
+                .widgetContainerBackgroundModifier()
+                .widgetURL(entry.tapURL)
         }
+        .disableContentMarginsIfNeeded()
         .configurationDisplayName("Calendar Viewer")
         .description("Displays a mini monthly calendar grid.")
         .supportedFamilies([.systemSmall])
@@ -1044,32 +1073,14 @@ struct CalendarViewerWidgetView: View {
     // Detect if iOS Display Zoom is enabled
     private var isDisplayZoomed: Bool {
         let screen = UIScreen.main
-        return screen.scale != screen.nativeScale
+        return screen.scale != screen.nativeScale || screen.bounds.width <= 375
     }
     
-    // Dynamic sizes based on display zoom (16% reduction when zoomed)
-    private var headerFontSize: CGFloat {
-        isDisplayZoomed ? 11.76 : 13.72
-    }
-    
-    private var dayFontSize: CGFloat {
-        isDisplayZoomed ? 10.92 : 12.74
-    }
-    
-    private var cellWidth: CGFloat {
-        isDisplayZoomed ? 18.48 : 21.56
-    }
-    
-    private var headerCellHeight: CGFloat {
-        isDisplayZoomed ? 15.12 : 17.64
-    }
-    
-    private var dayCellHeight: CGFloat {
-        isDisplayZoomed ? 16.8 : 19.6
-    }
-    
-    private var circleSize: CGFloat {
-        isDisplayZoomed ? 16.8 : 19.6
+    private func layoutScale(for size: CGSize) -> CGFloat {
+        let referenceSize: CGFloat = 176.0
+        let widthScale = size.width > 0 ? (size.width / referenceSize) : (isDisplayZoomed ? 0.84 : 1.0)
+        let heightScale = size.height > 0 ? (size.height / referenceSize) : (isDisplayZoomed ? 0.84 : 1.0)
+        return min(1.0, min(widthScale, heightScale))
     }
     
     private var isHighlightLight: Bool {
@@ -1098,53 +1109,68 @@ struct CalendarViewerWidgetView: View {
     }
     
     var body: some View {
-        VStack(spacing: 4) {
-            // Calendar header (S M T W T F S)
-            HStack(spacing: 3) {
-                ForEach(["S", "M", "T", "W", "T", "F", "S"], id: \.self) { day in
-                    Text(day)
-                        .font(.system(size: headerFontSize, weight: .medium))
-                        .foregroundColor(isWeekend(dayLetter: day) ?
-                                       Color(hex: entry.fontColor).opacity(0.4) :
-                                       Color(hex: entry.fontColor))
-                        .frame(width: cellWidth, height: headerCellHeight)
-                }
-            }
+        ZStack {
+            StaticWidgetBackground(hexColor: entry.backgroundColor)
             
-            // Calendar grid
-            LazyVGrid(columns: Array(repeating: GridItem(.fixed(cellWidth), spacing: 3), count: 7), spacing: 3) {
-                ForEach(calendarDays.prefix(42), id: \.self) { day in
-                    if day > 0 {
-                        if day == currentDay {
-                            ZStack {
-                                Circle()
-                                    .fill(Color(hex: entry.highlightColor))
-                                    .frame(width: circleSize, height: circleSize)
-                                    .overlay(
-                                        Circle()
-                                            .stroke(Color.black.opacity(0.15), lineWidth: 0.6)
-                                    )
-                                Text("\(day)")
-                                    .font(.system(size: dayFontSize, weight: .bold))
-                                    .foregroundColor(isHighlightLight ? Color.black.opacity(0.9) : .white)
-                            }
-                            .frame(width: cellWidth, height: dayCellHeight)
-                        } else {
-                            Text("\(day)")
-                                .font(.system(size: dayFontSize, weight: .medium))
-                                .foregroundColor(isWeekend(day: day) ? Color(hex: entry.fontColor).opacity(0.5) : Color(hex: entry.fontColor))
-                                .frame(width: cellWidth, height: dayCellHeight)
+            GeometryReader { geo in
+                let s = layoutScale(for: geo.size)
+                let headerFontSize: CGFloat = 13.0 * s
+                let dayFontSize: CGFloat = 12.0 * s
+                let cellWidth: CGFloat = 20.5 * s
+                let headerCellHeight: CGFloat = 17.0 * s
+                let dayCellHeight: CGFloat = 19.0 * s
+                let circleSize: CGFloat = 19.0 * s
+                let gridSpacing: CGFloat = 2.5 * s
+                
+                VStack(spacing: 3.5 * s) {
+                    // Calendar header (S M T W T F S)
+                    HStack(spacing: gridSpacing) {
+                        ForEach(["S", "M", "T", "W", "T", "F", "S"], id: \.self) { day in
+                            Text(day)
+                                .font(.system(size: headerFontSize, weight: .medium))
+                                .foregroundColor(isWeekend(dayLetter: day) ?
+                                               Color(hex: entry.fontColor).opacity(0.4) :
+                                               Color(hex: entry.fontColor))
+                                .frame(width: cellWidth, height: headerCellHeight)
                         }
-                    } else {
-                        Color.clear
-                            .frame(width: cellWidth, height: dayCellHeight)
+                    }
+                    
+                    // Calendar grid
+                    LazyVGrid(columns: Array(repeating: GridItem(.fixed(cellWidth), spacing: gridSpacing), count: 7), spacing: gridSpacing) {
+                        ForEach(calendarDays.prefix(42), id: \.self) { day in
+                            if day > 0 {
+                                if day == currentDay {
+                                    ZStack {
+                                        Circle()
+                                            .fill(Color(hex: entry.highlightColor))
+                                            .frame(width: circleSize, height: circleSize)
+                                            .overlay(
+                                                Circle()
+                                                    .stroke(Color.black.opacity(0.15), lineWidth: 0.6 * s)
+                                            )
+                                        Text("\(day)")
+                                            .font(.system(size: dayFontSize, weight: .bold))
+                                            .foregroundColor(isHighlightLight ? Color.black.opacity(0.9) : .white)
+                                    }
+                                    .frame(width: cellWidth, height: dayCellHeight)
+                                } else {
+                                    Text("\(day)")
+                                        .font(.system(size: dayFontSize, weight: .medium))
+                                        .foregroundColor(isWeekend(day: day) ? Color(hex: entry.fontColor).opacity(0.5) : Color(hex: entry.fontColor))
+                                        .frame(width: cellWidth, height: dayCellHeight)
+                                }
+                            } else {
+                                Color.clear
+                                    .frame(width: cellWidth, height: dayCellHeight)
+                            }
+                        }
                     }
                 }
+                .padding(.horizontal, 8.0 * s)
+                .padding(.vertical, 6.0 * s)
+                .frame(width: geo.size.width, height: geo.size.height, alignment: .center)
             }
         }
-        .padding(.horizontal, 8)
-        .padding(.vertical, 6)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
     
     private var currentDay: Int {
@@ -1197,162 +1223,6 @@ struct CalendarViewerWidgetView: View {
         
         let weekday = calendar.component(.weekday, from: dayDate)
         return weekday == 1 || weekday == 7 // Sunday = 1, Saturday = 7
-    }
-}
-
-// MARK: - Flip Clock Widget
-
-struct FlipClockEntry: TimelineEntry {
-    let date: Date
-    let backgroundColor: String
-    let fontColor: String
-    let highlightColor: String
-}
-
-struct FlipClockProvider: TimelineProvider {
-    func placeholder(in context: Context) -> FlipClockEntry {
-        FlipClockEntry(
-            date: Date(),
-            backgroundColor: getFlipClockBackgroundColor(),
-            fontColor: getFlipClockFontColor(),
-            highlightColor: getFlipClockHighlightColor()
-        )
-    }
-    
-    func getSnapshot(in context: Context, completion: @escaping (FlipClockEntry) -> ()) {
-        let entry = FlipClockEntry(
-            date: Date(),
-            backgroundColor: getFlipClockBackgroundColor(),
-            fontColor: getFlipClockFontColor(),
-            highlightColor: getFlipClockHighlightColor()
-        )
-        completion(entry)
-    }
-    
-    func getTimeline(in context: Context, completion: @escaping (Timeline<FlipClockEntry>) -> ()) {
-        let now = Date()
-        let calendar = Calendar.current
-        
-        // Create entries for every 0.5 second for the next minute
-        var entries: [FlipClockEntry] = []
-        
-        for secondOffset in 0..<120 { // 60 seconds * 2 = 0.5s intervals
-            let timeOffset = Double(secondOffset) * 0.5
-            if let futureDate = calendar.date(byAdding: .second, value: Int(timeOffset), to: now) {
-                let entry = FlipClockEntry(
-                    date: futureDate,
-                    backgroundColor: getFlipClockBackgroundColor(),
-                    fontColor: getFlipClockFontColor(),
-                    highlightColor: getFlipClockHighlightColor()
-                )
-                entries.append(entry)
-            }
-        }
-        
-        // Schedule the next major update at the next minute
-        let currentMinute = calendar.dateInterval(of: .minute, for: now)?.start ?? now
-        let nextMinute = calendar.date(byAdding: .minute, value: 1, to: currentMinute)!
-        let timeline = Timeline(entries: entries, policy: .after(nextMinute))
-        completion(timeline)
-    }
-    
-    private func getFlipClockBackgroundColor() -> String {
-        let userDefaults = UserDefaults(suiteName: "group.rocketlauncher")
-        return userDefaults?.string(forKey: "WidgetBackgroundColor") ?? "#242424"
-    }
-    
-    private func getFlipClockFontColor() -> String {
-        let userDefaults = UserDefaults(suiteName: "group.rocketlauncher")
-        return userDefaults?.string(forKey: "WidgetFontColor") ?? "#FFFFFF"
-    }
-    
-    private func getFlipClockHighlightColor() -> String {
-        let userDefaults = UserDefaults(suiteName: "group.rocketlauncher")
-        return userDefaults?.string(forKey: "CalendarHighlightColor") ?? "#FF3B30"
-    }
-}
-
-struct FlipClockWidget: Widget {
-    let kind: String = "FlipClockWidget"
-    
-    var body: some WidgetConfiguration {
-        StaticConfiguration(kind: kind, provider: FlipClockProvider()) { entry in
-            if #available(iOS 17.0, *) {
-                FlipClockWidgetView(entry: entry)
-                    .containerBackground(for: .widget) {
-                        let hex = entry.backgroundColor.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
-                        if hex == "00000000" || hex.lowercased() == "clear" {
-                            Color.black.opacity(0.95)
-                        } else {
-                            Color(hex: entry.backgroundColor)
-                        }
-                    }
-            } else {
-                FlipClockWidgetView(entry: entry)
-            }
-        }
-        .configurationDisplayName("Flip Clock")
-        .description("Displays the current time with Apple-style flip animation.")
-        .supportedFamilies([.systemSmall])
-    }
-}
-
-struct FlipClockWidgetView: View {
-    let entry: FlipClockEntry
-    @State private var previousTime = ""
-
-    var body: some View {
-        GeometryReader { geo in
-            let currentTime = timeString(from: entry.date)
-            let components = currentTime.split(separator: ":")
-            let hours = components.first ?? "00"
-            let minutes = components.count > 1 ? components[1] : "00"
-            let dynamicFontSize = min(geo.size.width, geo.size.height) * 0.4
-
-            // Compute blinking colon based on seconds
-            let seconds = Calendar.current.component(.second, from: entry.date)
-            let showColon = seconds % 2 == 0
-
-            HStack(spacing: 4) {
-                FlipText(text: String(hours), color: entry.fontColor, fontSize: dynamicFontSize)
-
-                Text(":")
-                    .font(.system(size: dynamicFontSize, weight: .medium, design: .monospaced))
-                    .foregroundColor(Color(hex: entry.fontColor))
-                    .opacity(showColon ? 1 : 0)
-
-                FlipText(text: String(minutes), color: entry.fontColor, fontSize: dynamicFontSize)
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-            .onChange(of: entry.date) {
-                withAnimation(.easeInOut(duration: 0.6)) {
-                    previousTime = currentTime
-                }
-            }
-        }
-    }
-
-    private func timeString(from date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "HH:mm"
-        return formatter.string(from: date)
-    }
-}
-
-struct FlipText: View {
-    let text: String
-    let color: String
-    var fontSize: CGFloat
-
-    var body: some View {
-        Text(text)
-            .font(.system(size: fontSize, weight: .medium, design: .monospaced))
-            .foregroundColor(Color(hex: color))
-            .minimumScaleFactor(0.5)
-            .lineLimit(1)
-            .rotation3DEffect(.degrees(10), axis: (x: 1, y: 0, z: 0))
-            .shadow(color: .black.opacity(0.2), radius: 3, x: 0, y: 3)
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
     }
 }
 

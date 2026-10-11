@@ -572,8 +572,6 @@
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_LSApplicationQueriesSchemes = "App-Prefs camera photos-redirect messages tel mailto x-web-search maps music itms-apps twitter fb instagram whatsapp youtube spotify zoom slack discord";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "This app needs access to your photo library to save downloaded wallpapers.";
-				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
-				INFOPLIST_KEY_NSSupportsLiveActivitiesFrequentUpdates = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = "Launch Screen";
@@ -609,8 +607,6 @@
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_LSApplicationQueriesSchemes = "App-Prefs camera photos-redirect messages tel mailto x-web-search maps music itms-apps twitter fb instagram whatsapp youtube spotify zoom slack discord";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "This app needs access to your photo library to save downloaded wallpapers.";
-				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
-				INFOPLIST_KEY_NSSupportsLiveActivitiesFrequentUpdates = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = "Launch Screen";
@@ -706,7 +702,6 @@
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "This widget needs permission to add wallpapers to your photo library.";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "This widget needs access to your photo library to save downloaded wallpapers.";
-				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -737,7 +732,6 @@
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "This widget needs permission to add wallpapers to your photo library.";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "This widget needs access to your photo library to save downloaded wallpapers.";
-				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
