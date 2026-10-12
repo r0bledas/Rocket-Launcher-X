@@ -1284,36 +1284,9 @@ struct AppPickerView: View {
                     }
 
                     Section {
-                        if filteredApps.isEmpty && !searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                            Button {
-                                HapticsHelper.impact(.medium)
-                                let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
-                                let encoded = query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? query
-                                store.setLauncher(id: launcherID, name: "Google: \(query)", scheme: "https://www.google.com/search?q=\(encoded)")
-                                dismiss()
-                            } label: {
-                                HStack(spacing: 12) {
-                                    Image(systemName: "magnifyingglass")
-                                        .font(.title3)
-                                        .foregroundColor(.blue)
-                                        .frame(width: 40, height: 40)
-
-                                    VStack(alignment: .leading, spacing: 2) {
-                                        Text("Search “\(searchText)” on Google")
-                                            .font(.subheadline.weight(.semibold))
-                                            .foregroundColor(.white)
-                                        Text("https://www.google.com/search?q=…")
-                                            .font(.caption.monospaced())
-                                            .foregroundColor(.secondary)
-                                    }
-
-                                    Spacer()
-
-                                    Image(systemName: "plus.circle.fill")
-                                        .font(.title2)
-                                        .foregroundColor(.blue)
-                                }
-                            }
+                        if filteredApps.isEmpty {
+                            Text("No apps match “\(searchText)”.")
+                                .foregroundColor(.secondary)
                         } else {
                             ForEach(filteredApps) { app in
                                 Button {
@@ -1326,7 +1299,44 @@ struct AppPickerView: View {
                             }
                         }
                     } header: {
-                        Text(filteredApps.isEmpty && !searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "NO RESULTS" : "\(filteredApps.count) APPS")
+                        Text(filteredApps.isEmpty ? "NO RESULTS" : "\(filteredApps.count) APPS")
+                    }
+
+                    if !searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                        Section {
+                            Button {
+                                HapticsHelper.impact(.light)
+                                let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+                                let term = "\(query) url scheme"
+                                if let encoded = term.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
+                                   let url = URL(string: "https://www.google.com/search?q=\(encoded)") {
+                                    UIApplication.shared.open(url)
+                                }
+                            } label: {
+                                HStack(spacing: 12) {
+                                    Image(systemName: "safari")
+                                        .font(.title3)
+                                        .foregroundColor(.blue)
+                                        .frame(width: 40, height: 40)
+
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text("Look up “\(searchText)” URL scheme")
+                                            .font(.subheadline.weight(.semibold))
+                                            .foregroundColor(.white)
+                                        Text("Opens Google in Safari")
+                                            .font(.caption)
+                                            .foregroundColor(.secondary)
+                                    }
+
+                                    Spacer()
+
+                                    Image(systemName: "arrow.up.right")
+                                        .foregroundColor(.secondary)
+                                }
+                            }
+                        } header: {
+                            Text("CAN'T FIND IT?")
+                        }
                     }
                 }
             }
