@@ -1467,6 +1467,7 @@ struct AppPickerView: View {
 // MARK: - Settings View
 struct SettingsView: View {
     @ObservedObject var store: AppLauncherStore
+    @ObservedObject private var ads = AdsManager.shared
     @EnvironmentObject var storeManager: StoreManager
     @Environment(\.dismiss) private var dismiss
     // Import/Export functionality
@@ -1599,6 +1600,32 @@ struct SettingsView: View {
                     Text("Sends anonymous, pseudonymous app-launch statistics to help improve the app. No personal data, no content, and no raw URL schemes are collected.")
                         .font(.caption)
                         .foregroundColor(.secondary)
+
+                    if ads.privacyOptionsRequired {
+                        Button {
+                            HapticsHelper.impact(.light)
+                            AdsManager.shared.presentPrivacyOptions()
+                        } label: {
+                            HStack {
+                                Image(systemName: "hand.raised.fill")
+                                Text("Privacy options")
+                            }
+                            .foregroundColor(.blue)
+                        }
+                    }
+
+                    #if DEBUG
+                    Button {
+                        HapticsHelper.impact(.light)
+                        AdsManager.shared.resetConsent()
+                    } label: {
+                        HStack {
+                            Image(systemName: "arrow.counterclockwise")
+                            Text("Reset ad consent (debug)")
+                        }
+                        .foregroundColor(.orange)
+                    }
+                    #endif
                 }
                 
                 Section(header: Text("CALENDAR WIDGET").font(.headline)) {
