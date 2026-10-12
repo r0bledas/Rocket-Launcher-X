@@ -9,6 +9,7 @@ import SwiftUI
 import WidgetKit
 import UIKit
 import UniformTypeIdentifiers
+import CoreHaptics
 import Network
 
 
@@ -227,7 +228,11 @@ final class HapticsHelper {
 
     /// Warms up the Taptic Engine. Call when the app becomes active.
     static func prepare() {
-        onMain { shared.prepareGenerators() }
+        onMain {
+            let hardwareSupport = CHHapticEngine.capabilitiesForHardware().supportsHaptics
+            NSLog("🧲 Haptics diagnostic — hardwareSupport=%d lowPower=%d", hardwareSupport ? 1 : 0, ProcessInfo.processInfo.isLowPowerModeEnabled ? 1 : 0)
+            shared.prepareGenerators()
+        }
     }
 
     private func prepareGenerators() {
@@ -248,7 +253,7 @@ final class HapticsHelper {
     /// Generic impact feedback.
     static func impact(_ style: UIImpactFeedbackGenerator.FeedbackStyle, intensity: CGFloat = 1.0) {
         onMain {
-            print("⚡️ HapticsHelper.impact(\(style)) lowPower=\(ProcessInfo.processInfo.isLowPowerModeEnabled)")
+            NSLog("⚡️ HapticsHelper.impact(%@) lowPower=%d", "\(style)", ProcessInfo.processInfo.isLowPowerModeEnabled ? 1 : 0)
             let generator = shared.generator(for: style)
             generator.impactOccurred(intensity: intensity)
             generator.prepare()
@@ -258,7 +263,7 @@ final class HapticsHelper {
     /// Selection feedback for pickers, segmented controls and chips.
     static func selection() {
         onMain {
-            print("⚡️ HapticsHelper.selection() lowPower=\(ProcessInfo.processInfo.isLowPowerModeEnabled)")
+            NSLog("⚡️ HapticsHelper.selection() lowPower=%d", ProcessInfo.processInfo.isLowPowerModeEnabled ? 1 : 0)
             shared.selectionGenerator.selectionChanged()
             shared.selectionGenerator.prepare()
         }
@@ -270,7 +275,7 @@ final class HapticsHelper {
 
     static func notification(_ type: UINotificationFeedbackGenerator.FeedbackType) {
         onMain {
-            print("⚡️ HapticsHelper.notification(\(type)) lowPower=\(ProcessInfo.processInfo.isLowPowerModeEnabled)")
+            NSLog("⚡️ HapticsHelper.notification(%@) lowPower=%d", "\(type)", ProcessInfo.processInfo.isLowPowerModeEnabled ? 1 : 0)
             shared.notificationGenerator.notificationOccurred(type)
             shared.notificationGenerator.prepare()
         }
@@ -377,6 +382,8 @@ struct ContentView: View {
             }
         }
         .onAppear {
+            // Diagnostic: fire a strong haptic on launch so we can confirm the Taptic Engine works.
+            HapticsHelper.impact(.heavy)
             // Only show splash on cold launch
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
                 showSplash = false
