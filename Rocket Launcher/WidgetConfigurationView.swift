@@ -466,9 +466,9 @@ struct WidgetConfigurationView: View {
     
     // MARK: - Section 2: Custom Color & Hex Input
     private var customColorSection: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            HStack {
-                Image(systemName: "slider.horizontal.3")
+        VStack(alignment: .leading, spacing: 16) {
+            HStack(spacing: 8) {
+                Image(systemName: "paintbrush.fill")
                     .foregroundColor(.purple)
                 Text("CUSTOM COLOR & HEX")
                     .font(.caption)
@@ -476,63 +476,90 @@ struct WidgetConfigurationView: View {
                     .foregroundColor(.white)
                     .tracking(1)
             }
-            
+
+            // Native system color picker with a visible label
+            ColorPicker("Background Color", selection: $backgroundColor, supportsOpacity: false)
+                .font(.subheadline)
+                .tint(.purple)
+                .onChange(of: backgroundColor) { _, newColor in
+                    customHexInput = newColor.toHex()
+                }
+
+            Divider()
+                .overlay(Color.white.opacity(0.1))
+
+            // Hex entry with live swatch + reset
             HStack(spacing: 12) {
-                // Native Color Picker
-                ColorPicker("Pick Color", selection: $backgroundColor, supportsOpacity: false)
-                    .labelsHidden()
-                    .onChange(of: backgroundColor) { _, newColor in
-                        customHexInput = newColor.toHex()
-                    }
-                
-                // Hex Input Field
-                HStack {
+                RoundedRectangle(cornerRadius: 9, style: .continuous)
+                    .fill(backgroundColor)
+                    .frame(width: 34, height: 34)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 9, style: .continuous)
+                            .stroke(Color.white.opacity(0.25), lineWidth: 1)
+                    )
+                    .accessibilityHidden(true)
+
+                HStack(spacing: 2) {
                     Text("#")
-                        .foregroundColor(.gray)
-                        .fontWeight(.bold)
-                    
-                    TextField("RRGGBB", text: Binding(
-                        get: {
-                            customHexInput.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
-                        },
-                        set: { val in
-                            let cleaned = val.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
-                            customHexInput = "#\(cleaned)"
-                            if cleaned.count == 6 || cleaned.count == 3 {
-                                backgroundColor = Color(hex: customHexInput)
-                            }
-                        }
-                    ))
-                    .font(.system(.body, design: .monospaced))
-                    .foregroundColor(.white)
-                    .autocapitalization(.allCharacters)
-                    .disableAutocorrection(true)
+                        .font(.system(.body, design: .monospaced))
+                        .foregroundColor(Color.white.opacity(0.5))
+                    TextField("RRGGBB", text: hexBinding)
+                        .font(.system(.body, design: .monospaced))
+                        .foregroundColor(.white)
+                        .textInputAutocapitalization(.characters)
+                        .autocorrectionDisabled()
+                        .keyboardType(.asciiCapable)
+                        .accessibilityLabel("Hex color value")
                 }
                 .padding(.horizontal, 12)
-                .padding(.vertical, 8)
-                .background(Color.black.opacity(0.4))
-                .cornerRadius(10)
-                
-                // Reset Button
-                Button(action: {
+                .padding(.vertical, 9)
+                .background(
+                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        .fill(Color.black.opacity(0.4))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                .stroke(Color.white.opacity(0.12), lineWidth: 1)
+                        )
+                )
+
+                Button("Reset") {
                     UIImpactFeedbackGenerator(style: .medium).impactOccurred()
                     backgroundColor = Color(hex: "#242424")
                     customHexInput = "#242424"
-                }) {
-                    Text("Default")
-                        .font(.caption)
-                        .fontWeight(.semibold)
-                        .foregroundColor(.blue)
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 8)
-                        .background(Color.blue.opacity(0.15))
-                        .cornerRadius(8)
                 }
+                .buttonStyle(.bordered)
+                .controlSize(.small)
+                .tint(.white)
             }
+
+            Text("Enter a 3- or 6-digit hex code, or use the color picker above.")
+                .font(.caption2)
+                .foregroundColor(Color.white.opacity(0.5))
         }
         .padding(16)
         .background(Color.gray.opacity(0.12))
         .cornerRadius(16)
+    }
+
+    /// Two-way binding that keeps the hex field and the color swatch in sync.
+    private var hexBinding: Binding<String> {
+        Binding(
+            get: {
+                customHexInput
+                    .trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
+                    .uppercased()
+            },
+            set: { newValue in
+                let cleaned = String(newValue
+                    .trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
+                    .uppercased()
+                    .prefix(6))
+                customHexInput = "#\(cleaned)"
+                if cleaned.count == 3 || cleaned.count == 6 {
+                    backgroundColor = Color(hex: cleaned)
+                }
+            }
+        )
     }
     
     // MARK: - Section 4: Text Alignment
