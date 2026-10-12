@@ -1307,7 +1307,7 @@ struct AppPickerView: View {
                             Button {
                                 HapticsHelper.impact(.light)
                                 let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
-                                let term = "\(query) url scheme"
+                                let term = "\"\(query)\" app url scheme"
                                 if let encoded = term.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
                                    let url = URL(string: "https://www.google.com/search?q=\(encoded)") {
                                     UIApplication.shared.open(url)
