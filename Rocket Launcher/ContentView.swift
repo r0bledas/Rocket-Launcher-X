@@ -1356,7 +1356,8 @@ struct AppPickerView: View {
 
             Spacer()
 
-            Image(systemName: "plus.circle")
+            Image(systemName: "plus.circle.fill")
+                .font(.title2)
                 .foregroundColor(.blue)
         }
     }
