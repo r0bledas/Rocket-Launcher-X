@@ -142,6 +142,10 @@ class AppLauncherStore: ObservableObject {
         guard let idx = launchers.firstIndex(where: { $0.id == id }) else { return }
         launchers[idx].name = name
         launchers[idx].urlScheme = scheme
+        // Clear any previous icon immediately so a stale image can never be shown
+        // while the new one is being fetched (or if the fetch fails).
+        launchers[idx].iconFileName = nil
+        launchers[idx].showIcon = false
         save()
         
         let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -169,7 +173,7 @@ class AppLauncherStore: ObservableObject {
         save()
     }
     
-    func bulkFetchIcons() {
+    func bulkFetchIcons(completion: (() -> Void)? = nil) {
         let group = DispatchGroup()
         // Always use Apple (iTunes) as icon source
         for launcherIndex in launchers.indices {
@@ -193,6 +197,7 @@ class AppLauncherStore: ObservableObject {
             self.save()
             WidgetCenter.shared.reloadAllTimelines()
             UINotificationFeedbackGenerator().notificationOccurred(.success)
+            completion?()
         }
     }
 }
@@ -1396,6 +1401,7 @@ struct SettingsView: View {
     @State private var importFeedbackMessage: String = ""
     // Confirmation state for clear and reset button
     @State private var confirmClearAndReset = false
+    @State private var isRefetchingIcons = false
     // Purchase simulation state
     @AppStorage("HasPurchasedExtraWidgets", store: UserDefaults(suiteName: appGroupID)) private var hasPurchasedExtraWidgets: Bool = false
     @AppStorage("HasPurchasedIconFeature", store: UserDefaults(suiteName: appGroupID)) private var hasPurchasedIconFeature: Bool = false
@@ -1433,7 +1439,10 @@ struct SettingsView: View {
         NavigationView {
             Form {
                 Section(header: Text("BACKUP & RESTORE").font(.headline)) {
-                    Button(action: exportConfiguration) {
+                    Button(action: {
+                        HapticsHelper.impact(.light)
+                        exportConfiguration()
+                    }) {
                         HStack {
                             Image(systemName: "square.and.arrow.up")
                             Text("Export App Slots")
@@ -1441,7 +1450,10 @@ struct SettingsView: View {
                         .foregroundColor(.blue)
                     }
                     
-                    Button(action: importConfiguration) {
+                    Button(action: {
+                        HapticsHelper.impact(.light)
+                        importConfiguration()
+                    }) {
                         HStack {
                             Image(systemName: "square.and.arrow.down")
                             Text("Import App Slots")
@@ -1476,15 +1488,24 @@ struct SettingsView: View {
                 
                 Section(header: Text("WIDGET CONFIGURATION").font(.headline)) {
                     Button(action: {
-                        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-                        store.bulkFetchIcons()
+                        HapticsHelper.impact(.medium)
+                        isRefetchingIcons = true
+                        store.bulkFetchIcons {
+                            isRefetchingIcons = false
+                        }
                     }) {
                         HStack {
-                            Image(systemName: "arrow.triangle.2.circlepath")
-                            Text("Refetch Icons")
+                            if isRefetchingIcons {
+                                ProgressView()
+                                    .controlSize(.small)
+                            } else {
+                                Image(systemName: "arrow.triangle.2.circlepath")
+                            }
+                            Text(isRefetchingIcons ? "Refetching Icons…" : "Refetch Icons")
                         }
                         .foregroundColor(.blue)
                     }
+                    .disabled(isRefetchingIcons)
                 }
                 
                 Section(header: Text("CALENDAR WIDGET").font(.headline)) {
