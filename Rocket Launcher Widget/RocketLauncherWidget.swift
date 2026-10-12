@@ -176,7 +176,6 @@ struct LauncherWidgetEntryView: View {
     
     var body: some View {
         ZStack {
-            StaticWidgetBackground(hexColor: entry.backgroundColor)
             
             GeometryReader { geo in
                 let scale = layoutScale(for: geo.size)
@@ -291,23 +290,40 @@ private func loadIconImage(fileName: String?) -> UIImage? {
 
 // MARK: - Static Color Background & Container Helpers
 
+/// Background for the widget's container.
+///
+/// In the default (light) and dark Home Screen appearances, WidgetKit renders
+/// widgets in full color, so the user's static color is honored. On a tinted or
+/// clear Home Screen the system uses the `accented` rendering mode and replaces
+/// the background with its own Liquid Glass material — an opaque color drawn
+/// there gets tinted solid white, so we stay clear and let the system's glass
+/// show through.
 struct StaticWidgetBackground: View {
     let hexColor: String
-    
+    @Environment(\.widgetRenderingMode) private var renderingMode
+
     var body: some View {
         let hex = hexColor.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
         let resolvedColor = (hex == "00000000" || hex.lowercased() == "clear") ? Color.black.opacity(0.95) : Color(hex: hexColor)
-        
-        resolvedColor
-            .ignoresSafeArea()
+
+        Group {
+            if renderingMode == .accented {
+                Color.clear
+            } else {
+                resolvedColor
+            }
+        }
+        .ignoresSafeArea()
     }
 }
 
 extension View {
     @ViewBuilder
-    func widgetContainerBackgroundModifier() -> some View {
+    func widgetContainerBackgroundModifier(hexColor: String) -> some View {
         if #available(iOS 17.0, *) {
-            self.containerBackground(Color.clear, for: .widget)
+            self.containerBackground(for: .widget) {
+                StaticWidgetBackground(hexColor: hexColor)
+            }
         } else {
             self
         }
@@ -329,7 +345,7 @@ struct RocketLauncherWidget: Widget {
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: kind, provider: LauncherProvider()) { entry in
             LauncherWidgetEntryView(entry: entry)
-                .widgetContainerBackgroundModifier()
+                .widgetContainerBackgroundModifier(hexColor: entry.backgroundColor)
         }
         .disableContentMarginsIfNeeded()
         .configurationDisplayName("Widget #1")
@@ -343,7 +359,7 @@ struct RocketLauncherWidget2: Widget {
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: kind, provider: CustomLauncherProvider(widgetIndex: 1)) { entry in
             LauncherWidgetEntryView(entry: entry)
-                .widgetContainerBackgroundModifier()
+                .widgetContainerBackgroundModifier(hexColor: entry.backgroundColor)
                 .widgetURL(entry.isLocked ? URL(string: "rocketlauncher://purchase?widget=2") : nil)
         }
         .disableContentMarginsIfNeeded()
@@ -358,7 +374,7 @@ struct RocketLauncherWidget3: Widget {
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: kind, provider: CustomLauncherProvider(widgetIndex: 2)) { entry in
             LauncherWidgetEntryView(entry: entry)
-                .widgetContainerBackgroundModifier()
+                .widgetContainerBackgroundModifier(hexColor: entry.backgroundColor)
                 .widgetURL(entry.isLocked ? URL(string: "rocketlauncher://purchase?widget=3") : nil)
         }
         .disableContentMarginsIfNeeded()
@@ -373,7 +389,7 @@ struct RocketLauncherWidget4: Widget {
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: kind, provider: CustomLauncherProvider(widgetIndex: 3)) { entry in
             LauncherWidgetEntryView(entry: entry)
-                .widgetContainerBackgroundModifier()
+                .widgetContainerBackgroundModifier(hexColor: entry.backgroundColor)
                 .widgetURL(entry.isLocked ? URL(string: "rocketlauncher://purchase?widget=4") : nil)
         }
         .disableContentMarginsIfNeeded()
@@ -388,7 +404,7 @@ struct RocketLauncherWidget5: Widget {
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: kind, provider: CustomLauncherProvider(widgetIndex: 4)) { entry in
             LauncherWidgetEntryView(entry: entry)
-                .widgetContainerBackgroundModifier()
+                .widgetContainerBackgroundModifier(hexColor: entry.backgroundColor)
                 .widgetURL(entry.isLocked ? URL(string: "rocketlauncher://purchase?widget=5") : nil)
         }
         .disableContentMarginsIfNeeded()
@@ -701,7 +717,6 @@ struct CalendarWidgetView: View {
     
     var body: some View {
         ZStack {
-            StaticWidgetBackground(hexColor: entry.backgroundColor)
             
             GeometryReader { geo in
                 let s = layoutScale(for: geo.size)
@@ -938,7 +953,7 @@ struct CalendarWidget: Widget {
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: kind, provider: CalendarProvider()) { entry in
             CalendarWidgetView(entry: entry)
-                .widgetContainerBackgroundModifier()
+                .widgetContainerBackgroundModifier(hexColor: entry.backgroundColor)
                 .widgetURL(entry.isLocked ? URL(string: "rocketlauncher://purchase?calendar=1") : entry.tapURL)
         }
         .disableContentMarginsIfNeeded()
@@ -956,7 +971,7 @@ struct DayCounterWidget: Widget {
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: kind, provider: CalendarProvider()) { entry in
             DayCounterWidgetView(entry: entry)
-                .widgetContainerBackgroundModifier()
+                .widgetContainerBackgroundModifier(hexColor: entry.backgroundColor)
                 .widgetURL(entry.tapURL)
         }
         .disableContentMarginsIfNeeded()
@@ -986,7 +1001,6 @@ struct DayCounterWidgetView: View {
     
     var body: some View {
         ZStack {
-            StaticWidgetBackground(hexColor: entry.backgroundColor)
             
             GeometryReader { geo in
                 let s = layoutScale(for: geo.size)
@@ -1055,7 +1069,7 @@ struct CalendarViewerWidget: Widget {
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: kind, provider: CalendarProvider()) { entry in
             CalendarViewerWidgetView(entry: entry)
-                .widgetContainerBackgroundModifier()
+                .widgetContainerBackgroundModifier(hexColor: entry.backgroundColor)
                 .widgetURL(entry.tapURL)
         }
         .disableContentMarginsIfNeeded()
@@ -1110,7 +1124,6 @@ struct CalendarViewerWidgetView: View {
     
     var body: some View {
         ZStack {
-            StaticWidgetBackground(hexColor: entry.backgroundColor)
             
             GeometryReader { geo in
                 let s = layoutScale(for: geo.size)
