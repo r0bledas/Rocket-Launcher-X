@@ -24,9 +24,7 @@ struct URLSchemeItem: Identifiable {
     let id = UUID()
     let name: String
     let scheme: String
-    let iconName: String
     let category: String
-    let color: Color
 }
 
 // MARK: - Widget Setup View
@@ -42,41 +40,41 @@ struct WidgetSetupView: View {
 
     private let urlSchemes: [URLSchemeItem] = [
         // Social
-        URLSchemeItem(name: "Instagram", scheme: "instagram://", iconName: "camera.fill", category: "Social", color: .purple),
-        URLSchemeItem(name: "Spotify", scheme: "spotify://", iconName: "music.note", category: "Media", color: .green),
-        URLSchemeItem(name: "YouTube", scheme: "youtube://", iconName: "play.rectangle.fill", category: "Media", color: .red),
-        URLSchemeItem(name: "X / Twitter", scheme: "twitter://", iconName: "bubble.left.and.bubble.right.fill", category: "Social", color: .cyan),
-        URLSchemeItem(name: "WhatsApp", scheme: "whatsapp://", iconName: "phone.circle.fill", category: "Social", color: .green),
-        URLSchemeItem(name: "TikTok", scheme: "tiktok://", iconName: "waveform", category: "Social", color: .pink),
-        URLSchemeItem(name: "Discord", scheme: "discord://", iconName: "person.2.fill", category: "Social", color: .indigo),
-        URLSchemeItem(name: "Telegram", scheme: "tg://", iconName: "paperplane.fill", category: "Social", color: .blue),
-        URLSchemeItem(name: "Reddit", scheme: "reddit://", iconName: "bubble.middle.bottom.fill", category: "Social", color: .orange),
-        URLSchemeItem(name: "Snapchat", scheme: "snapchat://", iconName: "bell.fill", category: "Social", color: .yellow),
+        URLSchemeItem(name: "Instagram", scheme: "instagram://", category: "Social"),
+        URLSchemeItem(name: "Spotify", scheme: "spotify://", category: "Media"),
+        URLSchemeItem(name: "YouTube", scheme: "youtube://", category: "Media"),
+        URLSchemeItem(name: "X / Twitter", scheme: "twitter://", category: "Social"),
+        URLSchemeItem(name: "WhatsApp", scheme: "whatsapp://", category: "Social"),
+        URLSchemeItem(name: "TikTok", scheme: "tiktok://", category: "Social"),
+        URLSchemeItem(name: "Discord", scheme: "discord://", category: "Social"),
+        URLSchemeItem(name: "Telegram", scheme: "tg://", category: "Social"),
+        URLSchemeItem(name: "Reddit", scheme: "reddit://", category: "Social"),
+        URLSchemeItem(name: "Snapchat", scheme: "snapchat://", category: "Social"),
 
         // Apple Built-in
-        URLSchemeItem(name: "Settings", scheme: "App-Prefs:root=", iconName: "gear", category: "Apple", color: .gray),
-        URLSchemeItem(name: "Camera", scheme: "camera://", iconName: "camera.aperture", category: "Apple", color: .blue),
-        URLSchemeItem(name: "Photos", scheme: "photos-redirect://", iconName: "photo.on.rectangle.angled", category: "Apple", color: .red),
-        URLSchemeItem(name: "Maps", scheme: "maps://", iconName: "map.fill", category: "Apple", color: .green),
-        URLSchemeItem(name: "Safari", scheme: "https://", iconName: "safari.fill", category: "Apple", color: .blue),
-        URLSchemeItem(name: "Mail", scheme: "mailto://", iconName: "envelope.fill", category: "Apple", color: .cyan),
-        URLSchemeItem(name: "Phone", scheme: "tel://", iconName: "phone.fill", category: "Apple", color: .green),
-        URLSchemeItem(name: "Messages", scheme: "sms://", iconName: "message.fill", category: "Apple", color: .green),
-        URLSchemeItem(name: "FaceTime", scheme: "facetime://", iconName: "video.fill", category: "Apple", color: .green),
-        URLSchemeItem(name: "App Store", scheme: "itms-apps://", iconName: "bag.fill", category: "Apple", color: .blue),
-        URLSchemeItem(name: "Apple Music", scheme: "music://", iconName: "music.quarternote.3", category: "Apple", color: .red),
-        URLSchemeItem(name: "Calendar", scheme: "calshow://", iconName: "calendar", category: "Apple", color: .red),
-        URLSchemeItem(name: "Reminders", scheme: "x-apple-reminderkit://", iconName: "list.bullet", category: "Apple", color: .orange),
-        URLSchemeItem(name: "Notes", scheme: "mobilenotes://", iconName: "note.text", category: "Apple", color: .yellow),
-        URLSchemeItem(name: "Files", scheme: "shareddocuments://", iconName: "folder.fill", category: "Apple", color: .blue),
+        URLSchemeItem(name: "Settings", scheme: "App-Prefs:root=", category: "Apple"),
+        URLSchemeItem(name: "Camera", scheme: "camera://", category: "Apple"),
+        URLSchemeItem(name: "Photos", scheme: "photos-redirect://", category: "Apple"),
+        URLSchemeItem(name: "Maps", scheme: "maps://", category: "Apple"),
+        URLSchemeItem(name: "Safari", scheme: "https://", category: "Apple"),
+        URLSchemeItem(name: "Mail", scheme: "mailto://", category: "Apple"),
+        URLSchemeItem(name: "Phone", scheme: "tel://", category: "Apple"),
+        URLSchemeItem(name: "Messages", scheme: "sms://", category: "Apple"),
+        URLSchemeItem(name: "FaceTime", scheme: "facetime://", category: "Apple"),
+        URLSchemeItem(name: "App Store", scheme: "itms-apps://", category: "Apple"),
+        URLSchemeItem(name: "Apple Music", scheme: "music://", category: "Apple"),
+        URLSchemeItem(name: "Calendar", scheme: "calshow://", category: "Apple"),
+        URLSchemeItem(name: "Reminders", scheme: "x-apple-reminderkit://", category: "Apple"),
+        URLSchemeItem(name: "Notes", scheme: "mobilenotes://", category: "Apple"),
+        URLSchemeItem(name: "Files", scheme: "shareddocuments://", category: "Apple"),
 
         // Productivity & Utilities
-        URLSchemeItem(name: "Google Chrome", scheme: "googlechrome://", iconName: "globe", category: "Productivity", color: .blue),
-        URLSchemeItem(name: "Google Search", scheme: "google://", iconName: "magnifyingglass", category: "Productivity", color: .blue),
-        URLSchemeItem(name: "Google Maps", scheme: "comgooglemaps://", iconName: "location.fill", category: "Productivity", color: .red),
-        URLSchemeItem(name: "Gmail", scheme: "googlegmail://", iconName: "tray.fill", category: "Productivity", color: .red),
-        URLSchemeItem(name: "Notion", scheme: "notion://", iconName: "doc.richtext.fill", category: "Productivity", color: .gray),
-        URLSchemeItem(name: "Slack", scheme: "slack://", iconName: "number", category: "Productivity", color: .purple)
+        URLSchemeItem(name: "Google Chrome", scheme: "googlechrome://", category: "Productivity"),
+        URLSchemeItem(name: "Google Search", scheme: "google://", category: "Productivity"),
+        URLSchemeItem(name: "Google Maps", scheme: "comgooglemaps://", category: "Productivity"),
+        URLSchemeItem(name: "Gmail", scheme: "googlegmail://", category: "Productivity"),
+        URLSchemeItem(name: "Notion", scheme: "notion://", category: "Productivity"),
+        URLSchemeItem(name: "Slack", scheme: "slack://", category: "Productivity")
     ]
 
     var filteredSchemes: [URLSchemeItem] {
@@ -679,8 +677,6 @@ private struct URLSchemeDirectoryCard: View {
 
     var body: some View {
         HStack(spacing: 12) {
-            IconTile(icon: item.iconName, color: item.color, size: 38)
-
             VStack(alignment: .leading, spacing: 2) {
                 Text(item.name)
                     .font(.subheadline.weight(.semibold))

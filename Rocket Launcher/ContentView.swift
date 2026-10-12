@@ -1317,15 +1317,6 @@ struct AppPickerView: View {
 
     private func catalogRow(_ app: CatalogApp) -> some View {
         HStack(spacing: 12) {
-            ZStack {
-                RoundedRectangle(cornerRadius: 9, style: .continuous)
-                    .fill(Color.white.opacity(0.08))
-                    .frame(width: 40, height: 40)
-                Image(systemName: app.iconName)
-                    .font(.system(size: 17))
-                    .foregroundColor(.white.opacity(0.8))
-            }
-
             VStack(alignment: .leading, spacing: 2) {
                 Text(app.name)
                     .font(.subheadline.weight(.semibold))
