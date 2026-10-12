@@ -12,6 +12,8 @@
 		967D9B252E2CB4B0008E1D5A /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 967D9B242E2CB4B0008E1D5A /* SwiftUI.framework */; };
 		967D9B362E2CB4B1008E1D5A /* Rocket Launcher WidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 967D9B202E2CB4B0008E1D5A /* Rocket Launcher WidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		96FC02F72ED0DA7F009B1CFE /* Rocket Launcher Watch App Extension.appex in Embed ExtensionKit Extensions */ = {isa = PBXBuildFile; fileRef = 96FC02EE2ED0DA7F009B1CFE /* Rocket Launcher Watch App Extension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		B136D106A0F419E3E50864FB /* GoogleMobileAds in Frameworks */ = {isa = PBXBuildFile; productRef = 7645EC1F6DAE3285465022E7 /* GoogleMobileAds */; };
+		E2BB3A9BDA33D46F4F1AE1CC /* GoogleUserMessagingPlatform in Frameworks */ = {isa = PBXBuildFile; productRef = 553F7830F92F5C8FEF4DBB9C /* GoogleUserMessagingPlatform */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -110,6 +112,8 @@
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		96340A692E2CAA8500A763FB /* Rocket Launcher */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+			);
 			path = "Rocket Launcher";
 			sourceTree = "<group>";
 		};
@@ -144,6 +148,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B136D106A0F419E3E50864FB /* GoogleMobileAds in Frameworks */,
+				E2BB3A9BDA33D46F4F1AE1CC /* GoogleUserMessagingPlatform in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -229,6 +235,8 @@
 			);
 			name = "Rocket Launcher";
 			packageProductDependencies = (
+				7645EC1F6DAE3285465022E7 /* GoogleMobileAds */,
+				553F7830F92F5C8FEF4DBB9C /* GoogleUserMessagingPlatform */,
 			);
 			productName = "Rocket Launcher";
 			productReference = 96340A672E2CAA8500A763FB /* Rocket Launcher.app */;
@@ -252,8 +260,6 @@
 				964549372E6CDE33007C6127 /* Rocket Launcher Watch App */,
 			);
 			name = "Rocket Launcher Watch App";
-			packageProductDependencies = (
-			);
 			productName = "Rocket Launcher Watch App";
 			productReference = 964549362E6CDE33007C6127 /* Rocket Launcher Watch App.app */;
 			productType = "com.apple.product-type.application";
@@ -274,8 +280,6 @@
 				967D9B262E2CB4B0008E1D5A /* Rocket Launcher Widget */,
 			);
 			name = "Rocket Launcher WidgetExtension";
-			packageProductDependencies = (
-			);
 			productName = "Rocket Launcher WidgetExtension";
 			productReference = 967D9B202E2CB4B0008E1D5A /* Rocket Launcher WidgetExtension.appex */;
 			productType = "com.apple.product-type.app-extension";
@@ -296,8 +300,6 @@
 				96FC02EF2ED0DA7F009B1CFE /* Rocket Launcher Watch App Extension */,
 			);
 			name = "Rocket Launcher Watch App Extension";
-			packageProductDependencies = (
-			);
 			productName = "Rocket Launcher Watch App Extension";
 			productReference = 96FC02EE2ED0DA7F009B1CFE /* Rocket Launcher Watch App Extension.appex */;
 			productType = "com.apple.product-type.extensionkit-extension";
@@ -335,6 +337,10 @@
 			);
 			mainGroup = 96340A5E2E2CAA8500A763FB;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				A6CDC2045BB0E78EC9B2C0AD /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */,
+				3143CA54E2E0217F5747503F /* XCRemoteSwiftPackageReference "swift-package-manager-google-user-messaging-platform" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 96340A682E2CAA8500A763FB /* Products */;
 			projectDirPath = "";
@@ -857,6 +863,38 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		3143CA54E2E0217F5747503F /* XCRemoteSwiftPackageReference "swift-package-manager-google-user-messaging-platform" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/googleads/swift-package-manager-google-user-messaging-platform";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 3.0.0;
+			};
+		};
+		A6CDC2045BB0E78EC9B2C0AD /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/googleads/swift-package-manager-google-mobile-ads";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 13.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		553F7830F92F5C8FEF4DBB9C /* GoogleUserMessagingPlatform */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 3143CA54E2E0217F5747503F /* XCRemoteSwiftPackageReference "swift-package-manager-google-user-messaging-platform" */;
+			productName = GoogleUserMessagingPlatform;
+		};
+		7645EC1F6DAE3285465022E7 /* GoogleMobileAds */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A6CDC2045BB0E78EC9B2C0AD /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */;
+			productName = GoogleMobileAds;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 96340A5F2E2CAA8500A763FB /* Project object */;
 }

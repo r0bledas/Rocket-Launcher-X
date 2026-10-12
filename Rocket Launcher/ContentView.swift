@@ -375,6 +375,7 @@ struct ContentView: View {
         }
         .onAppear {
             AnalyticsManager.shared.logAppOpen()
+            AdsManager.shared.start()
             // Only show splash on cold launch
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
                 showSplash = false
@@ -556,6 +557,14 @@ struct ContentView: View {
                     Spacer()
                 }
                 .padding(.bottom, 80) // Position above page indicators
+            }
+            
+            // Banner ad (top)
+            VStack {
+                BannerAdView(adUnitID: AdUnits.banner)
+                    .frame(width: 320, height: 50)
+                    .padding(.top, 50)
+                Spacer()
             }
         }
     }
@@ -1048,12 +1057,14 @@ struct WidgetLaunchersConfigView: View {
     @AppStorage("HasPurchasedExtraWidgets", store: UserDefaults(suiteName: appGroupID)) private var hasPurchasedExtraWidgets: Bool = false
     @State private var showPurchaseAlert = false
     @State private var editingLauncher: AppLauncher? = nil
+    @State private var tempUnlockActive = RewardsEntitlement.isActive()
+    @ObservedObject private var ads = AdsManager.shared
 
     var body: some View {
         NavigationView {
             List {
                 ForEach(0..<5, id: \.self) { widgetIndex in
-                    let isLocked = widgetIndex >= 1 && !hasPurchasedExtraWidgets
+                    let isLocked = widgetIndex >= 1 && !hasPurchasedExtraWidgets && !tempUnlockActive
                     Section(header: HStack {
                         Text("WIDGET #\(widgetIndex + 1)")
                             .font(.title2)
@@ -1094,6 +1105,27 @@ struct WidgetLaunchersConfigView: View {
                                                 .background(Color.orange)
                                                 .cornerRadius(10)
                                         }
+
+                                        Button(action: {
+                                            HapticsHelper.impact(.medium)
+                                            AdsManager.shared.presentRewarded {
+                                                RewardsEntitlement.grant()
+                                                tempUnlockActive = RewardsEntitlement.isActive()
+                                                WidgetCenter.shared.reloadAllTimelines()
+                                            }
+                                        }) {
+                                            HStack(spacing: 6) {
+                                                Image(systemName: "play.circle.fill")
+                                                Text(ads.isRewardedReady ? "Watch ad to unlock 3 days" : "Loading ad…")
+                                            }
+                                            .font(.subheadline.weight(.semibold))
+                                            .foregroundColor(.white)
+                                            .padding(.horizontal, 20)
+                                            .padding(.vertical, 10)
+                                            .background(Capsule().fill(Color.blue))
+                                        }
+                                        .disabled(!ads.isRewardedReady)
+                                        .opacity(ads.isRewardedReady ? 1 : 0.5)
                                     }
                                     .frame(maxWidth: .infinity)
                                     .padding(.vertical, 40)

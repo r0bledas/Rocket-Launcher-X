@@ -443,7 +443,13 @@ struct CustomLauncherProvider: TimelineProvider {
     }
     private func hasPurchasedExtraWidgets() -> Bool {
         let userDefaults = UserDefaults(suiteName: "group.rocketlauncher")
-        return userDefaults?.bool(forKey: "HasPurchasedExtraWidgets") ?? false
+        if userDefaults?.bool(forKey: "HasPurchasedExtraWidgets") ?? false { return true }
+        // Temporary unlock granted via a rewarded ad.
+        if let ts = userDefaults?.object(forKey: "ExtraWidgetsUnlockUntil") as? Double,
+           ts > Date().timeIntervalSince1970 {
+            return true
+        }
+        return false
     }
     private func getBackgroundColor() -> String {
         let userDefaults = UserDefaults(suiteName: "group.rocketlauncher")
