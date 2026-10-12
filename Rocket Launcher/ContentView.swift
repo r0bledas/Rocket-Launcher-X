@@ -1759,7 +1759,7 @@ struct SettingsView: View {
                     Button(action: {
                         HapticsHelper.impact(.light)
                         // TODO: Replace with your actual Privacy Policy URL before App Store submission
-                        if let url = URL(string: "https://example.com/privacy-policy") {
+                        if let url = URL(string: "https://r0bledas.github.io/Rocket-Launcher-X/privacy.html") {
                             UIApplication.shared.open(url)
                         }
                     }) {
@@ -1778,7 +1778,7 @@ struct SettingsView: View {
                     Button(action: {
                         HapticsHelper.impact(.light)
                         // TODO: Replace with your actual Terms of Service URL before App Store submission
-                        if let url = URL(string: "https://example.com/terms-of-service") {
+                        if let url = URL(string: "https://r0bledas.github.io/Rocket-Launcher-X/terms.html") {
                             UIApplication.shared.open(url)
                         }
                     }) {
