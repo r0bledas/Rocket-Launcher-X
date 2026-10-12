@@ -137,6 +137,38 @@ class AppLauncherStore: ObservableObject {
         }
     }
     
+    /// Sets a slot's contents and kicks off an icon fetch for the given app name.
+    func setLauncher(id: Int, name: String, scheme: String) {
+        guard let idx = launchers.firstIndex(where: { $0.id == id }) else { return }
+        launchers[idx].name = name
+        launchers[idx].urlScheme = scheme
+        save()
+        
+        let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+        fetchIconForAppName(appName: trimmed) { [weak self] result in
+            DispatchQueue.main.async {
+                guard let self = self, case .success(let data) = result else { return }
+                if let fileName = saveIconDataToAppGroup(data: data, slotId: id) {
+                    if let i = self.launchers.firstIndex(where: { $0.id == id }) {
+                        self.launchers[i].iconFileName = fileName
+                        self.launchers[i].showIcon = true
+                    }
+                    self.save()
+                }
+            }
+        }
+    }
+    
+    func clearLauncher(id: Int) {
+        guard let idx = launchers.firstIndex(where: { $0.id == id }) else { return }
+        launchers[idx].name = ""
+        launchers[idx].urlScheme = ""
+        launchers[idx].iconFileName = nil
+        launchers[idx].showIcon = false
+        save()
+    }
+    
     func bulkFetchIcons() {
         let group = DispatchGroup()
         // Always use Apple (iTunes) as icon source
@@ -1009,12 +1041,11 @@ extension Color {
 // MARK: - Widget Launchers Configuration View
 struct WidgetLaunchersConfigView: View {
     @ObservedObject var store: AppLauncherStore
-    @FocusState private var focusedField: Int?
     @Environment(\.dismiss) private var dismiss
-    @Environment(\.editMode) private var editMode
     @AppStorage("HasPurchasedExtraWidgets", store: UserDefaults(suiteName: appGroupID)) private var hasPurchasedExtraWidgets: Bool = false
     @State private var showPurchaseAlert = false
-    
+    @State private var editingLauncher: AppLauncher? = nil
+
     var body: some View {
         NavigationView {
             List {
@@ -1039,16 +1070,16 @@ struct WidgetLaunchersConfigView: View {
                                     VStack(spacing: 0) {
                                         ForEach(store.launchers[start..<upperBound]) { launcher in
                                             let slotNumber = launcher.id - start
-                                            LauncherSlotView(launcher: binding(for: launcher), slotNumber: slotNumber)
+                                            LauncherSlotView(launcher: launcher, slotNumber: slotNumber)
                                                 .disabled(true)
                                         }
                                     }
                                     .blur(radius: 8)
-                                    
+
                                     VStack(spacing: 16) {
                                         Text("🔒")
                                             .font(.system(size: 80))
-                                        
+
                                         Button(action: {
                                             HapticsHelper.impact(.medium)
                                             showPurchaseAlert = true
@@ -1069,10 +1100,13 @@ struct WidgetLaunchersConfigView: View {
                             } else {
                                 ForEach(store.launchers[start..<upperBound]) { launcher in
                                     let slotNumber = launcher.id - start
-                                    LauncherSlotView(launcher: binding(for: launcher), slotNumber: slotNumber)
-                                }
-                                .onMove { indices, newOffset in
-                                    reorderSlots(in: widgetIndex, indices: indices, newOffset: newOffset)
+                                    Button {
+                                        HapticsHelper.impact(.light)
+                                        editingLauncher = launcher
+                                    } label: {
+                                        LauncherSlotView(launcher: launcher, slotNumber: slotNumber)
+                                    }
+                                    .buttonStyle(.plain)
                                 }
                             }
                         } else {
@@ -1084,10 +1118,6 @@ struct WidgetLaunchersConfigView: View {
             }
             .navigationTitle("Widgets")
             .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    EditButton()
-                        .disabled(!hasPurchasedExtraWidgets) // Disable edit for locked widgets
-                }
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Save") {
                         HapticsHelper.impact(.light)
@@ -1102,27 +1132,8 @@ struct WidgetLaunchersConfigView: View {
             } message: {
                 Text("This is a purchase simulator. In the production app, this would open the App Store purchase flow for the Extra Widgets pack (~$49 MXN).")
             }
-        }
-    }
-    
-    // Helper to bind to a launcher object
-    private func binding(for launcher: AppLauncher) -> Binding<AppLauncher> {
-        guard let idx = store.launchers.firstIndex(where: { $0.id == launcher.id }) else {
-            print("Launcher not found: id=\(launcher.id)")
-            return .constant(launcher)
-        }
-        return $store.launchers[idx]
-    }
-
-    private func reorderSlots(in widgetIndex: Int, indices: IndexSet, newOffset: Int) {
-        let start = widgetIndex * 8
-        let end = min(start + 8, store.launchers.count)
-        guard start < end else { return }
-        var slice = Array(store.launchers[start..<end])
-        slice.move(fromOffsets: indices, toOffset: newOffset)
-        for (i, item) in slice.enumerated() {
-            if start + i < store.launchers.count {
-                store.launchers[start + i] = item
+            .sheet(item: $editingLauncher) { launcher in
+                AppPickerView(store: store, launcherID: launcher.id)
             }
         }
     }
@@ -1130,97 +1141,205 @@ struct WidgetLaunchersConfigView: View {
 
 // MARK: - Launcher Slot View
 struct LauncherSlotView: View {
-    @Binding var launcher: AppLauncher
+    let launcher: AppLauncher
     let slotNumber: Int
-    @Environment(\.editMode) private var editMode
-    @State private var confirmClear = false
-    @State private var testLaunchError: String? = nil
-    // Removed per-slot icon UI to reduce clutter
 
     var body: some View {
-        HStack(alignment: .top, spacing: 12) {
-            VStack(alignment: .leading, spacing: 4) {
-                Text("App Slot #\(slotNumber)")
-                    .font(.headline)
+        HStack(spacing: 12) {
+            iconPreview
+
+            VStack(alignment: .leading, spacing: 3) {
+                Text("Slot \(slotNumber + 1)")
+                    .font(.caption)
                     .foregroundColor(.secondary)
-                TextField("App Name", text: $launcher.name)
-                    .textInputAutocapitalization(.words)
-                    .disableAutocorrection(true)
-                TextField("URL Scheme", text: $launcher.urlScheme)
-                    .keyboardType(.URL)
-                    .autocapitalization(.none)
-                    .disableAutocorrection(true)
-                HStack(spacing: 16) {
-                    Button(action: {
-                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                        let trimmed = launcher.urlScheme.trimmingCharacters(in: .whitespacesAndNewlines)
-                        guard !trimmed.isEmpty, trimmed.contains("://"), let url = URL(string: trimmed) else {
-                            testLaunchError = "Invalid URL. Include a scheme, e.g. myapp://"
-                            UINotificationFeedbackGenerator().notificationOccurred(.error)
-                            return
-                        }
-                        testLaunchError = nil
-                        HapticsHelper.handleURLLaunch()
-                        UIApplication.shared.open(url) { success in
-                            if !success {
-                                testLaunchError = "Failed to open. Check the scheme or LSApplicationQueriesSchemes."
-                                UINotificationFeedbackGenerator().notificationOccurred(.error)
-                            }
-                        }
-                    }) {
-                        Text("Test Launch")
-                            .font(.subheadline)
-                            .fontWeight(.semibold)
-                            .foregroundColor(.white)
-                            .padding(.vertical, 6)
-                            .padding(.horizontal, 12)
-                            .background(Color.blue)
-                            .cornerRadius(8)
-                    }
-                    .disabled(launcher.urlScheme.isEmpty)
-                    .buttonStyle(.borderless)
-                    .accessibilityLabel("Test Launch")
-                    .accessibilityHint("Open the URL scheme to test it")
-
-                    Button(action: {
-                        if confirmClear {
-                            UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
-                            launcher.name = ""
-                            launcher.urlScheme = ""
-                            launcher.iconFileName = nil
-                            launcher.showIcon = false
-                            confirmClear = false
-                        } else {
-                            UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-                            confirmClear = true
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
-                                confirmClear = false
-                            }
-                        }
-                    }) {
-                        Text(confirmClear ? "Are you sure?" : "Clear")
-                            .font(.subheadline)
-                            .fontWeight(.semibold)
-                            .foregroundColor(.white)
-                            .padding(.vertical, 6)
-                            .padding(.horizontal, 12)
-                            .background(confirmClear ? Color.red : Color.gray)
-                            .cornerRadius(8)
-                    }
-                    .buttonStyle(.borderless)
-                    .accessibilityLabel("Clear slot")
-                    .accessibilityHint("Clear the name and URL scheme for this slot")
-                }
-
-                if let testLaunchError = testLaunchError {
-                    Text(testLaunchError)
+                if launcher.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                    Text("Empty — tap to add an app")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                } else {
+                    Text(launcher.name)
+                        .font(.headline)
+                        .foregroundColor(.white)
+                    Text(launcher.urlScheme)
                         .font(.caption)
-                        .foregroundColor(.red)
-                        .padding(.top, 4)
+                        .foregroundColor(.secondary)
+                        .lineLimit(1)
                 }
             }
+
+            Spacer()
+
+            Image(systemName: "chevron.right")
+                .font(.footnote)
+                .foregroundColor(.secondary)
         }
-        .padding(.vertical, 4)
+        .padding(.vertical, 6)
+        .contentShape(Rectangle())
+    }
+
+    private var iconPreview: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                .fill(Color.white.opacity(0.08))
+                .frame(width: 44, height: 44)
+            if let img = loadIconPreview(for: launcher) {
+                Image(uiImage: img)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 34, height: 34)
+                    .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+            } else {
+                Image(systemName: "app.dashed")
+                    .font(.title3)
+                    .foregroundColor(Color.white.opacity(0.4))
+            }
+        }
+        .accessibilityHidden(true)
+    }
+}
+
+// MARK: - App Picker (searchable catalog + advanced manual entry)
+struct AppPickerView: View {
+    @ObservedObject var store: AppLauncherStore
+    let launcherID: Int
+    @Environment(\.dismiss) private var dismiss
+
+    @State private var searchText = ""
+    @State private var advancedMode = false
+    @State private var customName = ""
+    @State private var customScheme = ""
+
+    private var current: AppLauncher {
+        store.launchers.first(where: { $0.id == launcherID }) ?? AppLauncher(id: launcherID)
+    }
+
+    private var filteredApps: [CatalogApp] {
+        AppCatalog.search(searchText)
+    }
+
+    var body: some View {
+        NavigationStack {
+            List {
+                if advancedMode {
+                    Section {
+                        TextField("Title", text: $customName)
+                        TextField("URL Scheme", text: $customScheme)
+                            .keyboardType(.URL)
+                            .textInputAutocapitalization(.never)
+                            .autocorrectionDisabled()
+                    } header: {
+                        Text("CUSTOM APP")
+                    } footer: {
+                        Text("Enter a custom title and URL scheme, e.g. myapp://")
+                    }
+                } else {
+                    Section {
+                        HStack(spacing: 8) {
+                            Image(systemName: "magnifyingglass")
+                                .foregroundColor(.secondary)
+                            TextField("Search apps", text: $searchText)
+                                .textInputAutocapitalization(.words)
+                                .autocorrectionDisabled()
+                        }
+                    }
+
+                    Section {
+                        ForEach(filteredApps) { app in
+                            Button {
+                                HapticsHelper.impact(.medium)
+                                store.setLauncher(id: launcherID, name: app.name, scheme: app.scheme)
+                                dismiss()
+                            } label: {
+                                catalogRow(app)
+                            }
+                        }
+                    } header: {
+                        Text("\(filteredApps.count) APPS")
+                    }
+                }
+            }
+            .navigationTitle(advancedMode ? "Custom App" : "Add App")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button {
+                        HapticsHelper.impact(.light)
+                        dismiss()
+                    } label: {
+                        Image(systemName: "xmark")
+                            .fontWeight(.semibold)
+                    }
+                    .accessibilityLabel("Cancel")
+                }
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    if advancedMode {
+                        Button("Save") {
+                            HapticsHelper.impact(.medium)
+                            let name = customName.trimmingCharacters(in: .whitespacesAndNewlines)
+                            let scheme = customScheme.trimmingCharacters(in: .whitespacesAndNewlines)
+                            if name.isEmpty {
+                                store.clearLauncher(id: launcherID)
+                            } else {
+                                store.setLauncher(id: launcherID, name: name, scheme: scheme)
+                            }
+                            dismiss()
+                        }
+                        .fontWeight(.semibold)
+                    } else {
+                        Button("Advanced") {
+                            HapticsHelper.impact(.light)
+                            advancedMode = true
+                        }
+                    }
+                }
+            }
+            .safeAreaInset(edge: .bottom) {
+                Button(role: .destructive) {
+                    HapticsHelper.impact(.heavy)
+                    store.clearLauncher(id: launcherID)
+                    dismiss()
+                } label: {
+                    Label("Clear Slot", systemImage: "trash")
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.bordered)
+                .tint(.red)
+                .padding(.horizontal)
+                .padding(.vertical, 8)
+                .background(.bar)
+            }
+            .onAppear {
+                customName = current.name
+                customScheme = current.urlScheme
+            }
+        }
+    }
+
+    private func catalogRow(_ app: CatalogApp) -> some View {
+        HStack(spacing: 12) {
+            ZStack {
+                RoundedRectangle(cornerRadius: 9, style: .continuous)
+                    .fill(Color.white.opacity(0.08))
+                    .frame(width: 40, height: 40)
+                Image(systemName: app.iconName)
+                    .font(.system(size: 17))
+                    .foregroundColor(.white.opacity(0.8))
+            }
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(app.name)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundColor(.white)
+                Text(app.scheme)
+                    .font(.caption.monospaced())
+                    .foregroundColor(.secondary)
+            }
+
+            Spacer()
+
+            Image(systemName: "plus.circle")
+                .foregroundColor(.blue)
+        }
     }
 }
 
