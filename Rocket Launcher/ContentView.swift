@@ -211,6 +211,7 @@ final class HapticsHelper {
     /// Generic impact feedback.
     static func impact(_ style: UIImpactFeedbackGenerator.FeedbackStyle, intensity: CGFloat = 1.0) {
         onMain {
+            print("⚡️ HapticsHelper.impact(\(style)) lowPower=\(ProcessInfo.processInfo.isLowPowerModeEnabled)")
             let generator = shared.generator(for: style)
             generator.impactOccurred(intensity: intensity)
             generator.prepare()
@@ -220,6 +221,7 @@ final class HapticsHelper {
     /// Selection feedback for pickers, segmented controls and chips.
     static func selection() {
         onMain {
+            print("⚡️ HapticsHelper.selection() lowPower=\(ProcessInfo.processInfo.isLowPowerModeEnabled)")
             shared.selectionGenerator.selectionChanged()
             shared.selectionGenerator.prepare()
         }
@@ -231,6 +233,7 @@ final class HapticsHelper {
 
     static func notification(_ type: UINotificationFeedbackGenerator.FeedbackType) {
         onMain {
+            print("⚡️ HapticsHelper.notification(\(type)) lowPower=\(ProcessInfo.processInfo.isLowPowerModeEnabled)")
             shared.notificationGenerator.notificationOccurred(type)
             shared.notificationGenerator.prepare()
         }
