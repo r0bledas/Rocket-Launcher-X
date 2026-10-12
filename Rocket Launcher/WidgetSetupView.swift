@@ -518,6 +518,7 @@ struct WidgetSetupView: View {
         }
 
         UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
+        AnalyticsManager.shared.logAppLaunch(scheme: scheme, source: .inApp)
         UIApplication.shared.open(url, options: [:]) { success in
             if success {
                 showToast("Successfully launched \(scheme)! 🚀")

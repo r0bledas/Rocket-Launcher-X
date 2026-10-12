@@ -99,6 +99,10 @@ class URLHandler: ObservableObject {
         print("🔊 Playing single hard haptic...")
         URLHandler.playLaunchHaptic()
         
+        // Anonymous, pseudonymous usage analytics (scheme resolved to a catalog
+        // app or "custom"; the raw scheme is never logged).
+        AnalyticsManager.shared.logAppLaunch(scheme: scheme, source: .widget)
+        
         // Note: The scheme must be listed in LSApplicationQueriesSchemes in Info.plist
         UIApplication.shared.open(url, options: [:], completionHandler: { success in
             print("UIApplication.shared.open success: \(success)")

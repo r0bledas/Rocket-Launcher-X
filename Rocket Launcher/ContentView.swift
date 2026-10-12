@@ -374,6 +374,7 @@ struct ContentView: View {
             }
         }
         .onAppear {
+            AnalyticsManager.shared.logAppOpen()
             // Only show splash on cold launch
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
                 showSplash = false
@@ -1441,6 +1442,7 @@ struct SettingsView: View {
     // Confirmation state for clear and reset button
     @State private var confirmClearAndReset = false
     @State private var isRefetchingIcons = false
+    @State private var shareAnalytics: Bool = AnalyticsManager.shared.isEnabled
     // Purchase simulation state
     @AppStorage("HasPurchasedExtraWidgets", store: UserDefaults(suiteName: appGroupID)) private var hasPurchasedExtraWidgets: Bool = false
     @AppStorage("HasPurchasedIconFeature", store: UserDefaults(suiteName: appGroupID)) private var hasPurchasedIconFeature: Bool = false
@@ -1545,6 +1547,17 @@ struct SettingsView: View {
                         .foregroundColor(.blue)
                     }
                     .disabled(isRefetchingIcons)
+                }
+                
+                Section(header: Text("PRIVACY").font(.headline)) {
+                    Toggle("Share anonymous usage data", isOn: $shareAnalytics)
+                        .onChange(of: shareAnalytics) { _, newValue in
+                            AnalyticsManager.shared.isEnabled = newValue
+                            HapticsHelper.impact(.light)
+                        }
+                    Text("Sends anonymous, pseudonymous app-launch statistics to help improve the app. No personal data, no content, and no raw URL schemes are collected.")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
                 }
                 
                 Section(header: Text("CALENDAR WIDGET").font(.headline)) {
