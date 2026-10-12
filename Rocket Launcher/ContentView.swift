@@ -566,7 +566,45 @@ struct ContentView: View {
                 }
                 .padding(.bottom, 80) // Position above page indicators
             }
+            
+            // Haptics test button (top-trailing) — debug tool
+            VStack {
+                HStack {
+                    Spacer()
+                    hapticsTestMenu
+                }
+                Spacer()
+            }
+            .padding(.top, 60)
+            .padding(.trailing, 20)
         }
+    }
+    
+    // MARK: - Haptics Test Menu
+    private var hapticsTestMenu: some View {
+        Menu {
+            Section("Impact intensity") {
+                Button { HapticsHelper.impact(.light) } label: { Label("Light", systemImage: "dial.low") }
+                Button { HapticsHelper.impact(.medium) } label: { Label("Medium", systemImage: "dial.medium") }
+                Button { HapticsHelper.impact(.heavy) } label: { Label("Heavy", systemImage: "dial.high") }
+                Button { HapticsHelper.impact(.soft) } label: { Label("Soft", systemImage: "hand.point.up.left") }
+                Button { HapticsHelper.impact(.rigid) } label: { Label("Rigid", systemImage: "square.grid.3x3") }
+            }
+            Section("Feedback") {
+                Button { HapticsHelper.selection() } label: { Label("Selection", systemImage: "hand.tap") }
+                Button { HapticsHelper.success() } label: { Label("Success", systemImage: "checkmark.circle") }
+                Button { HapticsHelper.warning() } label: { Label("Warning", systemImage: "exclamationmark.triangle") }
+                Button { HapticsHelper.error() } label: { Label("Error", systemImage: "xmark.octagon") }
+            }
+        } label: {
+            Image(systemName: "hand.tap.fill")
+                .font(.title2)
+                .foregroundColor(.white)
+                .frame(width: 44, height: 44)
+                .background(Circle().fill(.ultraThinMaterial))
+                .shadow(color: .black.opacity(0.3), radius: 6, x: 0, y: 3)
+        }
+        .accessibilityLabel("Haptics test menu")
     }
     
     // MARK: - Ping Tester View (removed)
