@@ -1343,6 +1343,8 @@ struct AppPickerView: View {
 
     private func catalogRow(_ app: CatalogApp) -> some View {
         HStack(spacing: 12) {
+            CatalogIconView(name: app.name)
+
             VStack(alignment: .leading, spacing: 2) {
                 Text(app.name)
                     .font(.subheadline.weight(.semibold))
