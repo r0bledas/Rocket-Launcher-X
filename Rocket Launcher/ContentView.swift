@@ -9,8 +9,6 @@ import SwiftUI
 import WidgetKit
 import UIKit
 import UniformTypeIdentifiers
-import CoreHaptics
-import AudioToolbox
 import Network
 
 
@@ -229,11 +227,7 @@ final class HapticsHelper {
 
     /// Warms up the Taptic Engine. Call when the app becomes active.
     static func prepare() {
-        onMain {
-            let hardwareSupport = CHHapticEngine.capabilitiesForHardware().supportsHaptics
-            NSLog("🧲 Haptics diagnostic — hardwareSupport=%d lowPower=%d", hardwareSupport ? 1 : 0, ProcessInfo.processInfo.isLowPowerModeEnabled ? 1 : 0)
-            shared.prepareGenerators()
-        }
+        onMain { shared.prepareGenerators() }
     }
 
     private func prepareGenerators() {
@@ -254,7 +248,6 @@ final class HapticsHelper {
     /// Generic impact feedback.
     static func impact(_ style: UIImpactFeedbackGenerator.FeedbackStyle, intensity: CGFloat = 1.0) {
         onMain {
-            NSLog("⚡️ HapticsHelper.impact(%@) lowPower=%d", "\(style)", ProcessInfo.processInfo.isLowPowerModeEnabled ? 1 : 0)
             let generator = shared.generator(for: style)
             generator.impactOccurred(intensity: intensity)
             generator.prepare()
@@ -264,7 +257,6 @@ final class HapticsHelper {
     /// Selection feedback for pickers, segmented controls and chips.
     static func selection() {
         onMain {
-            NSLog("⚡️ HapticsHelper.selection() lowPower=%d", ProcessInfo.processInfo.isLowPowerModeEnabled ? 1 : 0)
             shared.selectionGenerator.selectionChanged()
             shared.selectionGenerator.prepare()
         }
@@ -276,38 +268,8 @@ final class HapticsHelper {
 
     static func notification(_ type: UINotificationFeedbackGenerator.FeedbackType) {
         onMain {
-            NSLog("⚡️ HapticsHelper.notification(%@) lowPower=%d", "\(type)", ProcessInfo.processInfo.isLowPowerModeEnabled ? 1 : 0)
             shared.notificationGenerator.notificationOccurred(type)
             shared.notificationGenerator.prepare()
-        }
-    }
-
-    /// Legacy vibration (bypasses UIFeedbackGenerator entirely).
-    static func legacyVibrate() {
-        NSLog("⚡️ HapticsHelper.legacyVibrate() — AudioServicesPlaySystemSound(kSystemSoundID_Vibrate)")
-        AudioServicesPlaySystemSound(kSystemSoundID_Vibrate)
-    }
-
-    /// Core Haptics transient — a separate path to the Taptic Engine.
-    static func coreHapticsTest() {
-        NSLog("⚡️ HapticsHelper.coreHapticsTest()")
-        do {
-            let engine = try CHHapticEngine()
-            engine.playsHapticsOnly = true
-            try engine.start()
-            let event = CHHapticEvent(eventType: .hapticTransient, parameters: [
-                CHHapticEventParameter(parameterID: .hapticIntensity, value: 1.0),
-                CHHapticEventParameter(parameterID: .hapticSharpness, value: 0.5)
-            ], relativeTime: 0)
-            let pattern = try CHHapticPattern(events: [event], parameters: [])
-            let player = try engine.makePlayer(with: pattern)
-            try player.start(atTime: CHHapticTimeImmediate)
-            engine.notifyWhenPlayersFinished { _ in
-                try? engine.stop()
-                return .leaveEngineRunning
-            }
-        } catch {
-            NSLog("⚡️ CoreHaptics error: %@", "\(error)")
         }
     }
 
@@ -350,7 +312,6 @@ struct ContentView: View {
     // Splash overlay state
     @State private var showSplash = true
     @State private var showingSettings = false
-    @State private var showHapticsTest = false
     // Purchase alert state
     @State private var showingPurchaseAlert = false
     @State private var purchaseAlertMessage = ""
@@ -413,8 +374,6 @@ struct ContentView: View {
             }
         }
         .onAppear {
-            // Diagnostic: fire a strong haptic on launch so we can confirm the Taptic Engine works.
-            HapticsHelper.impact(.heavy)
             // Only show splash on cold launch
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
                 showSplash = false
@@ -597,100 +556,7 @@ struct ContentView: View {
                 }
                 .padding(.bottom, 80) // Position above page indicators
             }
-            
-            // Haptics test button (top-trailing) — debug tool
-            VStack {
-                HStack {
-                    Spacer()
-                    VStack(alignment: .trailing, spacing: 10) {
-                        hapticsTestToggle
-                        if showHapticsTest {
-                            hapticsTestPanel
-                        }
-                    }
-                }
-                Spacer()
-            }
-            .padding(.top, 60)
-            .padding(.trailing, 20)
         }
-    }
-    
-    // MARK: - Haptics Test
-    private var hapticsTestToggle: some View {
-        Button {
-            HapticsHelper.impact(.light)
-            withAnimation(.easeInOut(duration: 0.2)) {
-                showHapticsTest.toggle()
-            }
-        } label: {
-            Image(systemName: showHapticsTest ? "xmark" : "hand.tap.fill")
-                .font(.title2)
-                .foregroundColor(.white)
-                .frame(width: 44, height: 44)
-                .background(Circle().fill(.ultraThinMaterial))
-                .shadow(color: .black.opacity(0.3), radius: 6, x: 0, y: 3)
-        }
-        .accessibilityLabel(showHapticsTest ? "Close haptics test" : "Haptics test menu")
-    }
-    
-    private var hapticsTestPanel: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text("IMPACT")
-                .font(.caption2.weight(.bold))
-                .foregroundColor(Color.white.opacity(0.6))
-                .padding(.horizontal, 4)
-            hapticTestButton("Light") { HapticsHelper.impact(.light) }
-            hapticTestButton("Medium") { HapticsHelper.impact(.medium) }
-            hapticTestButton("Heavy") { HapticsHelper.impact(.heavy) }
-            hapticTestButton("Soft") { HapticsHelper.impact(.soft) }
-            hapticTestButton("Rigid") { HapticsHelper.impact(.rigid) }
-            
-            Text("FEEDBACK")
-                .font(.caption2.weight(.bold))
-                .foregroundColor(Color.white.opacity(0.6))
-                .padding(.horizontal, 4)
-                .padding(.top, 4)
-            hapticTestButton("Selection") { HapticsHelper.selection() }
-            hapticTestButton("Success") { HapticsHelper.success() }
-            hapticTestButton("Warning") { HapticsHelper.warning() }
-            hapticTestButton("Error") { HapticsHelper.error() }
-            
-            Text("ISOLATION")
-                .font(.caption2.weight(.bold))
-                .foregroundColor(Color.white.opacity(0.6))
-                .padding(.horizontal, 4)
-                .padding(.top, 4)
-            hapticTestButton("Vibrate (legacy)") { HapticsHelper.legacyVibrate() }
-            hapticTestButton("Core Haptics") { HapticsHelper.coreHapticsTest() }
-        }
-        .padding(12)
-        .background(
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .fill(.ultraThinMaterial)
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .stroke(Color.white.opacity(0.15), lineWidth: 1)
-        )
-        .shadow(color: .black.opacity(0.4), radius: 12, y: 6)
-        .transition(.opacity.combined(with: .scale(scale: 0.92, anchor: .topTrailing)))
-    }
-    
-    private func hapticTestButton(_ title: String, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            Text(title)
-                .font(.subheadline.weight(.semibold))
-                .foregroundColor(.white)
-                .padding(.horizontal, 14)
-                .padding(.vertical, 8)
-                .frame(minWidth: 130, alignment: .leading)
-                .background(
-                    RoundedRectangle(cornerRadius: 10, style: .continuous)
-                        .fill(Color.white.opacity(0.12))
-                )
-        }
-        .buttonStyle(.plain)
     }
     
     // MARK: - Ping Tester View (removed)
