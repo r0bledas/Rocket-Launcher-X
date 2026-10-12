@@ -9,7 +9,6 @@
 		<string>googleads.g.doubleclick.net</string>
 		<string>pagead2.googlesyndication.com</string>
 		<string>googleadservices.com</string>
-		<string>googleads.g.doubleclick.net</string>
 	</array>
 	<key>NSPrivacyCollectedDataTypes</key>
 	<array>
@@ -34,6 +33,7 @@
 			<true/>
 			<key>NSPrivacyCollectedDataTypePurposes</key>
 			<array>
+				<string>NSPrivacyCollectedDataTypePurposeAnalytics</string>
 				<string>NSPrivacyCollectedDataTypePurposeThirdPartyAdvertising</string>
 			</array>
 		</dict>
@@ -57,7 +57,7 @@
 			<string>NSPrivacyAccessedAPICategoryUserDefaults</string>
 			<key>NSPrivacyAccessedAPITypeReasons</key>
 			<array>
-				<string>CA92.1</string>
+				<string>1C8F.1</string>
 			</array>
 		</dict>
 		<dict>
