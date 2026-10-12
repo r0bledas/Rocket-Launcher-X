@@ -124,7 +124,7 @@ class AppLauncherStore: ObservableObject {
     func load() {
         if let data = userDefaults?.data(forKey: "AppLaunchers"),
            let decodedLaunchers = try? JSONDecoder().decode([AppLauncher].self, from: data) {
-            launchers = decodedLaunchers.sorted { $0.id < $1.id }
+            launchers = decodedLaunchers
         } else {
             // Initialize with 40 empty launchers (5 widgets × 8 slots each)
             launchers = (0..<40).map { AppLauncher(id: $0) }
@@ -1068,9 +1068,8 @@ struct WidgetLaunchersConfigView: View {
                                 // Show blurred slots with overlay
                                 ZStack {
                                     VStack(spacing: 0) {
-                                        ForEach(store.launchers[start..<upperBound]) { launcher in
-                                            let slotNumber = launcher.id - start
-                                            LauncherSlotView(launcher: launcher, slotNumber: slotNumber)
+                                        ForEach(Array(store.launchers[start..<upperBound].enumerated()), id: \.element.id) { index, launcher in
+                                            LauncherSlotView(launcher: launcher, slotNumber: index)
                                                 .disabled(true)
                                         }
                                     }
@@ -1098,15 +1097,17 @@ struct WidgetLaunchersConfigView: View {
                                     .background(Color.black.opacity(0.3))
                                 }
                             } else {
-                                ForEach(store.launchers[start..<upperBound]) { launcher in
-                                    let slotNumber = launcher.id - start
+                                ForEach(Array(store.launchers[start..<upperBound].enumerated()), id: \.element.id) { index, launcher in
                                     Button {
                                         HapticsHelper.impact(.light)
                                         editingLauncher = launcher
                                     } label: {
-                                        LauncherSlotView(launcher: launcher, slotNumber: slotNumber)
+                                        LauncherSlotView(launcher: launcher, slotNumber: index)
                                     }
                                     .buttonStyle(.plain)
+                                }
+                                .onMove { indices, newOffset in
+                                    reorderSlots(in: widgetIndex, indices: indices, newOffset: newOffset)
                                 }
                             }
                         } else {
@@ -1118,6 +1119,9 @@ struct WidgetLaunchersConfigView: View {
             }
             .navigationTitle("Widgets")
             .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    EditButton()
+                }
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button {
                         HapticsHelper.impact(.light)
@@ -1138,6 +1142,19 @@ struct WidgetLaunchersConfigView: View {
             }
             .sheet(item: $editingLauncher) { launcher in
                 AppPickerView(store: store, launcherID: launcher.id)
+            }
+        }
+    }
+
+    private func reorderSlots(in widgetIndex: Int, indices: IndexSet, newOffset: Int) {
+        let start = widgetIndex * 8
+        let end = min(start + 8, store.launchers.count)
+        guard start < end else { return }
+        var slice = Array(store.launchers[start..<end])
+        slice.move(fromOffsets: indices, toOffset: newOffset)
+        for (i, item) in slice.enumerated() {
+            if start + i < store.launchers.count {
+                store.launchers[start + i] = item
             }
         }
     }
