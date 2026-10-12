@@ -8,97 +8,135 @@
   :root { color-scheme: dark; }
   body { margin: 0; font: 16px/1.65 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
          background: #000; color: #e8e8ed; }
-  main { max-width: 760px; margin: 0 auto; padding: 48px 20px 96px; }
+  main { max-width: 780px; margin: 0 auto; padding: 48px 20px 96px; }
   h1 { font-size: 28px; margin: 0 0 4px; }
   h2 { font-size: 19px; margin: 32px 0 8px; }
   h3 { font-size: 16px; margin: 22px 0 4px; color: #f2f2f7; }
   p, li { color: #c7c7cc; }
   a { color: #6ea8ff; }
   .muted { color: #8e8e93; font-size: 14px; }
+  .ph { background: #3a2b00; color: #ffd479; padding: 1px 6px; border-radius: 6px; font-size: 13px; }
   code { background: #1c1c1e; padding: 1px 6px; border-radius: 6px; }
-  ul { padding-left: 20px; }
+  table { border-collapse: collapse; width: 100%; margin: 10px 0; font-size: 14px; }
+  th, td { border: 1px solid #2c2c2e; padding: 6px 8px; text-align: left; color: #c7c7cc; }
   footer { margin-top: 48px; border-top: 1px solid #2c2c2e; padding-top: 16px; }
 </style>
 </head>
 <body>
 <main>
   <h1>Privacy Policy</h1>
-  <p class="muted">Rocket Launcher / Rocket Launcher X · Last updated: <span id="d">2026</span></p>
+  <p class="muted">Rocket Launcher / Rocket Launcher X · Last updated: 11 October 2026</p>
 
-  <p>This Privacy Policy explains how the mobile application <strong>Rocket Launcher</strong> — also published under the name <strong>Rocket Launcher X</strong> (the same application, referred to together as “the App”, “we”, “us”) — collects, uses, and protects information. By using the App you agree to this policy.</p>
+  <p>This Privacy Policy explains how the mobile application <strong>Rocket Launcher</strong> — also published under the name <strong>Rocket Launcher X</strong> (the same application, “the App”, “we”, “us”) — collects, uses, and protects information. Where required by law, we ask for your consent separately (for advertising, tracking, and optionally for analytics); merely using the App is not treated as consent to those optional activities.</p>
 
   <h2>1. Summary</h2>
   <ul>
     <li>We do <strong>not</strong> collect your name, email, contacts, photos, precise location, or the contents of your device.</li>
-    <li>We collect <strong>anonymous, pseudonymous usage statistics</strong> (e.g., which app slots are launched and when) to improve the App.</li>
-    <li>The App shows ads through <strong>Google AdMob</strong>. With your permission, ads may be personalized; otherwise they are non-personalized.</li>
-    <li>You can turn off usage sharing at any time in the App: <em>Settings → Privacy → Share anonymous usage data</em>.</li>
+    <li>Usage analytics is <strong>off by default and opt-in</strong>. When enabled, it sends only a coarse app-launch category under a pseudonymous install ID.</li>
+    <li>The App shows ads through <strong>Google AdMob</strong>. With your permission ads may be personalized; otherwise they are non-personalized.</li>
+    <li>You can withdraw consent and reset/delete data from <em>Settings → Privacy</em>.</li>
   </ul>
 
-  <h2>2. Information We Collect</h2>
-  <p>This section is the authoritative list of what the App collects. It is updated whenever the App’s privacy, advertising, or monetization behavior changes.</p>
+  <h2>2. Who we are (Controller)</h2>
+  <p>The data controller is <span class="ph">[[LEGAL_NAME]]</span>, <span class="ph">[[POSTAL_ADDRESS]]</span>. Contact: <a href="mailto:raudel@raudel.lat">raudel@raudel.lat</a>.</p>
 
-  <h3>2.1 Information you configure (kept on your device)</h3>
+  <h2>3. Information We Collect</h2>
+  <p>This section is the authoritative inventory and is updated whenever the App’s privacy, advertising, or monetization behavior changes.</p>
+
+  <h3>3.1 Information you configure (kept on your device)</h3>
   <ul>
-    <li>The app names, app icons, and URL schemes you add to your widgets, and your appearance settings (colors, fonts, alignment).</li>
-    <li>This information is stored <strong>locally</strong> on your device and in the App’s shared container so widgets can read it. It is <strong>not</strong> transmitted to us.</li>
+    <li>App names, app icons, URL schemes you add to widgets, and appearance settings (colors, fonts, alignment).</li>
+    <li>Stored locally and in the App’s shared container so widgets can read it. It is <strong>not</strong> transmitted to us. However, if you add a <strong>catalogued</strong> app, its name may be sent to <strong>Apple’s iTunes Search API</strong> to fetch its icon, unless you disable “Fetch app icons from Apple” in Settings. Free-typed custom names are never sent.</li>
   </ul>
 
-  <h3>2.2 Usage analytics (anonymous / pseudonymous)</h3>
+  <h3>3.2 Usage analytics (pseudonymous, opt-in)</h3>
   <ul>
-    <li>App-launch events: which catalogued app was opened, the launch source (widget or in-app), and a coarse timestamp.</li>
-    <li>A random <strong>install identifier</strong> stored locally in the Keychain (not your identity; resettable by reinstalling the App).</li>
-    <li>Basic device context: device model, operating-system version, app version, and region.</li>
-    <li>We do <strong>not</strong> log the raw custom URL schemes you enter — they are mapped to a catalogued app name/category or a generic “custom” bucket.</li>
-    <li>You can disable this at any time in <em>Settings → Privacy</em>. When disabled, no analytics events are sent.</li>
+    <li><strong>Off by default.</strong> Nothing is sent until you turn on “Share anonymous usage data”. Our legal basis is your <strong>consent</strong>.</li>
+    <li>When enabled: an app-launch event with a <strong>coarse category</strong> (never the specific app name and never your raw custom URL schemes), the launch source (widget or in-app), and basic device context (device model, OS version, app version, region).</li>
+    <li>A random <strong>install identifier</strong> (a persistent identifier) stored in the Keychain on this device only. It is not your identity and is not restored from backups.</li>
+    <li><strong>Reset</strong> it any time with “Reset analytics ID” in Settings. To request <strong>access to or deletion of</strong> your analytics data, copy the ID shown in Settings and email it to <a href="mailto:raudel@raudel.lat">raudel@raudel.lat</a>.</li>
+    <li><strong>Sensitive inference:</strong> we record only coarse categories; categories that could reveal sensitive interests (for example finance, health, dating, or religion) are bucketed into a generic “other” value.</li>
+    <li>Our self-hosted analytics server necessarily sees the <strong>IP address</strong> of the request; handling: <span class="ph">[[IP_HANDLING]]</span>.</li>
+    <li><strong>Current build:</strong> analytics is <strong>not active</strong> in the shipped version (the analytics endpoint is not configured), so no analytics data leaves your device today.</li>
   </ul>
 
-  <h3>2.3 Advertising</h3>
+  <h3>3.3 Advertising</h3>
   <ul>
-    <li>The App uses <strong>Google AdMob</strong> to display banner ads and optional <strong>rewarded ads</strong> (for example, to unlock an extra widget slot for a limited time).</li>
-    <li>Where permitted — for example in the EEA/UK via Google’s consent form, and on iOS only if you allow it through Apple’s <strong>App Tracking Transparency</strong> prompt — ads may be personalized. In that case Google may collect your advertising identifier (IDFA), advertising data (such as the ads you were shown), and related device information.</li>
-    <li>If you decline tracking or do not consent, ads are served on a <strong>non-personalized</strong> basis.</li>
-    <li>See Google’s policy: <a href="https://policies.google.com/technologies/partner-sites">policies.google.com/technologies/partner-sites</a>.</li>
+    <li>The App uses <strong>Google AdMob</strong> for banner ads and optional <strong>rewarded ads</strong> (for example, to unlock a widget slot for a limited time).</li>
+    <li>Where permitted — in the EEA/UK via Google’s consent form, and on iOS only if you allow it through Apple’s <strong>App Tracking Transparency</strong> prompt — ads may be personalized. Google may then collect your advertising identifier (IDFA), advertising data, and related device information.</li>
+    <li>If you decline tracking or do not consent, ads are <strong>non-personalized</strong>. See <a href="https://policies.google.com/technologies/partner-sites">policies.google.com/technologies/partner-sites</a>.</li>
   </ul>
 
-  <h3>2.4 Purchases</h3>
-  <p>In-app purchases (including the lifetime bundle and individual features) are processed by <strong>Apple</strong>. We receive only whether an entitlement is active; we do <strong>not</strong> receive your payment details.</p>
+  <h3>3.4 Purchases</h3>
+  <p>In-app purchases are processed by <strong>Apple</strong>. We receive only whether an entitlement is active; we do not receive your payment details.</p>
 
-  <h3>2.5 What we do not collect</h3>
-  <p>We do not collect your name, email address, phone number, contacts, photos, precise geolocation, health data, the content of your messages, or any other personal content.</p>
+  <h3>3.5 What we do not collect</h3>
+  <p>We do not collect your name, email address, phone number, contacts, photos, precise geolocation, health data, messages, or any personal content.</p>
 
-  <h2>3. How We Use Information</h2>
+  <h2>4. How We Use Information</h2>
   <ul>
-    <li>To understand aggregate usage and improve features and reliability.</li>
+    <li>To understand aggregate usage and improve features and reliability (analytics, with consent).</li>
     <li>To display ads (personalized only with your consent/permission).</li>
     <li>To verify entitlements for purchased or rewarded features.</li>
   </ul>
 
-  <h2>4. Sharing</h2>
-  <p>We do not sell your personal information. We share limited data with service providers strictly to operate the App: <strong>Google (AdMob)</strong> for advertising, and our <strong>self-hosted analytics server</strong> for anonymous usage statistics. Data may be processed in countries other than yours.</p>
+  <h2>5. Sharing / Recipients</h2>
+  <p>We do not sell your personal information. The App communicates with the following recipients:</p>
+  <table>
+    <tr><th>Recipient</th><th>What is sent</th><th>When</th></tr>
+    <tr><td>Google AdMob</td><td>Ad request data, and (if you allow tracking) IDFA/advertising data</td><td>When ads are requested</td></tr>
+    <tr><td>Apple (iTunes Search API)</td><td>The <em>catalogued</em> app name being looked up</td><td>When fetching an icon (disable in Settings)</td></tr>
+    <tr><td>GitHub (raw.githubusercontent.com)</td><td>An app-catalog JSON request (no personal data)</td><td>When loading the community catalog (disable in Settings)</td></tr>
+    <tr><td>Our analytics server (self-hosted)</td><td>Pseudonymous launch events + IP address</td><td>Only if you opt in and analytics is enabled</td></tr>
+    <tr><td>Google Search (google.com)</td><td>Your search text</td><td>Only when you tap “Look up … URL scheme” in the app</td></tr>
+  </table>
+  <p class="muted">Status-check / “ping test” network code is present only in commented-out, inactive source and makes no requests in the shipped build.</p>
 
-  <h2>5. Legal Bases (GDPR) and Your Rights</h2>
-  <p>Where GDPR applies, we process analytics on the basis of legitimate interest and advertising on the basis of consent. You may access, correct, delete, or object to processing, and withdraw consent at any time via the in-app consent form or by contacting us. California residents may opt out of the “sale”/“sharing” of personal information, which we do not perform beyond advertising as described.</p>
+  <h2>6. Legal Bases (GDPR)</h2>
+  <p>We rely on your <strong>consent</strong> for advertising and (optionally) analytics, and on <strong>contract/legitimate interest</strong> for providing core App functionality and honoring purchases. You may withdraw consent at any time (section 8).</p>
 
-  <h2>6. Data Retention</h2>
-  <p>Anonymous analytics are retained in aggregate for a limited period. The local install identifier is stored until you reinstall or reset the App.</p>
+  <h2>7. Data Retention</h2>
+  <p>Retention period: <span class="ph">[[RETENTION_PERIOD]]</span>. The local install identifier is kept until you reset it or delete the App.</p>
 
-  <h2>7. Children</h2>
-  <p>The App is not directed to children under 13 (or the minimum age in your region). We do not knowingly collect personal information from children.</p>
+  <h2>8. Your Rights (GDPR/UK GDPR) & Withdrawing Consent</h2>
+  <ul>
+    <li>Access, correct, delete, port, or object to processing, and lodge a complaint with your local supervisory authority.</li>
+    <li><strong>Withdraw consent</strong> in-app: <em>Settings → Privacy → Privacy options</em> (for ads) and turn off “Share anonymous usage data” (for analytics).</li>
+    <li>Deletion of analytics data: copy the Analytics ID (Settings → Privacy) and email <a href="mailto:raudel@raudel.lat">raudel@raudel.lat</a>.</li>
+    <li>International transfers safeguard: <span class="ph">[[TRANSFER_MECHANISM]]</span>. EU/UK representative: <span class="ph">[[EU_REP_OR_NA]]</span>.</li>
+  </ul>
 
-  <h2>8. Security</h2>
+  <h2>9. California (CPRA)</h2>
+  <p>We do not sell personal information for money. However, personalized advertising using the IDFA may be considered “sharing” for cross-context behavioral advertising. You can opt out via the <strong>App Tracking Transparency</strong> prompt, the in-app <strong>Privacy options</strong> form, or by leaving analytics off. Categories collected in the last 12 months:</p>
+  <table>
+    <tr><th>Category</th><th>Examples</th><th>Sold</th><th>Shared (ads)</th></tr>
+    <tr><td>Identifiers</td><td>Pseudonymous install ID; IDFA (with consent)</td><td>No</td><td>Yes (with consent)</td></tr>
+    <tr><td>Internet/Network activity</td><td>Coarse app-launch category</td><td>No</td><td>No (analytics only)</td></tr>
+    <tr><td>Commercial info</td><td>Purchase entitlement status</td><td>No</td><td>No</td></tr>
+  </table>
+
+  <h2>10. Mexico — Aviso de Privacidad (Summary)</h2>
+  <p>Responsable: <span class="ph">[[LEGAL_NAME]]</span>, <span class="ph">[[POSTAL_ADDRESS]]</span>. Datos personales tratados: identificadores seudónimos, datos de uso, e identificadores publicitarios (con consentimiento). Finalidades: analítica (opt-in), publicidad, y funcionamiento de la App. Puedes ejercer tus derechos <strong>ARCO</strong> (Acceso, Rectificación, Cancelación y Oposición) enviando tu solicitud al correo de contacto indicado. Una versión completa en español está disponible en el <a href="./privacy-es.html">Aviso de Privacidad (ES)</a> y está pendiente de revisión legal.</p>
+
+  <h2>11. Apple Watch App</h2>
+  <p>The optional Apple Watch companion stores your recent search terms locally on the watch (up to 5) and opens web searches (Google) in the watch browser, sending your search text to Google when you search. You can clear the history from the Watch app. It does not collect analytics.</p>
+
+  <h2>12. Children</h2>
+  <p>The App is not directed to children under 13 (or the minimum age in your region), and we do not knowingly collect their personal information.</p>
+
+  <h2>13. Security</h2>
   <p>We use reasonable technical measures to protect information. No method of transmission or storage is completely secure.</p>
 
-  <h2>9. Changes</h2>
-  <p>We may update this policy. Material changes will be reflected by the “Last updated” date above.</p>
+  <h2>14. Changes</h2>
+  <p>Material changes to this policy will be shown in-app, and the “Last updated” date above will change. Previous versions are kept in the project’s public repository history.</p>
 
-  <h2>10. Contact</h2>
-  <p>Questions? Contact: <a href="mailto:raudel@raudel.lat">raudel@raudel.lat</a></p>
+  <h2>15. Contact</h2>
+  <p>Questions or requests: <a href="mailto:raudel@raudel.lat">raudel@raudel.lat</a></p>
 
   <footer>
-    <p class="muted">See also: <a href="./terms.html">Terms of Service</a> · <a href="./index.html">Home</a></p>
+    <p class="muted">See also: <a href="./terms.html">Terms of Service</a> · <a href="./privacy-es.html">Aviso de Privacidad (ES)</a> · <a href="./index.html">Home</a></p>
+    <p class="muted">This document has placeholders marked in <span class="ph">yellow</span> that require legal review.</p>
   </footer>
 </main>
-<script>document.getElementById('d').textContent = new Date().getFullYear();</script>
 </body>
 </html>
