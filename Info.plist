@@ -8,7 +8,11 @@
 		<false/>
 	</dict>
 	<key>GADApplicationIdentifier</key>
-	<string>ca-app-pub-3940256099942544~1458002511</string>
+	<string>$(AD_APP_ID)</string>
+	<key>AdBannerUnitID</key>
+	<string>$(AD_BANNER_UNIT_ID)</string>
+	<key>AdRewardedUnitID</key>
+	<string>$(AD_REWARDED_UNIT_ID)</string>
 	<key>NSUserTrackingUsageDescription</key>
 	<string>This lets us show relevant ads that keep Rocket Launcher free.</string>
 	<key>SKAdNetworkItems</key>

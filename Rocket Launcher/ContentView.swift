@@ -309,6 +309,7 @@ struct ContentView: View {
     @State private var didJustRefreshWidgets = false
     @StateObject private var appLauncherStore = AppLauncherStore()
     @EnvironmentObject var storeManager: StoreManager
+    @ObservedObject private var ads = AdsManager.shared
     // Splash overlay state
     @State private var showSplash = true
     @State private var showingSettings = false
@@ -561,7 +562,7 @@ struct ContentView: View {
             
             // Banner ad (top)
             VStack {
-                BannerAdView(adUnitID: AdUnits.banner)
+                BannerAdView(ads: ads)
                     .frame(width: 320, height: 50)
                     .padding(.top, 50)
                 Spacer()
@@ -1056,6 +1057,7 @@ struct WidgetLaunchersConfigView: View {
     @Environment(\.dismiss) private var dismiss
     @AppStorage("HasPurchasedExtraWidgets", store: UserDefaults(suiteName: appGroupID)) private var hasPurchasedExtraWidgets: Bool = false
     @State private var showPurchaseAlert = false
+    @State private var showNoAdAlert = false
     @State private var editingLauncher: AppLauncher? = nil
     @State private var tempUnlockActive = RewardsEntitlement.isActive()
     @ObservedObject private var ads = AdsManager.shared
@@ -1112,6 +1114,8 @@ struct WidgetLaunchersConfigView: View {
                                                 RewardsEntitlement.grant()
                                                 tempUnlockActive = RewardsEntitlement.isActive()
                                                 WidgetCenter.shared.reloadAllTimelines()
+                                            } onUnavailable: {
+                                                showNoAdAlert = true
                                             }
                                         }) {
                                             HStack(spacing: 6) {
@@ -1174,6 +1178,11 @@ struct WidgetLaunchersConfigView: View {
                 Button("OK") { }
             } message: {
                 Text("This is a purchase simulator. In the production app, this would open the App Store purchase flow for the Extra Widgets pack (~$49 MXN).")
+            }
+            .alert("No ad available", isPresented: $showNoAdAlert) {
+                Button("OK") { }
+            } message: {
+                Text("No ad is available right now. Please try again later.")
             }
             .sheet(item: $editingLauncher) { launcher in
                 AppPickerView(store: store, launcherID: launcher.id)
