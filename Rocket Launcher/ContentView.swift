@@ -167,36 +167,92 @@ class AppLauncherStore: ObservableObject {
 
 // MARK: - Haptics Helper
 
-struct HapticsHelper {
-    static func playLaunchHaptic() {
-        UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
+/// Centralized haptics engine.
+///
+/// Generators are created once and retained, then re-`prepare()`d after each
+/// feedback so the Taptic Engine is always warmed up and the next feedback has
+/// minimal latency. All feedback is delivered on the main thread, which is
+/// required for `UIFeedbackGenerator` to fire.
+final class HapticsHelper {
+    static let shared = HapticsHelper()
+
+    private let lightGenerator = UIImpactFeedbackGenerator(style: .light)
+    private let mediumGenerator = UIImpactFeedbackGenerator(style: .medium)
+    private let heavyGenerator = UIImpactFeedbackGenerator(style: .heavy)
+    private let softGenerator = UIImpactFeedbackGenerator(style: .soft)
+    private let rigidGenerator = UIImpactFeedbackGenerator(style: .rigid)
+    private let selectionGenerator = UISelectionFeedbackGenerator()
+    private let notificationGenerator = UINotificationFeedbackGenerator()
+
+    private init() {
+        prepareGenerators()
     }
-    
+
+    /// Warms up the Taptic Engine. Call when the app becomes active.
+    static func prepare() {
+        onMain { shared.prepareGenerators() }
+    }
+
+    private func prepareGenerators() {
+        lightGenerator.prepare()
+        mediumGenerator.prepare()
+        heavyGenerator.prepare()
+        softGenerator.prepare()
+        rigidGenerator.prepare()
+        selectionGenerator.prepare()
+        notificationGenerator.prepare()
+    }
+
+    static func playLaunchHaptic() { impact(.heavy) }
+
     // Added this method from the duplicate URLHandler structure
-    static func handleURLLaunch() {
-        UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
-    }
-    
+    static func handleURLLaunch() { impact(.heavy) }
+
     /// Generic impact feedback.
-    static func impact(_ style: UIImpactFeedbackGenerator.FeedbackStyle) {
-        UIImpactFeedbackGenerator(style: style).impactOccurred()
+    static func impact(_ style: UIImpactFeedbackGenerator.FeedbackStyle, intensity: CGFloat = 1.0) {
+        onMain {
+            let generator = shared.generator(for: style)
+            generator.impactOccurred(intensity: intensity)
+            generator.prepare()
+        }
     }
-    
+
     /// Selection feedback for pickers, segmented controls and chips.
     static func selection() {
-        UISelectionFeedbackGenerator().selectionChanged()
+        onMain {
+            shared.selectionGenerator.selectionChanged()
+            shared.selectionGenerator.prepare()
+        }
     }
-    
-    static func success() {
-        UINotificationFeedbackGenerator().notificationOccurred(.success)
+
+    static func success() { notification(.success) }
+    static func warning() { notification(.warning) }
+    static func error() { notification(.error) }
+
+    static func notification(_ type: UINotificationFeedbackGenerator.FeedbackType) {
+        onMain {
+            shared.notificationGenerator.notificationOccurred(type)
+            shared.notificationGenerator.prepare()
+        }
     }
-    
-    static func warning() {
-        UINotificationFeedbackGenerator().notificationOccurred(.warning)
+
+    private func generator(for style: UIImpactFeedbackGenerator.FeedbackStyle) -> UIImpactFeedbackGenerator {
+        switch style {
+        case .light: return lightGenerator
+        case .medium: return mediumGenerator
+        case .heavy: return heavyGenerator
+        case .soft: return softGenerator
+        case .rigid: return rigidGenerator
+        @unknown default: return mediumGenerator
+        }
     }
-    
-    static func error() {
-        UINotificationFeedbackGenerator().notificationOccurred(.error)
+
+    private static func onMain(_ block: @escaping () -> Void) {
+        if Thread.isMainThread {
+            block()
+        } else {
+            DispatchQueue.main.async(execute: block)
+        }
     }
 }
 
@@ -267,6 +323,8 @@ struct ContentView: View {
                     showBlackout = true
                 }
             } else {
+                // Warm up the haptics engine whenever the app becomes active.
+                HapticsHelper.prepare()
                 // Delay hiding the blackout overlay by 0.5s
                 blackoutHideWorkItem?.cancel()
                 let workItem = DispatchWorkItem {
