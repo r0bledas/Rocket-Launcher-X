@@ -8,7 +8,6 @@
 import SwiftUI
 import WidgetKit
 import UIKit
-import CoreMotion
 import UniformTypeIdentifiers
 import Network
 
@@ -17,66 +16,6 @@ import Network
 let appGroupID = "group.rocketlauncher"
 
 //
-
-// MARK: - Shake Detection
-class ShakeDetector: ObservableObject {
-    @Published var isShakeDetected = false
-    private let motionManager = CMMotionManager()
-    private let queue: OperationQueue = {
-        let q = OperationQueue()
-        q.qualityOfService = .userInitiated
-        return q
-    }()
-    private var shakeThreshold: Double = 2.5
-    private var lastTriggerAt: Date = .distantPast
-    private let cooldown: TimeInterval = 2.5
-    
-    init() {
-        startShakeDetection()
-    }
-    
-    private func startShakeDetection() {
-        guard motionManager.isAccelerometerAvailable else { return }
-        
-        motionManager.accelerometerUpdateInterval = 0.1
-        motionManager.startAccelerometerUpdates(to: queue) { [weak self] data, error in
-            guard let self = self, let data = data, error == nil else { return }
-            
-            let acceleration = sqrt(pow(data.acceleration.x, 2) +
-                                  pow(data.acceleration.y, 2) +
-                                  pow(data.acceleration.z, 2))
-            
-            if acceleration > self.shakeThreshold && Date().timeIntervalSince(self.lastTriggerAt) > self.cooldown {
-                self.lastTriggerAt = Date()
-                self.triggerShake()
-            }
-        }
-    }
-    
-    private func triggerShake() {
-        DispatchQueue.main.async {
-            UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
-            self.isShakeDetected = true
-            
-            // Log shake detection to console
-            // Note: This will need to be called from ContentView
-            print("📱 Shake detected - settings button revealed")
-            
-            // Auto-hide after 5 seconds
-            DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
-                self.isShakeDetected = false
-            }
-        }
-    }
-    
-    func hideSettingsIcon() {
-        isShakeDetected = false
-    }
-    
-    deinit {
-        motionManager.stopAccelerometerUpdates()
-    }
-}
 
 // MARK: - Extensions and Types
 
@@ -257,11 +196,7 @@ struct ContentView: View {
     @EnvironmentObject var storeManager: StoreManager
     // Splash overlay state
     @State private var showSplash = true
-    // Shake detection for settings
-    @StateObject private var shakeDetector = ShakeDetector()
     @State private var showingSettings = false
-    // Settings button control
-    @AppStorage("AlwaysShowSettingsButton", store: UserDefaults(suiteName: appGroupID)) private var alwaysShowSettingsButton: Bool = true
     // Purchase alert state
     @State private var showingPurchaseAlert = false
     @State private var purchaseAlertMessage = ""
@@ -485,25 +420,21 @@ struct ContentView: View {
                 Spacer()
                 HStack {
                     Spacer()
-                    if alwaysShowSettingsButton || shakeDetector.isShakeDetected {
-                        Button(action: {
-                            UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-                            showingSettings = true
-                            shakeDetector.hideSettingsIcon()
-                        }) {
-                            Image(systemName: "gear")
-                                .font(.title)
-                                .foregroundColor(.white)
-                                .background(
-                                    Circle()
-                                        .fill(.ultraThinMaterial)
-                                        .frame(width: 60, height: 60)
-                                )
-                                .shadow(color: .black.opacity(0.3), radius: 8, x: 0, y: 4)
-                        }
-                        .transition(.scale.combined(with: .opacity))
-                        .animation(.bouncy(duration: 0.6), value: alwaysShowSettingsButton || shakeDetector.isShakeDetected)
+                    Button(action: {
+                        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                        showingSettings = true
+                    }) {
+                        Image(systemName: "gear")
+                            .font(.title)
+                            .foregroundColor(.white)
+                            .background(
+                                Circle()
+                                    .fill(.ultraThinMaterial)
+                                    .frame(width: 60, height: 60)
+                            )
+                            .shadow(color: .black.opacity(0.3), radius: 8, x: 0, y: 4)
                     }
+                    .accessibilityLabel("Settings")
                     Spacer()
                 }
                 .padding(.bottom, 80) // Position above page indicators
@@ -1213,7 +1144,6 @@ struct SettingsView: View {
     @ObservedObject var store: AppLauncherStore
     @EnvironmentObject var storeManager: StoreManager
     @Environment(\.dismiss) private var dismiss
-    @AppStorage("AlwaysShowSettingsButton", store: UserDefaults(suiteName: appGroupID)) private var alwaysShowSettingsButton: Bool = false
     // Import/Export functionality
     @State private var showingImportAlert = false
     @State private var showingExportAlert = false
@@ -1263,10 +1193,6 @@ struct SettingsView: View {
     var body: some View {
         NavigationView {
             Form {
-                Section(header: Text("SETTINGS ACCESS").font(.headline)) {
-                    Toggle("Always Show Settings Button", isOn: $alwaysShowSettingsButton)
-                }
-                
                 Section(header: Text("BACKUP & RESTORE").font(.headline)) {
                     Button(action: exportConfiguration) {
                         HStack {
@@ -1521,19 +1447,6 @@ struct SettingsView: View {
                         }
                     }
                 }
-                
-                Section {
-                    Button(action: {
-                        UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
-                        resetToDefaults()
-                    }) {
-                        HStack {
-                            Image(systemName: "arrow.counterclockwise")
-                            Text("Reset All Settings")
-                        }
-                        .foregroundColor(.red)
-                    }
-                }
             }
             .navigationTitle("Settings")
             .navigationBarTitleDisplayMode(.inline)
@@ -1743,10 +1656,6 @@ struct SettingsView: View {
             importSuccess = false
             showingImportAlert = true
         }
-    }
-    
-    private func resetToDefaults() {
-        alwaysShowSettingsButton = false
     }
 }
 

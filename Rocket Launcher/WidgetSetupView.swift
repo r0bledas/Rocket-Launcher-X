@@ -377,10 +377,10 @@ struct WidgetSetupView: View {
                 )
 
                 ProTipDetailCard(
-                    icon: "iphone.radiowaves.left.and.right",
+                    icon: "gearshape.fill",
                     color: .blue,
-                    title: "Shake Device to Reveal Settings",
-                    description: "Give your phone a quick shake on the main screen to reveal the floating Settings gear icon, or enable 'Always Show Settings Button' inside Settings."
+                    title: "Settings Are Always One Tap Away",
+                    description: "Tap the gear on the main screen to open Settings, where you can export or import your app slots and refetch widget icons."
                 )
 
                 ProTipDetailCard(
