@@ -1263,6 +1263,17 @@ struct AppPickerView: View {
                             TextField("Search apps", text: $searchText)
                                 .textInputAutocapitalization(.words)
                                 .autocorrectionDisabled()
+                            if !searchText.isEmpty {
+                                Button {
+                                    HapticsHelper.impact(.light)
+                                    searchText = ""
+                                } label: {
+                                    Image(systemName: "xmark.circle.fill")
+                                        .foregroundColor(.secondary)
+                                }
+                                .buttonStyle(.plain)
+                                .accessibilityLabel("Clear search")
+                            }
                         }
                     }
 
