@@ -82,7 +82,7 @@ enum AppCatalog {
 
         // MARK: Productivity & Utilities
         CatalogApp(name: "Google Chrome", scheme: "googlechrome://", category: "Productivity"),
-        CatalogApp(name: "Google Search", scheme: "google://", category: "Productivity"),
+        CatalogApp(name: "Google", scheme: "google://", category: "Productivity"),
         CatalogApp(name: "Google Maps", scheme: "comgooglemaps://", category: "Productivity"),
         CatalogApp(name: "Gmail", scheme: "googlegmail://", category: "Productivity"),
         CatalogApp(name: "Google Drive", scheme: "googledrive://", category: "Productivity"),
@@ -130,14 +130,40 @@ enum AppCatalog {
         CatalogApp(name: "Steam", scheme: "steam://", category: "Games")
     ]
 
-    /// A flat search over name and scheme, case-insensitive.
+    /// Relevance-ranked search over name and scheme.
+    ///
+    /// Ranking (best first): exact name match, exact scheme match, name prefix,
+    /// scheme prefix, name contains, scheme contains. Ties break on shorter name,
+    /// then alphabetically.
     static func search(_ query: String, in apps: [CatalogApp]) -> [CatalogApp] {
-        let q = query.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !q.isEmpty else { return apps }
-        return apps.filter {
-            $0.name.localizedCaseInsensitiveContains(q) ||
-            $0.scheme.localizedCaseInsensitiveContains(q)
+        let q = query.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        guard !q.isEmpty else {
+            return apps.sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
         }
+
+        func rank(_ app: CatalogApp) -> Int? {
+            let name = app.name.lowercased()
+            let scheme = app.scheme.lowercased()
+            if name == q { return 0 }
+            if scheme == q || scheme == "\(q)://" { return 1 }
+            if name.hasPrefix(q) { return 2 }
+            if scheme.hasPrefix(q) { return 3 }
+            if name.contains(q) { return 4 }
+            if scheme.contains(q) { return 5 }
+            return nil
+        }
+
+        return apps
+            .compactMap { app -> (app: CatalogApp, rank: Int, length: Int)? in
+                guard let r = rank(app) else { return nil }
+                return (app, r, app.name.count)
+            }
+            .sorted { a, b in
+                if a.rank != b.rank { return a.rank < b.rank }
+                if a.length != b.length { return a.length < b.length }
+                return a.app.name.localizedCaseInsensitiveCompare(b.app.name) == .orderedAscending
+            }
+            .map { $0.app }
     }
 
     /// Merges two catalogs, keeping the first occurrence of each app name
