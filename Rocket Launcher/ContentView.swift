@@ -1284,17 +1284,49 @@ struct AppPickerView: View {
                     }
 
                     Section {
-                        ForEach(filteredApps) { app in
+                        if filteredApps.isEmpty && !searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                             Button {
                                 HapticsHelper.impact(.medium)
-                                store.setLauncher(id: launcherID, name: app.name, scheme: app.scheme)
+                                let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+                                let encoded = query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? query
+                                store.setLauncher(id: launcherID, name: "Google: \(query)", scheme: "https://www.google.com/search?q=\(encoded)")
                                 dismiss()
                             } label: {
-                                catalogRow(app)
+                                HStack(spacing: 12) {
+                                    Image(systemName: "magnifyingglass")
+                                        .font(.title3)
+                                        .foregroundColor(.blue)
+                                        .frame(width: 40, height: 40)
+
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text("Search “\(searchText)” on Google")
+                                            .font(.subheadline.weight(.semibold))
+                                            .foregroundColor(.white)
+                                        Text("https://www.google.com/search?q=…")
+                                            .font(.caption.monospaced())
+                                            .foregroundColor(.secondary)
+                                    }
+
+                                    Spacer()
+
+                                    Image(systemName: "plus.circle.fill")
+                                        .font(.title2)
+                                        .foregroundColor(.blue)
+                                }
+                            }
+                        } else {
+                            ForEach(filteredApps) { app in
+                                Button {
+                                    HapticsHelper.impact(.medium)
+                                    store.setLauncher(id: launcherID, name: app.name, scheme: app.scheme)
+                                    dismiss()
+                                } label: {
+                                    catalogRow(app)
+                                }
                             }
                         }
                     } header: {
-                        Text("\(filteredApps.count) APPS")
+                        Text(filteredApps.isEmpty && !searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "NO RESULTS" : "\(filteredApps.count) APPS")
                     }
                 }
             }
