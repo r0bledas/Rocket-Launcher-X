@@ -140,6 +140,20 @@ enum AppCatalog {
         }
     }
 
+    /// Merges two catalogs, keeping the first occurrence of each app name
+    /// (so bundled/curated entries win) and sorting the result by name.
+    static func merge(_ primary: [CatalogApp], _ secondary: [CatalogApp]) -> [CatalogApp] {
+        var seen = Set<String>()
+        var result: [CatalogApp] = []
+        for app in primary + secondary {
+            let key = app.name.lowercased()
+            if seen.insert(key).inserted {
+                result.append(app)
+            }
+        }
+        return result.sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
+    }
+
     // MARK: - Remote loading
 
     private struct RemoteApp: Decodable {
@@ -208,7 +222,7 @@ final class AppCatalogStore: ObservableObject {
         didAttempt = true
         isLoading = true
         if let remote = await AppCatalog.fetchRemote() {
-            apps = remote
+            apps = AppCatalog.merge(AppCatalog.bundled, remote)
         }
         isLoading = false
     }
