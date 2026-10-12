@@ -72,10 +72,14 @@ struct WidgetConfigurationView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Cancel") {
+                    Button {
                         dismiss()
+                    } label: {
+                        Image(systemName: "xmark")
+                            .fontWeight(.semibold)
                     }
                     .foregroundColor(.blue)
+                    .accessibilityLabel("Cancel")
                 }
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button {
