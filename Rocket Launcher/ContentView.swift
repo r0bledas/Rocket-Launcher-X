@@ -320,6 +320,7 @@ struct ContentView: View {
     // Splash overlay state
     @State private var showSplash = true
     @State private var showingSettings = false
+    @State private var showHapticsTest = false
     // Purchase alert state
     @State private var showingPurchaseAlert = false
     @State private var purchaseAlertMessage = ""
@@ -571,7 +572,12 @@ struct ContentView: View {
             VStack {
                 HStack {
                     Spacer()
-                    hapticsTestMenu
+                    VStack(alignment: .trailing, spacing: 10) {
+                        hapticsTestToggle
+                        if showHapticsTest {
+                            hapticsTestPanel
+                        }
+                    }
                 }
                 Spacer()
             }
@@ -580,31 +586,73 @@ struct ContentView: View {
         }
     }
     
-    // MARK: - Haptics Test Menu
-    private var hapticsTestMenu: some View {
-        Menu {
-            Section("Impact intensity") {
-                Button { HapticsHelper.impact(.light) } label: { Label("Light", systemImage: "dial.low") }
-                Button { HapticsHelper.impact(.medium) } label: { Label("Medium", systemImage: "dial.medium") }
-                Button { HapticsHelper.impact(.heavy) } label: { Label("Heavy", systemImage: "dial.high") }
-                Button { HapticsHelper.impact(.soft) } label: { Label("Soft", systemImage: "hand.point.up.left") }
-                Button { HapticsHelper.impact(.rigid) } label: { Label("Rigid", systemImage: "square.grid.3x3") }
-            }
-            Section("Feedback") {
-                Button { HapticsHelper.selection() } label: { Label("Selection", systemImage: "hand.tap") }
-                Button { HapticsHelper.success() } label: { Label("Success", systemImage: "checkmark.circle") }
-                Button { HapticsHelper.warning() } label: { Label("Warning", systemImage: "exclamationmark.triangle") }
-                Button { HapticsHelper.error() } label: { Label("Error", systemImage: "xmark.octagon") }
+    // MARK: - Haptics Test
+    private var hapticsTestToggle: some View {
+        Button {
+            HapticsHelper.impact(.light)
+            withAnimation(.easeInOut(duration: 0.2)) {
+                showHapticsTest.toggle()
             }
         } label: {
-            Image(systemName: "hand.tap.fill")
+            Image(systemName: showHapticsTest ? "xmark" : "hand.tap.fill")
                 .font(.title2)
                 .foregroundColor(.white)
                 .frame(width: 44, height: 44)
                 .background(Circle().fill(.ultraThinMaterial))
                 .shadow(color: .black.opacity(0.3), radius: 6, x: 0, y: 3)
         }
-        .accessibilityLabel("Haptics test menu")
+        .accessibilityLabel(showHapticsTest ? "Close haptics test" : "Haptics test menu")
+    }
+    
+    private var hapticsTestPanel: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text("IMPACT")
+                .font(.caption2.weight(.bold))
+                .foregroundColor(Color.white.opacity(0.6))
+                .padding(.horizontal, 4)
+            hapticTestButton("Light") { HapticsHelper.impact(.light) }
+            hapticTestButton("Medium") { HapticsHelper.impact(.medium) }
+            hapticTestButton("Heavy") { HapticsHelper.impact(.heavy) }
+            hapticTestButton("Soft") { HapticsHelper.impact(.soft) }
+            hapticTestButton("Rigid") { HapticsHelper.impact(.rigid) }
+            
+            Text("FEEDBACK")
+                .font(.caption2.weight(.bold))
+                .foregroundColor(Color.white.opacity(0.6))
+                .padding(.horizontal, 4)
+                .padding(.top, 4)
+            hapticTestButton("Selection") { HapticsHelper.selection() }
+            hapticTestButton("Success") { HapticsHelper.success() }
+            hapticTestButton("Warning") { HapticsHelper.warning() }
+            hapticTestButton("Error") { HapticsHelper.error() }
+        }
+        .padding(12)
+        .background(
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .fill(.ultraThinMaterial)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .stroke(Color.white.opacity(0.15), lineWidth: 1)
+        )
+        .shadow(color: .black.opacity(0.4), radius: 12, y: 6)
+        .transition(.opacity.combined(with: .scale(scale: 0.92, anchor: .topTrailing)))
+    }
+    
+    private func hapticTestButton(_ title: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Text(title)
+                .font(.subheadline.weight(.semibold))
+                .foregroundColor(.white)
+                .padding(.horizontal, 14)
+                .padding(.vertical, 8)
+                .frame(minWidth: 130, alignment: .leading)
+                .background(
+                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        .fill(Color.white.opacity(0.12))
+                )
+        }
+        .buttonStyle(.plain)
     }
     
     // MARK: - Ping Tester View (removed)
