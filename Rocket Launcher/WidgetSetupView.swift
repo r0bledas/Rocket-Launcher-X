@@ -132,11 +132,14 @@ struct WidgetSetupView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Done") {
+                    Button {
                         HapticsHelper.impact(.light)
                         dismiss()
+                    } label: {
+                        Image(systemName: "checkmark")
+                            .fontWeight(.semibold)
                     }
-                    .fontWeight(.semibold)
+                    .accessibilityLabel("Done")
                 }
             }
             .overlay(alignment: .bottom) {

@@ -124,7 +124,7 @@ class AppLauncherStore: ObservableObject {
     func load() {
         if let data = userDefaults?.data(forKey: "AppLaunchers"),
            let decodedLaunchers = try? JSONDecoder().decode([AppLauncher].self, from: data) {
-            launchers = decodedLaunchers
+            launchers = decodedLaunchers.sorted { $0.id < $1.id }
         } else {
             // Initialize with 40 empty launchers (5 widgets × 8 slots each)
             launchers = (0..<40).map { AppLauncher(id: $0) }
@@ -1119,12 +1119,16 @@ struct WidgetLaunchersConfigView: View {
             .navigationTitle("Widgets")
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Save") {
+                    Button {
                         HapticsHelper.impact(.light)
                         store.save()
                         WidgetCenter.shared.reloadAllTimelines()
                         dismiss()
+                    } label: {
+                        Image(systemName: "checkmark")
+                            .fontWeight(.semibold)
                     }
+                    .accessibilityLabel("Save and close")
                 }
             }
             .alert("Purchase Required", isPresented: $showPurchaseAlert) {
@@ -1178,20 +1182,22 @@ struct LauncherSlotView: View {
     }
 
     private var iconPreview: some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: 10, style: .continuous)
-                .fill(Color.white.opacity(0.08))
-                .frame(width: 44, height: 44)
+        Group {
             if let img = loadIconPreview(for: launcher) {
                 Image(uiImage: img)
                     .resizable()
-                    .scaledToFit()
-                    .frame(width: 34, height: 34)
-                    .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                    .scaledToFill()
+                    .frame(width: 44, height: 44)
+                    .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
             } else {
-                Image(systemName: "app.dashed")
-                    .font(.title3)
-                    .foregroundColor(Color.white.opacity(0.4))
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .fill(Color.white.opacity(0.08))
+                    .frame(width: 44, height: 44)
+                    .overlay(
+                        Image(systemName: "app.dashed")
+                            .font(.title3)
+                            .foregroundColor(Color.white.opacity(0.4))
+                    )
             }
         }
         .accessibilityHidden(true)
@@ -1273,7 +1279,7 @@ struct AppPickerView: View {
                 }
                 ToolbarItem(placement: .navigationBarTrailing) {
                     if advancedMode {
-                        Button("Save") {
+                        Button {
                             HapticsHelper.impact(.medium)
                             let name = customName.trimmingCharacters(in: .whitespacesAndNewlines)
                             let scheme = customScheme.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -1283,8 +1289,11 @@ struct AppPickerView: View {
                                 store.setLauncher(id: launcherID, name: name, scheme: scheme)
                             }
                             dismiss()
+                        } label: {
+                            Image(systemName: "checkmark")
+                                .fontWeight(.semibold)
                         }
-                        .fontWeight(.semibold)
+                        .accessibilityLabel("Save custom app")
                     } else {
                         Button("Advanced") {
                             HapticsHelper.impact(.light)
@@ -1649,11 +1658,15 @@ struct SettingsView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Done") {
+                    Button {
                         HapticsHelper.impact(.light)
                         WidgetCenter.shared.reloadAllTimelines()
                         dismiss()
+                    } label: {
+                        Image(systemName: "checkmark")
+                            .fontWeight(.semibold)
                     }
+                    .accessibilityLabel("Done")
                 }
             }
         }
