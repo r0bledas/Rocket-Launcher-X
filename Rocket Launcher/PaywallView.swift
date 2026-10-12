@@ -99,6 +99,7 @@ struct PaywallView: View {
                     
                     // Restore Button
                     Button(action: {
+                        HapticsHelper.impact(.medium)
                         Task { await storeManager.restorePurchases() }
                     }) {
                         Text("Restore Purchases")
@@ -114,6 +115,7 @@ struct PaywallView: View {
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button(action: {
+                        HapticsHelper.impact(.light)
                         dismiss()
                     }) {
                         Image(systemName: "xmark")

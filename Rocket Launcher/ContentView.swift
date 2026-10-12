@@ -176,6 +176,28 @@ struct HapticsHelper {
     static func handleURLLaunch() {
         UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
     }
+    
+    /// Generic impact feedback.
+    static func impact(_ style: UIImpactFeedbackGenerator.FeedbackStyle) {
+        UIImpactFeedbackGenerator(style: style).impactOccurred()
+    }
+    
+    /// Selection feedback for pickers, segmented controls and chips.
+    static func selection() {
+        UISelectionFeedbackGenerator().selectionChanged()
+    }
+    
+    static func success() {
+        UINotificationFeedbackGenerator().notificationOccurred(.success)
+    }
+    
+    static func warning() {
+        UINotificationFeedbackGenerator().notificationOccurred(.warning)
+    }
+    
+    static func error() {
+        UINotificationFeedbackGenerator().notificationOccurred(.error)
+    }
 }
 
 // MARK: - Helper Functions
@@ -967,6 +989,7 @@ struct WidgetLaunchersConfigView: View {
                                             .font(.system(size: 80))
                                         
                                         Button(action: {
+                                            HapticsHelper.impact(.medium)
                                             showPurchaseAlert = true
                                         }) {
                                             Text("Unlock (~$49 MXN)")
@@ -1006,6 +1029,7 @@ struct WidgetLaunchersConfigView: View {
                 }
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Save") {
+                        HapticsHelper.impact(.light)
                         store.save()
                         WidgetCenter.shared.reloadAllTimelines()
                         dismiss()
@@ -1413,6 +1437,7 @@ struct SettingsView: View {
                 Section(header: Text("LEGAL").font(.headline)) {
                     // Privacy Policy Link
                     Button(action: {
+                        HapticsHelper.impact(.light)
                         // TODO: Replace with your actual Privacy Policy URL before App Store submission
                         if let url = URL(string: "https://example.com/privacy-policy") {
                             UIApplication.shared.open(url)
@@ -1431,6 +1456,7 @@ struct SettingsView: View {
                     
                     // Terms of Service Link
                     Button(action: {
+                        HapticsHelper.impact(.light)
                         // TODO: Replace with your actual Terms of Service URL before App Store submission
                         if let url = URL(string: "https://example.com/terms-of-service") {
                             UIApplication.shared.open(url)
@@ -1453,6 +1479,7 @@ struct SettingsView: View {
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Done") {
+                        HapticsHelper.impact(.light)
                         WidgetCenter.shared.reloadAllTimelines()
                         dismiss()
                     }

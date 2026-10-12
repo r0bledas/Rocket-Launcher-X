@@ -106,6 +106,9 @@ struct WidgetSetupView: View {
                     .padding(.top, 8)
                     .padding(.bottom, 14)
                     .accessibilityLabel("Guide section")
+                    .onChange(of: selectedTab) { _, _ in
+                        HapticsHelper.selection()
+                    }
 
                     // Main Scrollable Content
                     ScrollView(showsIndicators: false) {
@@ -132,6 +135,7 @@ struct WidgetSetupView: View {
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Done") {
+                        HapticsHelper.impact(.light)
                         dismiss()
                     }
                     .fontWeight(.semibold)
@@ -282,6 +286,7 @@ struct WidgetSetupView: View {
 
                 if !schemeSearchText.isEmpty {
                     Button {
+                        HapticsHelper.impact(.light)
                         schemeSearchText = ""
                     } label: {
                         Image(systemName: "xmark.circle.fill")
@@ -745,9 +750,10 @@ private struct ProTipDetailCard: View {
 private struct FAQDisclosureCard: View {
     let problem: String
     let solution: String
+    @State private var isExpanded = false
 
     var body: some View {
-        DisclosureGroup {
+        DisclosureGroup(isExpanded: $isExpanded) {
             Text(solution)
                 .font(.subheadline)
                 .foregroundColor(Color.white.opacity(0.75))
@@ -767,5 +773,8 @@ private struct FAQDisclosureCard: View {
         .tint(.white)
         .padding(14)
         .cardSurface()
+        .onChange(of: isExpanded) { _, _ in
+            HapticsHelper.selection()
+        }
     }
 }

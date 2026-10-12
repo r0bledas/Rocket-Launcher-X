@@ -73,6 +73,7 @@ struct WidgetConfigurationView: View {
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button {
+                        HapticsHelper.impact(.light)
                         dismiss()
                     } label: {
                         Image(systemName: "xmark")
@@ -83,6 +84,7 @@ struct WidgetConfigurationView: View {
                 }
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button {
+                        HapticsHelper.impact(.light)
                         applyColorToWidgets()
                         WidgetCenter.shared.reloadAllTimelines()
                         dismiss()
@@ -91,6 +93,7 @@ struct WidgetConfigurationView: View {
                             .fontWeight(.semibold)
                     }
                     .foregroundColor(.blue)
+                    .accessibilityLabel("Apply and close")
                 }
             }
         }
@@ -589,6 +592,9 @@ struct WidgetConfigurationView: View {
             .pickerStyle(.segmented)
             .disabled(!hasPurchasedTextAlignment || iconsEnabled)
             .opacity((hasPurchasedTextAlignment && !iconsEnabled) ? 1.0 : 0.5)
+            .onChange(of: selectedAlignment) { _, _ in
+                HapticsHelper.selection()
+            }
             
             if iconsEnabled {
                 Text("Text alignment is locked to Left when icons are enabled.")
@@ -625,12 +631,14 @@ struct WidgetConfigurationView: View {
                     get: { iconsEnabled && hasPurchasedIconFeature },
                     set: { newValue in
                         if hasPurchasedIconFeature {
+                            HapticsHelper.impact(.light)
                             iconsEnabled = newValue
                             if newValue {
                                 store.bulkFetchIcons()
                                 selectedAlignment = .leading
                             }
                         } else {
+                            HapticsHelper.warning()
                             showIconPurchaseAlert = true
                         }
                     }
@@ -654,6 +662,7 @@ struct WidgetConfigurationView: View {
             
             if !hasPurchasedIconFeature {
                 Button(action: {
+                    HapticsHelper.impact(.medium)
                     showIconPurchaseAlert = true
                 }) {
                     HStack {
