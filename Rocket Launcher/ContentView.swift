@@ -10,6 +10,7 @@ import WidgetKit
 import UIKit
 import UniformTypeIdentifiers
 import CoreHaptics
+import AudioToolbox
 import Network
 
 
@@ -278,6 +279,35 @@ final class HapticsHelper {
             NSLog("⚡️ HapticsHelper.notification(%@) lowPower=%d", "\(type)", ProcessInfo.processInfo.isLowPowerModeEnabled ? 1 : 0)
             shared.notificationGenerator.notificationOccurred(type)
             shared.notificationGenerator.prepare()
+        }
+    }
+
+    /// Legacy vibration (bypasses UIFeedbackGenerator entirely).
+    static func legacyVibrate() {
+        NSLog("⚡️ HapticsHelper.legacyVibrate() — AudioServicesPlaySystemSound(kSystemSoundID_Vibrate)")
+        AudioServicesPlaySystemSound(kSystemSoundID_Vibrate)
+    }
+
+    /// Core Haptics transient — a separate path to the Taptic Engine.
+    static func coreHapticsTest() {
+        NSLog("⚡️ HapticsHelper.coreHapticsTest()")
+        do {
+            let engine = try CHHapticEngine()
+            engine.playsHapticsOnly = true
+            try engine.start()
+            let event = CHHapticEvent(eventType: .hapticTransient, parameters: [
+                CHHapticEventParameter(parameterID: .hapticIntensity, value: 1.0),
+                CHHapticEventParameter(parameterID: .hapticSharpness, value: 0.5)
+            ], relativeTime: 0)
+            let pattern = try CHHapticPattern(events: [event], parameters: [])
+            let player = try engine.makePlayer(with: pattern)
+            try player.start(atTime: CHHapticTimeImmediate)
+            engine.notifyWhenPlayersFinished { _ in
+                try? engine.stop()
+                return .leaveEngineRunning
+            }
+        } catch {
+            NSLog("⚡️ CoreHaptics error: %@", "\(error)")
         }
     }
 
@@ -625,6 +655,14 @@ struct ContentView: View {
             hapticTestButton("Success") { HapticsHelper.success() }
             hapticTestButton("Warning") { HapticsHelper.warning() }
             hapticTestButton("Error") { HapticsHelper.error() }
+            
+            Text("ISOLATION")
+                .font(.caption2.weight(.bold))
+                .foregroundColor(Color.white.opacity(0.6))
+                .padding(.horizontal, 4)
+                .padding(.top, 4)
+            hapticTestButton("Vibrate (legacy)") { HapticsHelper.legacyVibrate() }
+            hapticTestButton("Core Haptics") { HapticsHelper.coreHapticsTest() }
         }
         .padding(12)
         .background(
