@@ -11,6 +11,19 @@
 import SwiftUI
 import UIKit
 
+/// Gate for Apple (iTunes) icon lookups. We only look up names that come from
+/// the catalog — never free-typed custom names — and only when the user has not
+/// disabled it in Settings → Privacy.
+enum AppIconFetch {
+    static var isEnabled: Bool {
+        UserDefaults(suiteName: appGroupID)?.object(forKey: "FetchAppIconsFromApple") as? Bool ?? true
+    }
+
+    static func shouldFetch(name: String) -> Bool {
+        isEnabled && AppCatalog.isKnownName(name)
+    }
+}
+
 actor AppIconCache {
     static let shared = AppIconCache()
 
@@ -25,6 +38,9 @@ actor AppIconCache {
     func icon(named name: String) async -> UIImage? {
         let key = name.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
         guard !key.isEmpty else { return nil }
+
+        // Only catalog names, and only if the user allows Apple lookups.
+        guard AppIconFetch.shouldFetch(name: name) else { return nil }
 
         if let cached = memory[key] { return cached }
 

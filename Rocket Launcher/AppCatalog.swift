@@ -188,6 +188,34 @@ enum AppCatalog {
         let isFirstParty: Bool?
     }
 
+    /// Limits to keep the remote feed bounded and safe.
+    static let maxCatalogBytes = 5 * 1024 * 1024
+    static let maxCatalogEntries = 3000
+
+    /// Schemes we never accept from the remote feed (web/executable schemes).
+    private static let blockedSchemes: Set<String> = ["http", "https", "file", "javascript", "data", "about", "blob"]
+
+    /// Whether the remote catalog fetch is enabled (Settings → Privacy, default on).
+    static var remoteFetchEnabled: Bool {
+        UserDefaults(suiteName: appGroupID)?.object(forKey: "RemoteAppCatalogEnabled") as? Bool ?? true
+    }
+
+    /// Synchronous snapshot of everything we know: bundled + fresh cached remote.
+    static func knownApps() -> [CatalogApp] {
+        if remoteFetchEnabled, let cached = cachedAppsIfFresh() {
+            return merge(bundled, cached)
+        }
+        return bundled
+    }
+
+    /// Whether `name` is a known catalog app (used to gate Apple icon lookups so
+    /// we never send free-typed custom names to Apple).
+    static func isKnownName(_ name: String) -> Bool {
+        let n = name.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        guard !n.isEmpty else { return false }
+        return knownApps().contains { $0.name.lowercased() == n }
+    }
+
     private static var cacheFileURL: URL? {
         guard let caches = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first else {
             return nil
@@ -197,17 +225,20 @@ enum AppCatalog {
         return dir.appendingPathComponent("apps.json")
     }
 
-    /// Fetches the remote catalog, falling back to a fresh disk cache and then nil.
+    /// Fetches the remote catalog (validated), falling back to a fresh disk cache.
     static func fetchRemote() async -> [CatalogApp]? {
+        guard remoteFetchEnabled else { return nil }
         if let cached = cachedAppsIfFresh() {
             return cached
         }
         do {
-            let (data, _) = try await URLSession.shared.data(from: remoteURL)
+            let (data, response) = try await URLSession.shared.data(from: remoteURL)
+            guard data.count <= maxCatalogBytes else { return nil }
+            if let http = response as? HTTPURLResponse, http.statusCode != 200 { return nil }
             if let url = cacheFileURL {
                 try? data.write(to: url)
             }
-            return decodeRemote(data) ?? bundled
+            return decodeRemote(data)
         } catch {
             return nil
         }
@@ -224,14 +255,39 @@ enum AppCatalog {
         return decodeRemote(data)
     }
 
+    /// Treats the remote feed as untrusted: validates shape, size and entry
+    /// count, and only accepts well-formed custom URL schemes.
     private static func decodeRemote(_ data: Data) -> [CatalogApp]? {
-        guard let remote = try? JSONDecoder().decode([RemoteApp].self, from: data), !remote.isEmpty else {
+        guard data.count <= maxCatalogBytes,
+              let remote = try? JSONDecoder().decode([RemoteApp].self, from: data),
+              !remote.isEmpty, remote.count <= maxCatalogEntries else {
             return nil
         }
-        return remote
-            .filter { !$0.url.isEmpty && !$0.url.hasPrefix("shortcuts://") }
-            .map { CatalogApp(name: $0.name, scheme: $0.url, category: ($0.isFirstParty == true ? "Apple" : "Apps")) }
-            .sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
+
+        var seen = Set<String>()
+        var result: [CatalogApp] = []
+        for entry in remote {
+            let name = entry.name.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !name.isEmpty, name.count <= 100 else { continue }
+            guard validScheme(entry.url) != nil else { continue }
+            guard !entry.url.lowercased().hasPrefix("shortcuts://") else { continue }
+            guard seen.insert(name.lowercased()).inserted else { continue }
+            result.append(CatalogApp(name: name, scheme: entry.url, category: (entry.isFirstParty == true ? "Apple" : "Apps")))
+        }
+        guard !result.isEmpty else { return nil }
+        return result.sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
+    }
+
+    /// Returns the URL scheme if it is a well-formed custom scheme we accept.
+    private static func validScheme(_ url: String) -> String? {
+        guard let colon = url.firstIndex(of: ":") else { return nil }
+        let scheme = String(url[url.startIndex..<colon]).lowercased()
+        guard !scheme.isEmpty,
+              scheme.range(of: "^[a-z][a-z0-9+.-]*$", options: .regularExpression) != nil,
+              !blockedSchemes.contains(scheme) else {
+            return nil
+        }
+        return scheme
     }
 }
 

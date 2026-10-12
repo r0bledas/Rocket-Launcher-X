@@ -150,6 +150,9 @@ class AppLauncherStore: ObservableObject {
         
         let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
+        // Only look up catalog names (never free-typed custom names) and only if
+        // the user allows Apple icon lookups.
+        guard AppIconFetch.shouldFetch(name: trimmed) else { return }
         fetchIconForAppName(appName: trimmed) { [weak self] result in
             DispatchQueue.main.async {
                 guard let self = self, case .success(let data) = result else { return }
@@ -179,6 +182,8 @@ class AppLauncherStore: ObservableObject {
         for launcherIndex in launchers.indices {
             let name = launchers[launcherIndex].name.trimmingCharacters(in: .whitespacesAndNewlines)
             guard !name.isEmpty else { continue }
+            // Only catalog names, and only when Apple lookups are enabled.
+            guard AppIconFetch.shouldFetch(name: name) else { continue }
             group.enter()
             let completion: (Result<Data, Error>) -> Void = { result in
                 DispatchQueue.main.async {
@@ -1486,6 +1491,8 @@ struct SettingsView: View {
     @State private var isRefetchingIcons = false
     @State private var shareAnalytics: Bool = AnalyticsManager.shared.isEnabled
     @State private var analyticsID: String = AnalyticsManager.shared.installID
+    @State private var fetchIconsFromApple: Bool = AppIconFetch.isEnabled
+    @State private var loadRemoteCatalog: Bool = AppCatalog.remoteFetchEnabled
     // Purchase simulation state
     @AppStorage("HasPurchasedExtraWidgets", store: UserDefaults(suiteName: appGroupID)) private var hasPurchasedExtraWidgets: Bool = false
     @AppStorage("HasPurchasedIconFeature", store: UserDefaults(suiteName: appGroupID)) private var hasPurchasedIconFeature: Bool = false
@@ -1599,6 +1606,20 @@ struct SettingsView: View {
                             HapticsHelper.impact(.light)
                         }
                     Text("Off by default. When on, sends anonymous, pseudonymous app-launch statistics (a coarse category, never the specific app or your raw URL schemes). No personal data or content is collected.")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+
+                    Toggle("Fetch app icons from Apple", isOn: $fetchIconsFromApple)
+                        .onChange(of: fetchIconsFromApple) { _, newValue in
+                            UserDefaults(suiteName: appGroupID)?.set(newValue, forKey: "FetchAppIconsFromApple")
+                            HapticsHelper.impact(.light)
+                        }
+                    Toggle("Load community app catalog", isOn: $loadRemoteCatalog)
+                        .onChange(of: loadRemoteCatalog) { _, newValue in
+                            UserDefaults(suiteName: appGroupID)?.set(newValue, forKey: "RemoteAppCatalogEnabled")
+                            HapticsHelper.impact(.light)
+                        }
+                    Text("Icon lookup sends only catalogued app names to Apple's iTunes Search API; custom names are never sent. Turning these off keeps the app fully offline (bundled list + placeholder icons).")
                         .font(.caption)
                         .foregroundColor(.secondary)
 
