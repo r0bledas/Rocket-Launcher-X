@@ -5,14 +5,17 @@
 //  Privacy-first, pseudonymous usage analytics.
 //
 //  Design goals:
-//   - Minimal data: aggregate app-launch events only. Never log raw custom URL
-//     schemes a user typed (they can contain private data) — resolve to a known
-//     catalog app or a generic "custom" bucket.
-//   - Pseudonymous: a random, resettable install id stored in the Keychain.
+//   - OPT-IN: disabled by default. Nothing is sent until the user turns on
+//     Settings → Privacy → "Share anonymous usage data".
+//   - Minimal data: aggregate app-launch events only. We log a COARSE category,
+//     never the specific app name, and never raw custom URL schemes. Categories
+//     that could reveal sensitive interests (finance, health, dating, religion,
+//     etc.) are bucketed into "other".
+//   - Pseudonymous: a random install id stored in the Keychain
+//     (this-device-only). It is a persistent identifier, resettable in Settings.
 //     No IDFA, names, emails, precise location, or content.
 //   - Self-hosted: posts to an Umami-compatible endpoint. Defaults to a no-op
-//     until `AnalyticsConfig` is filled in, so the app runs with zero network.
-//   - Opt-out: users can disable it in Settings.
+//     until `AnalyticsConfig` is filled in, so the shipped build makes none.
 //
 
 import Foundation
@@ -29,6 +32,8 @@ enum AnalyticsConfig {
     static let websiteID: String? = nil
     /// Ingestion path (Umami v2 default).
     static let ingestionPath: String = "/api/send"
+
+    static var isConfigured: Bool { host != nil && websiteID != nil }
 }
 
 // MARK: - Events
@@ -37,7 +42,6 @@ enum AnalyticsEvent: String {
     case appOpen = "app_open"
     case appLaunch = "app_launch"
     case rewardedUnlock = "rewarded_unlock"
-    case adShown = "ad_shown"
 }
 
 enum LaunchSource: String {
@@ -97,15 +101,14 @@ final class AnalyticsManager {
     static let shared = AnalyticsManager()
 
     private var provider: AnalyticsProvider = NoopAnalyticsProvider()
-    private let installID: String
+    private(set) var installID: String
 
-    private let optOutKey = "AnalyticsOptOut"
+    private let enabledKey = "AnalyticsEnabled"
 
-    /// Whether usage sharing is enabled. Persisted in the shared app group so
-    /// the widget could read it too.
+    /// Whether usage sharing is enabled. OPT-IN: missing value means disabled.
     var isEnabled: Bool {
-        get { !(UserDefaults(suiteName: appGroupID)?.bool(forKey: optOutKey) ?? false) }
-        set { UserDefaults(suiteName: appGroupID)?.set(!newValue, forKey: optOutKey) }
+        get { UserDefaults(suiteName: appGroupID)?.bool(forKey: enabledKey) ?? false }
+        set { UserDefaults(suiteName: appGroupID)?.set(newValue, forKey: enabledKey) }
     }
 
     private init() {
@@ -126,23 +129,29 @@ final class AnalyticsManager {
         }
     }
 
+    /// Deletes the stored install id and generates a fresh one (Settings → Privacy).
+    func resetInstallID() {
+        installID = Keychain.resetInstallID()
+        configureProvider()
+    }
+
     // MARK: Logging
 
     func log(_ event: AnalyticsEvent, properties: [String: String] = [:]) {
-        guard isEnabled else { return }
+        guard isEnabled, AnalyticsConfig.isConfigured else { return }
         var props = baseProperties()
         props.merge(properties) { _, new in new }
         provider.send(event: event.rawValue, properties: props)
     }
 
-    /// Logs an app launch, resolving the scheme to a catalog app (never the raw
-    /// custom scheme) to protect users who typed private schemes.
+    /// Logs an app launch. Only a COARSE category is recorded — never the app
+    /// name and never the raw scheme — to protect users who typed private
+    /// schemes or use sensitive apps.
     func logAppLaunch(scheme: String, source: LaunchSource) {
-        guard isEnabled else { return }
+        guard isEnabled, AnalyticsConfig.isConfigured else { return }
         let match = AppCatalog.bundled.first { $0.scheme.caseInsensitiveCompare(scheme) == .orderedSame }
         let props: [String: String] = [
-            "app": match?.name ?? "custom",
-            "category": match?.category ?? "custom",
+            "category": Self.coarseCategory(match?.category),
             "source": source.rawValue
         ]
         log(.appLaunch, properties: props)
@@ -150,6 +159,18 @@ final class AnalyticsManager {
 
     func logAppOpen() {
         log(.appOpen)
+    }
+
+    /// Categories safe to record. Anything else (finance, health, dating,
+    /// religion, news, …) is bucketed into "other" so we never infer sensitive
+    /// interests.
+    private static let safeCategories: Set<String> = [
+        "social", "media", "productivity", "navigation", "shopping", "games", "utilities", "apple"
+    ]
+
+    private static func coarseCategory(_ raw: String?) -> String {
+        let c = (raw ?? "custom").lowercased()
+        return safeCategories.contains(c) ? c : "other"
     }
 
     // MARK: Base properties
@@ -174,7 +195,7 @@ final class AnalyticsManager {
     }
 }
 
-// MARK: - Keychain (pseudonymous install id)
+// MARK: - Keychain (pseudonymous, resettable install id)
 
 enum Keychain {
     private static let service = "com.Robledas.rocketlauncher.analytics"
@@ -182,6 +203,16 @@ enum Keychain {
 
     static func loadOrCreateInstallID() -> String {
         if let existing = string(for: account) { return existing }
+        return createNew()
+    }
+
+    @discardableResult
+    static func resetInstallID() -> String {
+        remove(account)
+        return createNew()
+    }
+
+    private static func createNew() -> String {
         let id = UUID().uuidString
         set(id, for: account)
         return id
@@ -212,6 +243,17 @@ enum Keychain {
         SecItemDelete(query as CFDictionary)
         var attributes = query
         attributes[kSecValueData as String] = data
+        // This-device-only: never restored from backups; resettable in Settings.
+        attributes[kSecAttrAccessible as String] = kSecAttrAccessibleWhenUnlockedThisDeviceOnly
         return SecItemAdd(attributes as CFDictionary, nil) == errSecSuccess
+    }
+
+    static func remove(_ key: String) {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: service,
+            kSecAttrAccount as String: key
+        ]
+        SecItemDelete(query as CFDictionary)
     }
 }

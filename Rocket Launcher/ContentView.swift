@@ -1485,6 +1485,7 @@ struct SettingsView: View {
     @State private var confirmClearAndReset = false
     @State private var isRefetchingIcons = false
     @State private var shareAnalytics: Bool = AnalyticsManager.shared.isEnabled
+    @State private var analyticsID: String = AnalyticsManager.shared.installID
     // Purchase simulation state
     @AppStorage("HasPurchasedExtraWidgets", store: UserDefaults(suiteName: appGroupID)) private var hasPurchasedExtraWidgets: Bool = false
     @AppStorage("HasPurchasedIconFeature", store: UserDefaults(suiteName: appGroupID)) private var hasPurchasedIconFeature: Bool = false
@@ -1597,7 +1598,42 @@ struct SettingsView: View {
                             AnalyticsManager.shared.isEnabled = newValue
                             HapticsHelper.impact(.light)
                         }
-                    Text("Sends anonymous, pseudonymous app-launch statistics to help improve the app. No personal data, no content, and no raw URL schemes are collected.")
+                    Text("Off by default. When on, sends anonymous, pseudonymous app-launch statistics (a coarse category, never the specific app or your raw URL schemes). No personal data or content is collected.")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+
+                    HStack {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Analytics ID")
+                                .font(.subheadline)
+                            Text(analyticsID)
+                                .font(.caption.monospaced())
+                                .foregroundColor(.secondary)
+                                .lineLimit(1)
+                                .truncationMode(.middle)
+                        }
+                        Spacer()
+                        Button {
+                            HapticsHelper.impact(.light)
+                            UIPasteboard.general.string = analyticsID
+                        } label: {
+                            Image(systemName: "doc.on.doc")
+                        }
+                        .buttonStyle(.borderless)
+                        .accessibilityLabel("Copy analytics ID")
+                    }
+                    Button {
+                        HapticsHelper.impact(.medium)
+                        AnalyticsManager.shared.resetInstallID()
+                        analyticsID = AnalyticsManager.shared.installID
+                    } label: {
+                        HStack {
+                            Image(systemName: "arrow.counterclockwise")
+                            Text("Reset analytics ID")
+                        }
+                        .foregroundColor(.blue)
+                    }
+                    Text("This random ID is a persistent identifier stored on this device only; it is never restored from backups. Copy it and email \("raudel@raudel.lat") to request access to or deletion of your analytics data.")
                         .font(.caption)
                         .foregroundColor(.secondary)
 
