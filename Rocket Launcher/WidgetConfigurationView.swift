@@ -71,13 +71,21 @@ struct WidgetConfigurationView: View {
             .navigationTitle("Widget Configuration")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Cancel") {
+                        dismiss()
+                    }
+                    .foregroundColor(.blue)
+                }
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Done") {
+                    Button {
                         applyColorToWidgets()
                         WidgetCenter.shared.reloadAllTimelines()
                         dismiss()
+                    } label: {
+                        Image(systemName: "checkmark")
+                            .fontWeight(.semibold)
                     }
-                    .fontWeight(.semibold)
                     .foregroundColor(.blue)
                 }
             }
