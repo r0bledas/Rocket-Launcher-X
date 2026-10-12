@@ -2,14 +2,18 @@
 //  AppCatalog.swift
 //  Rocket Launcher
 //
-//  Bundled directory of popular apps and their URL schemes.
+//  Directory of apps and their URL schemes / universal links.
 //
-//  The catalog is intentionally a plain static list behind this struct so it can
-//  later be swapped for a remote source (e.g. a self-hosted server) without
-//  changing any UI code.
+//  The app fetches a maintained, community list from GitHub at runtime and
+//  falls back to the bundled list below when offline. Results are cached to
+//  disk so subsequent launches are instant.
+//
+//  Remote source: https://github.com/sxp-studio/app-list-catalog (MIT)
 //
 
-struct CatalogApp: Identifiable, Hashable {
+import SwiftUI
+
+struct CatalogApp: Identifiable, Hashable, Codable {
     let name: String
     let scheme: String
     let category: String
@@ -18,7 +22,11 @@ struct CatalogApp: Identifiable, Hashable {
 }
 
 enum AppCatalog {
-    static let apps: [CatalogApp] = [
+    /// Remote list (fetchable JSON).
+    static let remoteURL = URL(string: "https://raw.githubusercontent.com/sxp-studio/app-list-catalog/main/apps.json")!
+
+    /// Offline fallback used before the first successful fetch.
+    static let bundled: [CatalogApp] = [
         // MARK: Apple
         CatalogApp(name: "Settings", scheme: "App-Prefs:root=", category: "Apple"),
         CatalogApp(name: "App Store", scheme: "itms-apps://", category: "Apple"),
@@ -123,12 +131,85 @@ enum AppCatalog {
     ]
 
     /// A flat search over name and scheme, case-insensitive.
-    static func search(_ query: String) -> [CatalogApp] {
+    static func search(_ query: String, in apps: [CatalogApp]) -> [CatalogApp] {
         let q = query.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !q.isEmpty else { return apps }
         return apps.filter {
             $0.name.localizedCaseInsensitiveContains(q) ||
             $0.scheme.localizedCaseInsensitiveContains(q)
         }
+    }
+
+    // MARK: - Remote loading
+
+    private struct RemoteApp: Decodable {
+        let name: String
+        let url: String
+        let isFirstParty: Bool?
+    }
+
+    private static var cacheFileURL: URL? {
+        guard let caches = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first else {
+            return nil
+        }
+        let dir = caches.appendingPathComponent("AppCatalog", isDirectory: true)
+        try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        return dir.appendingPathComponent("apps.json")
+    }
+
+    /// Fetches the remote catalog, falling back to a fresh disk cache and then nil.
+    static func fetchRemote() async -> [CatalogApp]? {
+        if let cached = cachedAppsIfFresh() {
+            return cached
+        }
+        do {
+            let (data, _) = try await URLSession.shared.data(from: remoteURL)
+            if let url = cacheFileURL {
+                try? data.write(to: url)
+            }
+            return decodeRemote(data) ?? bundled
+        } catch {
+            return nil
+        }
+    }
+
+    private static func cachedAppsIfFresh() -> [CatalogApp]? {
+        guard let url = cacheFileURL,
+              let attrs = try? FileManager.default.attributesOfItem(atPath: url.path),
+              let modified = attrs[.modificationDate] as? Date,
+              Date().timeIntervalSince(modified) < 7 * 24 * 3600,
+              let data = try? Data(contentsOf: url) else {
+            return nil
+        }
+        return decodeRemote(data)
+    }
+
+    private static func decodeRemote(_ data: Data) -> [CatalogApp]? {
+        guard let remote = try? JSONDecoder().decode([RemoteApp].self, from: data), !remote.isEmpty else {
+            return nil
+        }
+        return remote
+            .filter { !$0.url.isEmpty && !$0.url.hasPrefix("shortcuts://") }
+            .map { CatalogApp(name: $0.name, scheme: $0.url, category: ($0.isFirstParty == true ? "Apple" : "Apps")) }
+            .sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
+    }
+}
+
+/// Observable holder for the catalog used by the app picker.
+final class AppCatalogStore: ObservableObject {
+    @Published var apps: [CatalogApp] = AppCatalog.bundled
+    @Published var isLoading = false
+
+    private var didAttempt = false
+
+    @MainActor
+    func loadRemoteIfNeeded() async {
+        guard !didAttempt else { return }
+        didAttempt = true
+        isLoading = true
+        if let remote = await AppCatalog.fetchRemote() {
+            apps = remote
+        }
+        isLoading = false
     }
 }

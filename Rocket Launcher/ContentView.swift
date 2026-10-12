@@ -1227,6 +1227,7 @@ struct AppPickerView: View {
     let launcherID: Int
     @Environment(\.dismiss) private var dismiss
 
+    @StateObject private var catalog = AppCatalogStore()
     @State private var searchText = ""
     @State private var advancedMode = false
     @State private var customName = ""
@@ -1237,7 +1238,7 @@ struct AppPickerView: View {
     }
 
     private var filteredApps: [CatalogApp] {
-        AppCatalog.search(searchText)
+        AppCatalog.search(searchText, in: catalog.apps)
     }
 
     var body: some View {
@@ -1348,6 +1349,9 @@ struct AppPickerView: View {
             .onAppear {
                 customName = current.name
                 customScheme = current.urlScheme
+            }
+            .task {
+                await catalog.loadRemoteIfNeeded()
             }
         }
     }
