@@ -45,7 +45,11 @@ final class LaunchOverlayModel: ObservableObject {
 
     func setImageData(_ data: Data) {
         guard let picked = UIImage(data: data) else { return }
-        let scaled = picked.downscaled(maxDimension: 2400)
+        setImage(picked)
+    }
+
+    func setImage(_ picked: UIImage) {
+        let scaled = picked.normalizedUp().downscaled(maxDimension: 2400)
         image = scaled
 
         guard let url = fileURL else { return }
@@ -77,6 +81,15 @@ private extension UIImage {
             draw(in: CGRect(origin: .zero, size: newSize))
         }
     }
+
+    /// Bakes EXIF orientation into the pixels so aspect-ratio math is reliable.
+    func normalizedUp() -> UIImage {
+        guard imageOrientation != .up else { return self }
+        let renderer = UIGraphicsImageRenderer(size: size)
+        return renderer.image { _ in
+            draw(in: CGRect(origin: .zero, size: size))
+        }
+    }
 }
 
 // MARK: - Overlay content
@@ -97,6 +110,112 @@ struct LaunchOverlayView: View {
             }
         }
         .ignoresSafeArea()
+    }
+}
+
+// MARK: - Crop (for images that don't match the device aspect ratio)
+
+struct WallpaperCropView: View {
+    let image: UIImage
+    let onCancel: () -> Void
+    let onUse: (UIImage) -> Void
+
+    @State private var offset: CGSize = .zero
+    @State private var committedOffset: CGSize = .zero
+
+    var body: some View {
+        GeometryReader { geo in
+            let frame = geo.size
+            let display = displaySize(in: frame)
+            let current = clamped(
+                CGSize(width: committedOffset.width + offset.width,
+                       height: committedOffset.height + offset.height),
+                display: display,
+                frame: frame
+            )
+
+            ZStack {
+                Color.black.ignoresSafeArea()
+
+                Image(uiImage: image)
+                    .resizable()
+                    .frame(width: display.width, height: display.height)
+                    .offset(x: current.width, y: current.height)
+                    .frame(width: frame.width, height: frame.height)
+                    .clipped()
+                    .contentShape(Rectangle())
+                    .gesture(
+                        DragGesture()
+                            .onChanged { offset = $0.translation }
+                            .onEnded { value in
+                                committedOffset = clamped(
+                                    CGSize(width: committedOffset.width + value.translation.width,
+                                           height: committedOffset.height + value.translation.height),
+                                    display: display,
+                                    frame: frame
+                                )
+                                offset = .zero
+                            }
+                    )
+            }
+        }
+        .ignoresSafeArea()
+        .overlay(alignment: .bottom) {
+            Button {
+                onUse(renderCrop())
+            } label: {
+                Text("Use Image")
+                    .font(.headline)
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(Color.blue)
+                    .cornerRadius(14)
+            }
+            .padding(.horizontal, 24)
+            .padding(.bottom, 40)
+        }
+        .overlay(alignment: .top) {
+            HStack {
+                Button("Cancel") { onCancel() }
+                    .foregroundColor(.white)
+                Spacer()
+                Text("Drag to position")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                Spacer()
+                Color.clear.frame(width: 52, height: 1)
+            }
+            .padding()
+            .background(.ultraThinMaterial)
+        }
+    }
+
+    private func displaySize(in frame: CGSize) -> CGSize {
+        guard image.size.width > 0, image.size.height > 0 else { return frame }
+        let scale = max(frame.width / image.size.width, frame.height / image.size.height)
+        return CGSize(width: image.size.width * scale, height: image.size.height * scale)
+    }
+
+    private func clamped(_ offset: CGSize, display: CGSize, frame: CGSize) -> CGSize {
+        let maxX = max(0, (display.width - frame.width) / 2)
+        let maxY = max(0, (display.height - frame.height) / 2)
+        return CGSize(width: min(max(offset.width, -maxX), maxX),
+                      height: min(max(offset.height, -maxY), maxY))
+    }
+
+    private func renderCrop() -> UIImage {
+        let frame = UIScreen.main.bounds.size
+        let display = displaySize(in: frame)
+        let clampedOffset = clamped(committedOffset, display: display, frame: frame)
+        let renderer = UIGraphicsImageRenderer(size: frame)
+        return renderer.image { _ in
+            let origin = CGPoint(
+                x: (frame.width - display.width) / 2 + clampedOffset.width,
+                y: (frame.height - display.height) / 2 + clampedOffset.height
+            )
+            image.draw(in: CGRect(origin: origin, size: display))
+        }
     }
 }
 

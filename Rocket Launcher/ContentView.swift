@@ -1686,6 +1686,11 @@ struct AdvancedAppForm: View {
 }
 
 // MARK: - Settings View
+private struct IdentifiableImage: Identifiable {
+    let id = UUID()
+    let image: UIImage
+}
+
 struct SettingsView: View {
     @ObservedObject var store: AppLauncherStore
     @ObservedObject private var ads = AdsManager.shared
@@ -1694,6 +1699,8 @@ struct SettingsView: View {
     @AppStorage("ShowURLSchemes", store: UserDefaults(suiteName: appGroupID)) private var showURLSchemes = false
     @State private var wallpaperItem: PhotosPickerItem? = nil
     @State private var wallpaperImage: UIImage? = nil
+    @State private var isProcessingWallpaper = false
+    @State private var cropImage: IdentifiableImage? = nil
     // Import/Export functionality
     @State private var showingImportAlert = false
     @State private var showingExportAlert = false
@@ -1743,6 +1750,15 @@ struct SettingsView: View {
         let scale = screen.scale
         let nativeScale = screen.nativeScale
         return String(format: "%.0f/%.0f", scale, nativeScale)
+    }
+
+    /// True when the image already matches this device's screen aspect ratio.
+    private func matchesScreenAspect(_ image: UIImage) -> Bool {
+        let screen = UIScreen.main.bounds
+        guard screen.height > 0, image.size.height > 0 else { return false }
+        let screenRatio = screen.width / screen.height
+        let imageRatio = image.size.width / image.size.height
+        return abs(imageRatio - screenRatio) < 0.02
     }
     
     var body: some View {
@@ -1840,6 +1856,16 @@ struct SettingsView: View {
                         }
                         .frame(width: 52, height: 92)
                         .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                        .overlay {
+                            if isProcessingWallpaper {
+                                ZStack {
+                                    Color.black.opacity(0.55)
+                                    ProgressView()
+                                        .tint(.white)
+                                }
+                                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                            }
+                        }
 
                         VStack(alignment: .leading, spacing: 4) {
                             Text("Shown while switching apps")
@@ -1854,6 +1880,7 @@ struct SettingsView: View {
                     PhotosPicker(selection: $wallpaperItem, matching: .images) {
                         Label(wallpaperImage == nil ? "Choose Image" : "Change Image", systemImage: "photo.on.rectangle")
                     }
+                    .disabled(isProcessingWallpaper)
 
                     if wallpaperImage != nil {
                         Button(role: .destructive) {
@@ -1863,20 +1890,39 @@ struct SettingsView: View {
                             wallpaperItem = nil
                         } label: {
                             Label("Remove Wallpaper", systemImage: "trash")
+                                .foregroundColor(.red)
                         }
                     }
                 }
                 .onChange(of: wallpaperItem) { _, newItem in
                     guard let newItem else { return }
+                    isProcessingWallpaper = true
                     Task {
-                        if let data = try? await newItem.loadTransferable(type: Data.self) {
-                            await MainActor.run {
-                                LaunchOverlayModel.shared.setImageData(data)
+                        let data = try? await newItem.loadTransferable(type: Data.self)
+                        await MainActor.run {
+                            isProcessingWallpaper = false
+                            guard let data, let image = UIImage(data: data) else { return }
+                            if matchesScreenAspect(image) {
+                                LaunchOverlayModel.shared.setImage(image)
                                 wallpaperImage = LaunchOverlayModel.shared.image
                                 HapticsHelper.impact(.medium)
+                            } else {
+                                cropImage = IdentifiableImage(image: image)
                             }
                         }
                     }
+                }
+                .fullScreenCover(item: $cropImage) { item in
+                    WallpaperCropView(
+                        image: item.image,
+                        onCancel: { cropImage = nil },
+                        onUse: { cropped in
+                            LaunchOverlayModel.shared.setImage(cropped)
+                            wallpaperImage = LaunchOverlayModel.shared.image
+                            HapticsHelper.impact(.medium)
+                            cropImage = nil
+                        }
+                    )
                 }
                 
                 Section(header: Text("PRIVACY").font(.headline)) {
