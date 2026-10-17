@@ -1400,6 +1400,8 @@ struct AppPickerView: View {
                             .accessibilityLabel("Clear search")
                         }
                     }
+                    .contentShape(Rectangle())
+                    .onTapGesture { searchFocused = true }
                     .background(
                         GeometryReader { geo in
                             Color.clear.preference(
@@ -1549,6 +1551,7 @@ struct AppPickerView: View {
         Text(title)
             .font(.subheadline.weight(.semibold))
             .foregroundColor(.white)
+            .padding(.leading, -4)
     }
 
     @ViewBuilder
