@@ -1710,6 +1710,8 @@ struct AdvancedAppForm: View {
 
     @State private var previewIcon: UIImage?
     @State private var fetchedKey: String = ""
+    @State private var testMessage = ""
+    @State private var showingTestAlert = false
 
     var body: some View {
         List {
@@ -1749,6 +1751,17 @@ struct AdvancedAppForm: View {
             } footer: {
                 Text("Enter a custom title and URL scheme, e.g. myapp://")
             }
+
+            Section {
+                Button {
+                    testScheme()
+                } label: {
+                    Label("Test URL Scheme", systemImage: "play.circle")
+                }
+                .disabled(scheme.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+            } footer: {
+                Text("Opens the scheme in the target app. If nothing happens, the app may not be installed or the scheme may be wrong.")
+            }
         }
         .navigationTitle("Custom App")
         .navigationBarTitleDisplayMode(.inline)
@@ -1763,6 +1776,29 @@ struct AdvancedAppForm: View {
                         .fontWeight(.semibold)
                 }
                 .accessibilityLabel("Save custom app")
+            }
+        }
+        .alert("URL Scheme Test", isPresented: $showingTestAlert) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text(testMessage)
+        }
+    }
+
+    private func testScheme() {
+        let trimmed = scheme.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard let url = URL(string: trimmed), url.scheme != nil else {
+            testMessage = "That doesn’t look like a valid URL scheme. Try something like myapp://"
+            showingTestAlert = true
+            return
+        }
+        HapticsHelper.impact(.medium)
+        UIApplication.shared.open(url, options: [:]) { success in
+            DispatchQueue.main.async {
+                testMessage = success
+                    ? "Opened \(trimmed) successfully."
+                    : "Could not open \(trimmed). The app may not be installed, or the scheme may be wrong."
+                showingTestAlert = true
             }
         }
     }
