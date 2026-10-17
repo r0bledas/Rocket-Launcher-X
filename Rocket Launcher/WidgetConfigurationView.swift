@@ -29,8 +29,8 @@ struct WidgetConfigurationView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.scenePhase) private var scenePhase
     
-    @State private var backgroundColor: Color = Color(hex: "#242424")
-    @State private var customHexInput: String = "#242424"
+    @State private var backgroundColor: Color = Color(hex: "#000000")
+    @State private var customHexInput: String = "#000000"
     @State private var selectedAlignment: TextAlignmentOption = .leading
     @State private var iconsEnabled: Bool = true
     @State private var selectedPreviewType: PreviewWidgetType = .launcher

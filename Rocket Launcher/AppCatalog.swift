@@ -48,10 +48,12 @@ enum AppCatalog {
         CatalogApp(name: "Apple News", scheme: "applenews://", category: "Apple"),
         CatalogApp(name: "Shortcuts", scheme: "shortcuts://", category: "Apple"),
         CatalogApp(name: "Clock", scheme: "clock://", category: "Apple"),
+        CatalogApp(name: "Passwords", scheme: "apple-otpauth-migration://", category: "Apple"),
 
         // MARK: Social
         CatalogApp(name: "Instagram", scheme: "instagram://", category: "Social"),
         CatalogApp(name: "Facebook", scheme: "fb://", category: "Social"),
+        CatalogApp(name: "Facebook Marketplace", scheme: "https://m.facebook.com/marketplace/", category: "Social"),
         CatalogApp(name: "Messenger", scheme: "fb-messenger://", category: "Social"),
         CatalogApp(name: "WhatsApp", scheme: "whatsapp://", category: "Social"),
         CatalogApp(name: "Telegram", scheme: "tg://", category: "Social"),
@@ -79,6 +81,7 @@ enum AppCatalog {
         CatalogApp(name: "Deezer", scheme: "deezer://", category: "Media"),
         CatalogApp(name: "VLC", scheme: "vlc://", category: "Media"),
         CatalogApp(name: "Audible", scheme: "audible://", category: "Media"),
+        CatalogApp(name: "Amperfy", scheme: "amperfy://", category: "Media"),
 
         // MARK: Productivity & Utilities
         CatalogApp(name: "Google Chrome", scheme: "googlechrome://", category: "Productivity"),
@@ -107,6 +110,15 @@ enum AppCatalog {
         CatalogApp(name: "1Password", scheme: "onepassword://", category: "Productivity"),
         CatalogApp(name: "Bitwarden", scheme: "bitwarden://", category: "Productivity"),
         CatalogApp(name: "LastPass", scheme: "lastpass://", category: "Productivity"),
+        CatalogApp(name: "ChatGPT", scheme: "chatgpt://", category: "Productivity"),
+        CatalogApp(name: "Claude", scheme: "claude://", category: "Productivity"),
+        CatalogApp(name: "DeepSeek", scheme: "deepseek://", category: "Productivity"),
+        CatalogApp(name: "Gemini", scheme: "googlegemini://", category: "Productivity"),
+        CatalogApp(name: "CamScanner", scheme: "camscanner://", category: "Productivity"),
+
+        // MARK: Utilities
+        CatalogApp(name: "Mi Telcel", scheme: "mitelcel://", category: "Utilities"),
+        CatalogApp(name: "SmartFlow", scheme: "smartflow://", category: "Utilities"),
 
         // MARK: Navigation & Transport
         CatalogApp(name: "Waze", scheme: "waze://", category: "Navigation"),
@@ -116,10 +128,14 @@ enum AppCatalog {
 
         // MARK: Shopping & Finance
         CatalogApp(name: "Amazon", scheme: "amzn://", category: "Shopping"),
+        CatalogApp(name: "Amazon MX", scheme: "https://www.amazon.com.mx/", category: "Shopping"),
+        CatalogApp(name: "Amazon US", scheme: "https://www.amazon.com/", category: "Shopping"),
+        CatalogApp(name: "Mercado Libre", scheme: "https://www.mercadolibre.com.mx/", category: "Shopping"),
         CatalogApp(name: "eBay", scheme: "ebay://", category: "Shopping"),
         CatalogApp(name: "PayPal", scheme: "paypal://", category: "Finance"),
         CatalogApp(name: "Venmo", scheme: "venmo://", category: "Finance"),
         CatalogApp(name: "Cash App", scheme: "squarecash://", category: "Finance"),
+        CatalogApp(name: "BBVA", scheme: "bbvamovilmx://", category: "Finance"),
 
         // MARK: News & Reading
         CatalogApp(name: "Flipboard", scheme: "flipboard://", category: "News"),
@@ -127,7 +143,11 @@ enum AppCatalog {
         CatalogApp(name: "Feedly", scheme: "feedly://", category: "News"),
 
         // MARK: Games
-        CatalogApp(name: "Steam", scheme: "steam://", category: "Games")
+        CatalogApp(name: "Steam", scheme: "steam://", category: "Games"),
+        CatalogApp(name: "Clash Royale", scheme: "clashroyale://", category: "Games"),
+        CatalogApp(name: "Brawl Stars", scheme: "brawlstars://", category: "Games"),
+        CatalogApp(name: "Minecraft", scheme: "minecraft://", category: "Games"),
+        CatalogApp(name: "Chess", scheme: "fb2427617054://", category: "Games")
     ]
 
     /// Relevance-ranked search over name and scheme.
