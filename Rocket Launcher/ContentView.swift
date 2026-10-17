@@ -1440,24 +1440,35 @@ struct AppPickerView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItemGroup(placement: .navigationBarLeading) {
-                    Button {
-                        HapticsHelper.impact(.light)
-                        dismiss()
-                    } label: {
-                        Image(systemName: "xmark")
-                            .fontWeight(.semibold)
-                    }
-                    .accessibilityLabel("Cancel")
+                    if advancedMode {
+                        Button {
+                            HapticsHelper.impact(.light)
+                            advancedMode = false
+                        } label: {
+                            Image(systemName: "chevron.backward")
+                                .fontWeight(.semibold)
+                        }
+                        .accessibilityLabel("Back to app list")
+                    } else {
+                        Button {
+                            HapticsHelper.impact(.light)
+                            dismiss()
+                        } label: {
+                            Image(systemName: "xmark")
+                                .fontWeight(.semibold)
+                        }
+                        .accessibilityLabel("Cancel")
 
-                    Button(role: .destructive) {
-                        HapticsHelper.impact(.heavy)
-                        store.clearLauncher(id: launcherID)
-                        dismiss()
-                    } label: {
-                        Image(systemName: "trash")
+                        Button(role: .destructive) {
+                            HapticsHelper.impact(.heavy)
+                            store.clearLauncher(id: launcherID)
+                            dismiss()
+                        } label: {
+                            Image(systemName: "trash")
+                        }
+                        .tint(.red)
+                        .accessibilityLabel("Clear slot")
                     }
-                    .tint(.red)
-                    .accessibilityLabel("Clear slot")
                 }
                 ToolbarItem(placement: .navigationBarTrailing) {
                     if advancedMode {
@@ -1481,7 +1492,7 @@ struct AppPickerView: View {
                             HapticsHelper.impact(.light)
                             advancedMode = true
                         } label: {
-                            Image(systemName: "ellipsis.circle")
+                            Image(systemName: "ellipsis")
                         }
                         .accessibilityLabel("Advanced options")
                     }
