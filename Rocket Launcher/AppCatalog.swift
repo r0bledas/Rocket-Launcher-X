@@ -18,7 +18,7 @@ struct CatalogApp: Identifiable, Hashable, Codable {
     let scheme: String
     let category: String
 
-    var id: String { scheme }
+    var id: String { "\(name)|\(scheme)" }
 }
 
 enum AppCatalog {
@@ -323,13 +323,16 @@ enum AppCatalog {
     /// Merges two catalogs, keeping the first occurrence of each app name
     /// (so bundled/curated entries win) and sorting the result by name.
     static func merge(_ primary: [CatalogApp], _ secondary: [CatalogApp]) -> [CatalogApp] {
-        var seen = Set<String>()
+        var seenNames = Set<String>()
+        var seenSchemes = Set<String>()
         var result: [CatalogApp] = []
         for app in primary + secondary {
-            let key = app.name.lowercased()
-            if seen.insert(key).inserted {
-                result.append(app)
-            }
+            let nameKey = app.name.lowercased()
+            let schemeKey = app.scheme.lowercased()
+            guard !seenNames.contains(nameKey), !seenSchemes.contains(schemeKey) else { continue }
+            seenNames.insert(nameKey)
+            seenSchemes.insert(schemeKey)
+            result.append(app)
         }
         return result.sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
     }
