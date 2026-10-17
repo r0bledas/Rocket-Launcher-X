@@ -1346,6 +1346,7 @@ struct AppPickerView: View {
     @State private var advancedMode = false
     @State private var customName = ""
     @State private var customScheme = ""
+    @FocusState private var searchFocused: Bool
     @AppStorage("ShowURLSchemes", store: UserDefaults(suiteName: appGroupID)) private var showURLSchemes = false
 
     private var current: AppLauncher {
@@ -1383,6 +1384,7 @@ struct AppPickerView: View {
                         TextField("Search apps", text: $searchText)
                             .textInputAutocapitalization(.words)
                             .autocorrectionDisabled()
+                            .focused($searchFocused)
                         if !searchText.isEmpty {
                             Button {
                                 HapticsHelper.impact(.light)
@@ -1463,6 +1465,10 @@ struct AppPickerView: View {
                     }
                 }
             }
+            .scrollDismissesKeyboard(.interactively)
+            .simultaneousGesture(
+                TapGesture().onEnded { searchFocused = false }
+            )
             .navigationTitle("Add App")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -1499,6 +1505,13 @@ struct AppPickerView: View {
                         Image(systemName: "ellipsis")
                     }
                     .accessibilityLabel("Advanced options")
+                }
+                ToolbarItemGroup(placement: .keyboard) {
+                    Spacer()
+                    Button("Done") {
+                        HapticsHelper.impact(.light)
+                        searchFocused = false
+                    }
                 }
             }
             .navigationDestination(isPresented: $advancedMode) {
