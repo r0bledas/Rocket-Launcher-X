@@ -186,6 +186,51 @@ enum AppCatalog {
             .map { $0.app }
     }
 
+    /// Curated, non-alphabetical order for the "Suggested" section: popular
+    /// social/messaging first, then media, AI/productivity, Apple preinstalled
+    /// utilities, shopping/finance, navigation, games and news. Anything not
+    /// listed falls through to alphabetical order.
+    static let suggestedPriority: [String] = [
+        // Social & messaging
+        "instagram", "whatsapp", "tiktok", "facebook", "messenger", "telegram",
+        "snapchat", "discord", "x / twitter", "reddit", "linkedin", "pinterest",
+        "viber", "wechat", "line", "tumblr",
+        // Media
+        "youtube", "spotify", "netflix", "apple music", "twitch", "soundcloud",
+        "hulu", "disney+", "deezer", "shazam", "audible", "vlc", "amperfy",
+        "podcasts", "books",
+        // AI & productivity
+        "chatgpt", "claude", "gemini", "deepseek", "google", "google maps",
+        "gmail", "google drive", "google chrome", "notion", "slack", "zoom",
+        "microsoft teams", "outlook", "trello", "onenote", "evernote", "things",
+        "todoist", "bear", "notability", "goodnotes", "fantastical", "spark",
+        "firefox", "brave", "camscanner", "1password", "bitwarden", "lastpass",
+        // Apple preinstalled / utilities
+        "settings", "camera", "photos", "files", "calendar", "clock",
+        "reminders", "notes", "safari", "mail", "phone", "messages", "facetime",
+        "maps", "app store", "shortcuts", "passwords",
+        // Shopping & finance
+        "amazon", "amazon mx", "amazon us", "mercado libre", "ebay", "paypal",
+        "venmo", "cash app", "bbva",
+        // Navigation
+        "waze", "uber", "lyft", "citymapper",
+        // Games
+        "steam", "clash royale", "brawl stars", "minecraft", "chess",
+        // News & reading
+        "flipboard", "pocket", "feedly"
+    ]
+
+    /// Orders apps by `suggestedPriority`, falling back to alphabetical.
+    static func orderSuggested(_ apps: [CatalogApp]) -> [CatalogApp] {
+        let order = Dictionary(uniqueKeysWithValues: suggestedPriority.enumerated().map { ($1, $0) })
+        return apps.sorted { a, b in
+            let ra = order[a.name.lowercased()] ?? Int.max
+            let rb = order[b.name.lowercased()] ?? Int.max
+            if ra != rb { return ra < rb }
+            return a.name.localizedCaseInsensitiveCompare(b.name) == .orderedAscending
+        }
+    }
+
     /// Merges two catalogs, keeping the first occurrence of each app name
     /// (so bundled/curated entries win) and sorting the result by name.
     static func merge(_ primary: [CatalogApp], _ secondary: [CatalogApp]) -> [CatalogApp] {

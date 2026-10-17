@@ -1291,10 +1291,12 @@ struct AppPickerView: View {
         AppCatalog.search(searchText, in: catalog.apps)
     }
 
-    /// Curated famous apps (our bundled list) shown as "Suggested" before searching.
+    /// Curated famous apps (our bundled list) shown as "Suggested" before searching,
+    /// ordered by popularity/category rather than alphabetically.
     private var suggestedApps: [CatalogApp] {
         let curated = Set(AppCatalog.bundled.map { $0.name.lowercased() })
-        return catalog.apps.filter { curated.contains($0.name.lowercased()) }
+        let curatedApps = catalog.apps.filter { curated.contains($0.name.lowercased()) }
+        return AppCatalog.orderSuggested(curatedApps)
     }
 
     private var otherApps: [CatalogApp] {
