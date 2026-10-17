@@ -1401,7 +1401,7 @@ struct AppPickerView: View {
             .navigationTitle("Add App")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItemGroup(placement: .navigationBarLeading) {
+                ToolbarItem(placement: .navigationBarLeading) {
                     Button {
                         HapticsHelper.impact(.light)
                         dismiss()
@@ -1410,7 +1410,12 @@ struct AppPickerView: View {
                             .fontWeight(.semibold)
                     }
                     .accessibilityLabel("Cancel")
-
+                }
+                if #available(iOS 26.0, *) {
+                    // Keep Cancel and Clear as separate glass items (not one merged pill).
+                    ToolbarSpacer(.fixed, placement: .navigationBarLeading)
+                }
+                ToolbarItem(placement: .navigationBarLeading) {
                     Button(role: .destructive) {
                         HapticsHelper.impact(.heavy)
                         store.clearLauncher(id: launcherID)
