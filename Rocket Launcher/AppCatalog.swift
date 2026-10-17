@@ -212,40 +212,17 @@ enum AppCatalog {
     }
 
     /// Number of curated apps shown in the picker's "Suggested" section.
-    static let suggestedLimit = 20
+    static let suggestedLimit = 28
 
-    /// Curated, non-alphabetical order for the "Suggested" section: popular
-    /// social/messaging first, then media, AI/productivity, Apple preinstalled
-    /// utilities, shopping/finance, navigation, games and news. Anything not
-    /// listed falls through to alphabetical order.
+    /// Top free apps by downloads, in order, from AppMagic's top charts
+    /// (worldwide, App Store, 2026-10-15). Unsupported chart entries are
+    /// skipped, so this is the top `suggestedLimit` apps we can launch.
     static let suggestedPriority: [String] = [
-        // Social & messaging
-        "instagram", "whatsapp", "tiktok", "facebook", "messenger", "telegram",
-        "snapchat", "discord", "x / twitter", "reddit", "linkedin", "pinterest",
-        "viber", "wechat", "line", "tumblr",
-        // Media
-        "youtube", "spotify", "netflix", "apple music", "twitch", "soundcloud",
-        "hulu", "disney+", "deezer", "shazam", "audible", "vlc", "amperfy",
-        "podcasts", "books",
-        // AI & productivity
-        "chatgpt", "claude", "gemini", "deepseek", "google", "google maps",
-        "gmail", "google drive", "google chrome", "notion", "slack", "zoom",
-        "microsoft teams", "outlook", "trello", "onenote", "evernote", "things",
-        "todoist", "bear", "notability", "goodnotes", "fantastical", "spark",
-        "firefox", "brave", "camscanner", "1password", "bitwarden", "lastpass",
-        // Apple preinstalled / utilities
-        "settings", "camera", "photos", "files", "calendar", "clock",
-        "reminders", "notes", "safari", "mail", "phone", "messages", "facetime",
-        "maps", "app store", "shortcuts", "passwords",
-        // Shopping & finance
-        "amazon", "amazon mx", "amazon us", "mercado libre", "ebay", "paypal",
-        "venmo", "cash app", "bbva",
-        // Navigation
-        "waze", "uber", "lyft", "citymapper",
-        // Games
-        "steam", "clash royale", "brawl stars", "minecraft", "chess",
-        // News & reading
-        "flipboard", "pocket", "feedly"
+        "chatgpt", "whatsapp", "tiktok", "instagram", "facebook", "snapchat",
+        "telegram", "roblox", "messenger", "capcut", "pinterest", "gemini",
+        "spotify", "block blast!", "claude", "threads", "youtube", "duolingo",
+        "zoom", "x / twitter", "canva", "temu", "uber", "firefox", "amazon",
+        "netflix", "microsoft teams", "microsoft word"
     ]
 
     /// Orders apps by `suggestedPriority`, falling back to alphabetical.
