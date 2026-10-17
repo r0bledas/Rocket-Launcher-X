@@ -1078,6 +1078,7 @@ struct WidgetLaunchersConfigView: View {
     @ObservedObject var store: AppLauncherStore
     @Environment(\.dismiss) private var dismiss
     @AppStorage("HasPurchasedExtraWidgets", store: UserDefaults(suiteName: appGroupID)) private var hasPurchasedExtraWidgets: Bool = false
+    @AppStorage("ShowURLSchemes", store: UserDefaults(suiteName: appGroupID)) private var showURLSchemes = false
     @State private var showPurchaseAlert = false
     @State private var showNoAdAlert = false
     @State private var editingLauncher: AppLauncher? = nil
@@ -1168,6 +1169,12 @@ struct WidgetLaunchersConfigView: View {
                                         LauncherSlotView(launcher: launcher, slotNumber: index)
                                     }
                                     .buttonStyle(.plain)
+                                    .listRowInsets(EdgeInsets(
+                                        top: showURLSchemes ? 6 : 1,
+                                        leading: 16,
+                                        bottom: showURLSchemes ? 6 : 1,
+                                        trailing: 16
+                                    ))
                                     .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                                         Button {
                                             HapticsHelper.impact(.light)
@@ -1297,11 +1304,13 @@ struct LauncherSlotView: View {
 
             Image(systemName: "chevron.right")
                 .font(.footnote)
-                .foregroundColor(.secondary)
+                .foregroundColor(.white)
         }
-        .padding(.vertical, 6)
+        .padding(.vertical, showURLSchemes ? 6 : 2)
         .contentShape(Rectangle())
     }
+
+    private var iconSize: CGFloat { showURLSchemes ? 44 : 32 }
 
     private var iconPreview: some View {
         Group {
@@ -1309,15 +1318,15 @@ struct LauncherSlotView: View {
                 Image(uiImage: img)
                     .resizable()
                     .scaledToFill()
-                    .frame(width: 44, height: 44)
-                    .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                    .frame(width: iconSize, height: iconSize)
+                    .clipShape(RoundedRectangle(cornerRadius: iconSize * 0.2237, style: .continuous))
             } else {
-                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                RoundedRectangle(cornerRadius: iconSize * 0.2237, style: .continuous)
                     .fill(Color.white.opacity(0.08))
-                    .frame(width: 44, height: 44)
+                    .frame(width: iconSize, height: iconSize)
                     .overlay(
                         Image(systemName: "app.dashed")
-                            .font(.title3)
+                            .font(.system(size: iconSize * 0.4))
                             .foregroundColor(Color.white.opacity(0.4))
                     )
             }
