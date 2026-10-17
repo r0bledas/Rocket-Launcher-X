@@ -68,6 +68,7 @@ enum AppCatalog {
         CatalogApp(name: "Viber", scheme: "viber://", category: "Social"),
         CatalogApp(name: "WeChat", scheme: "weixin://", category: "Social"),
         CatalogApp(name: "Line", scheme: "line://", category: "Social"),
+        CatalogApp(name: "Threads", scheme: "barcelona://", category: "Social"),
 
         // MARK: Media
         CatalogApp(name: "Spotify", scheme: "spotify://", category: "Media"),
@@ -82,6 +83,10 @@ enum AppCatalog {
         CatalogApp(name: "VLC", scheme: "vlc://", category: "Media"),
         CatalogApp(name: "Audible", scheme: "audible://", category: "Media"),
         CatalogApp(name: "Amperfy", scheme: "amperfy://", category: "Media"),
+        CatalogApp(name: "CapCut", scheme: "capcut://", category: "Media"),
+        CatalogApp(name: "Amazon Prime Video", scheme: "aiv://", category: "Media"),
+        CatalogApp(name: "Tubi", scheme: "tubi://", category: "Media"),
+        CatalogApp(name: "Peacock", scheme: "peacock://", category: "Media"),
 
         // MARK: Productivity & Utilities
         CatalogApp(name: "Google Chrome", scheme: "googlechrome://", category: "Productivity"),
@@ -115,16 +120,25 @@ enum AppCatalog {
         CatalogApp(name: "DeepSeek", scheme: "deepseek://", category: "Productivity"),
         CatalogApp(name: "Gemini", scheme: "googlegemini://", category: "Productivity"),
         CatalogApp(name: "CamScanner", scheme: "camscanner://", category: "Productivity"),
+        CatalogApp(name: "Duolingo", scheme: "duolingo://", category: "Productivity"),
+        CatalogApp(name: "Canva", scheme: "canva://", category: "Productivity"),
+        CatalogApp(name: "Microsoft Word", scheme: "ms-word://", category: "Productivity"),
+        CatalogApp(name: "Adobe Acrobat Reader", scheme: "acrobat://", category: "Productivity"),
+        CatalogApp(name: "Indeed", scheme: "indeed://", category: "Productivity"),
 
         // MARK: Utilities
         CatalogApp(name: "Mi Telcel", scheme: "mitelcel://", category: "Utilities"),
         CatalogApp(name: "SmartFlow", scheme: "smartflow://", category: "Utilities"),
+        CatalogApp(name: "Windy.com", scheme: "windy://", category: "Utilities"),
+        CatalogApp(name: "Life360", scheme: "life360://", category: "Utilities"),
 
         // MARK: Navigation & Transport
         CatalogApp(name: "Waze", scheme: "waze://", category: "Navigation"),
         CatalogApp(name: "Uber", scheme: "uber://", category: "Navigation"),
         CatalogApp(name: "Lyft", scheme: "lyft://", category: "Navigation"),
         CatalogApp(name: "Citymapper", scheme: "citymapper://", category: "Navigation"),
+        CatalogApp(name: "Rappi", scheme: "rappi://", category: "Navigation"),
+        CatalogApp(name: "DiDi Rider", scheme: "didi://", category: "Navigation"),
 
         // MARK: Shopping & Finance
         CatalogApp(name: "Amazon", scheme: "amzn://", category: "Shopping"),
@@ -132,10 +146,19 @@ enum AppCatalog {
         CatalogApp(name: "Amazon US", scheme: "https://www.amazon.com/", category: "Shopping"),
         CatalogApp(name: "Mercado Libre", scheme: "https://www.mercadolibre.com.mx/", category: "Shopping"),
         CatalogApp(name: "eBay", scheme: "ebay://", category: "Shopping"),
+        CatalogApp(name: "Temu", scheme: "temu://", category: "Shopping"),
+        CatalogApp(name: "SHEIN", scheme: "shein://", category: "Shopping"),
+        CatalogApp(name: "AliExpress", scheme: "aliexpress://", category: "Shopping"),
+        CatalogApp(name: "Vinted", scheme: "vinted://", category: "Shopping"),
+        CatalogApp(name: "DoorDash", scheme: "doordash://", category: "Shopping"),
+        CatalogApp(name: "McDonald's", scheme: "mcdonalds://", category: "Shopping"),
         CatalogApp(name: "PayPal", scheme: "paypal://", category: "Finance"),
         CatalogApp(name: "Venmo", scheme: "venmo://", category: "Finance"),
         CatalogApp(name: "Cash App", scheme: "squarecash://", category: "Finance"),
         CatalogApp(name: "BBVA", scheme: "bbvamovilmx://", category: "Finance"),
+        CatalogApp(name: "Mercado Pago", scheme: "mercadopago://", category: "Finance"),
+        CatalogApp(name: "Nu", scheme: "https://nubank.com.br", category: "Finance"),
+        CatalogApp(name: "Chime", scheme: "chime://", category: "Finance"),
 
         // MARK: News & Reading
         CatalogApp(name: "Flipboard", scheme: "flipboard://", category: "News"),
@@ -147,7 +170,9 @@ enum AppCatalog {
         CatalogApp(name: "Clash Royale", scheme: "clashroyale://", category: "Games"),
         CatalogApp(name: "Brawl Stars", scheme: "brawlstars://", category: "Games"),
         CatalogApp(name: "Minecraft", scheme: "minecraft://", category: "Games"),
-        CatalogApp(name: "Chess", scheme: "fb2427617054://", category: "Games")
+        CatalogApp(name: "Chess", scheme: "fb2427617054://", category: "Games"),
+        CatalogApp(name: "Roblox", scheme: "roblox://", category: "Games"),
+        CatalogApp(name: "Block Blast!", scheme: "blockblast://", category: "Games")
     ]
 
     /// Relevance-ranked search over name and scheme.
