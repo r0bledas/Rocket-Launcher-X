@@ -9,6 +9,7 @@ import SwiftUI
 import WidgetKit
 import UIKit
 import UniformTypeIdentifiers
+import PhotosUI
 import Network
 
 
@@ -326,8 +327,6 @@ struct ContentView: View {
     @State private var showingWidgetConfiguration = false
     @State private var showingWidgetLaunchersConfig = false
     @Environment(\.scenePhase) private var scenePhase
-    @State private var showBlackout = false
-    @State private var blackoutHideWorkItem: DispatchWorkItem? = nil
     @State private var didJustRefreshWidgets = false
     @StateObject private var appLauncherStore = AppLauncherStore()
     @EnvironmentObject var storeManager: StoreManager
@@ -349,13 +348,7 @@ struct ContentView: View {
             mainView
                 .ignoresSafeArea(.all, edges: .all)
             
-            // Blackout overlay
-            if showBlackout {
-                Color.black
-                    .ignoresSafeArea()
-                    .transition(.opacity)
-                    .zIndex(100)
-            }
+            // Splash on cold launch
             if showSplash {
                 Color.black.ignoresSafeArea()
             }
@@ -376,24 +369,13 @@ struct ContentView: View {
             PaywallView()
                 .environmentObject(storeManager)
         }
-        .onChange(of: scenePhase) { oldPhase, newPhase in
+        .onChange(of: scenePhase) { _, newPhase in
             if newPhase != .active {
-                blackoutHideWorkItem?.cancel()
-                withAnimation(.linear(duration: 0.08)) {
-                    showBlackout = true
-                }
+                LaunchOverlayWindow.shared.show()
             } else {
                 // Warm up the haptics engine whenever the app becomes active.
                 HapticsHelper.prepare()
-                // Delay hiding the blackout overlay by 0.5s
-                blackoutHideWorkItem?.cancel()
-                let workItem = DispatchWorkItem {
-                    withAnimation(.linear(duration: 0.08)) {
-                        showBlackout = false
-                    }
-                }
-                blackoutHideWorkItem = workItem
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5, execute: workItem)
+                LaunchOverlayWindow.shared.hide(after: 0.5)
             }
         }
         .onAppear {
@@ -1710,6 +1692,8 @@ struct SettingsView: View {
     @EnvironmentObject var storeManager: StoreManager
     @Environment(\.dismiss) private var dismiss
     @AppStorage("ShowURLSchemes", store: UserDefaults(suiteName: appGroupID)) private var showURLSchemes = false
+    @State private var wallpaperItem: PhotosPickerItem? = nil
+    @State private var wallpaperImage: UIImage? = nil
     // Import/Export functionality
     @State private var showingImportAlert = false
     @State private var showingExportAlert = false
@@ -1837,6 +1821,62 @@ struct SettingsView: View {
                         .onChange(of: showURLSchemes) { _, _ in
                             HapticsHelper.impact(.light)
                         }
+                }
+                
+                Section(header: Text("LAUNCH BACKGROUND").font(.headline)) {
+                    HStack(spacing: 12) {
+                        Group {
+                            if let image = wallpaperImage {
+                                Image(uiImage: image)
+                                    .resizable()
+                                    .scaledToFill()
+                            } else {
+                                Color.black
+                                    .overlay(
+                                        Image(systemName: "photo")
+                                            .foregroundColor(.secondary)
+                                    )
+                            }
+                        }
+                        .frame(width: 52, height: 92)
+                        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Shown while switching apps")
+                                .font(.subheadline.weight(.semibold))
+                            Text("Pick an image similar to your Home Screen wallpaper so the launch/return transition blends in. Stored on this device only.")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                    .padding(.vertical, 2)
+
+                    PhotosPicker(selection: $wallpaperItem, matching: .images) {
+                        Label(wallpaperImage == nil ? "Choose Image" : "Change Image", systemImage: "photo.on.rectangle")
+                    }
+
+                    if wallpaperImage != nil {
+                        Button(role: .destructive) {
+                            HapticsHelper.impact(.light)
+                            LaunchOverlayModel.shared.clear()
+                            wallpaperImage = nil
+                            wallpaperItem = nil
+                        } label: {
+                            Label("Remove Wallpaper", systemImage: "trash")
+                        }
+                    }
+                }
+                .onChange(of: wallpaperItem) { _, newItem in
+                    guard let newItem else { return }
+                    Task {
+                        if let data = try? await newItem.loadTransferable(type: Data.self) {
+                            await MainActor.run {
+                                LaunchOverlayModel.shared.setImageData(data)
+                                wallpaperImage = LaunchOverlayModel.shared.image
+                                HapticsHelper.impact(.medium)
+                            }
+                        }
+                    }
                 }
                 
                 Section(header: Text("PRIVACY").font(.headline)) {
@@ -2129,6 +2169,7 @@ struct SettingsView: View {
             }
             .navigationTitle("Settings")
             .navigationBarTitleDisplayMode(.inline)
+            .onAppear { wallpaperImage = LaunchOverlayModel.shared.image }
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button {
