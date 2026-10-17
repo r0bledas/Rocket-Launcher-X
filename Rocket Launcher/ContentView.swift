@@ -1710,8 +1710,8 @@ struct AdvancedAppForm: View {
 
     @State private var previewIcon: UIImage?
     @State private var fetchedKey: String = ""
-    @State private var testMessage = ""
-    @State private var showingTestAlert = false
+    @State private var testStatus: String?
+    @State private var iconStatus: String?
 
     var body: some View {
         List {
@@ -1754,13 +1754,41 @@ struct AdvancedAppForm: View {
 
             Section {
                 Button {
+                    HapticsHelper.impact(.light)
+                    refreshPreviewIfNeeded(force: true)
+                } label: {
+                    Label("Force Fetch Icon", systemImage: "arrow.clockwise")
+                }
+                .disabled(name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || !AppIconFetch.isEnabled)
+
+                if let iconStatus {
+                    Text(iconStatus)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+            } header: {
+                Text("ICON")
+            } footer: {
+                if AppIconFetch.isEnabled {
+                    Text("Fetches the icon for the title above from Apple.")
+                } else {
+                    Text("Enable “Fetch app icons from Apple” in Settings first.")
+                }
+            }
+
+            Section {
+                Button {
                     testScheme()
                 } label: {
                     Label("Test URL Scheme", systemImage: "play.circle")
                 }
                 .disabled(scheme.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
             } footer: {
-                Text("Opens the scheme in the target app. If nothing happens, the app may not be installed or the scheme may be wrong.")
+                if let testStatus {
+                    Text(testStatus)
+                } else {
+                    Text("Opens the scheme in the target app. If nothing happens, the app may not be installed or the scheme may be wrong.")
+                }
             }
         }
         .navigationTitle("Custom App")
@@ -1778,27 +1806,20 @@ struct AdvancedAppForm: View {
                 .accessibilityLabel("Save custom app")
             }
         }
-        .alert("URL Scheme Test", isPresented: $showingTestAlert) {
-            Button("OK", role: .cancel) { }
-        } message: {
-            Text(testMessage)
-        }
     }
 
     private func testScheme() {
         let trimmed = scheme.trimmingCharacters(in: .whitespacesAndNewlines)
         guard let url = URL(string: trimmed), url.scheme != nil else {
-            testMessage = "That doesn’t look like a valid URL scheme. Try something like myapp://"
-            showingTestAlert = true
+            testStatus = "That doesn’t look like a valid URL scheme. Try something like myapp://"
             return
         }
         HapticsHelper.impact(.medium)
         UIApplication.shared.open(url, options: [:]) { success in
             DispatchQueue.main.async {
-                testMessage = success
+                testStatus = success
                     ? "Opened \(trimmed) successfully."
                     : "Could not open \(trimmed). The app may not be installed, or the scheme may be wrong."
-                showingTestAlert = true
             }
         }
     }
@@ -1824,19 +1845,31 @@ struct AdvancedAppForm: View {
     }
 
     /// Fetches a preview icon once a scheme is completed with "://".
-    private func refreshPreviewIfNeeded() {
+    private func refreshPreviewIfNeeded(force: Bool = false) {
         let title = name.trimmingCharacters(in: .whitespacesAndNewlines)
         let trimmedScheme = scheme.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard trimmedScheme.hasSuffix("://"), !title.isEmpty, AppIconFetch.isEnabled else { return }
+        guard !title.isEmpty, AppIconFetch.isEnabled else { return }
+        guard force || trimmedScheme.hasSuffix("://") else { return }
 
         let key = "\(title)|\(trimmedScheme)"
-        guard key != fetchedKey else { return }
+        if !force {
+            guard key != fetchedKey else { return }
+        }
         fetchedKey = key
+        iconStatus = "Fetching icon…"
 
         fetchIconForAppName(appName: title) { result in
             DispatchQueue.main.async {
-                if case .success(let data) = result, let image = UIImage(data: data) {
-                    previewIcon = image
+                switch result {
+                case .success(let data):
+                    if let image = UIImage(data: data) {
+                        previewIcon = image
+                        iconStatus = "Icon updated."
+                    } else {
+                        iconStatus = "No icon found."
+                    }
+                case .failure:
+                    iconStatus = "No icon found."
                 }
             }
         }
