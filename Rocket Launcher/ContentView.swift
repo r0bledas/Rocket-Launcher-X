@@ -1311,191 +1311,134 @@ struct AppPickerView: View {
     var body: some View {
         NavigationStack {
             List {
-                if advancedMode {
-                    Section {
-                        TextField("Title", text: $customName)
-                        TextField("URL Scheme", text: $customScheme)
-                            .keyboardType(.URL)
-                            .textInputAutocapitalization(.never)
+                Section {
+                    HStack(spacing: 8) {
+                        Image(systemName: "magnifyingglass")
+                            .foregroundColor(.secondary)
+                        TextField("Search apps", text: $searchText)
+                            .textInputAutocapitalization(.words)
                             .autocorrectionDisabled()
+                        if !searchText.isEmpty {
+                            Button {
+                                HapticsHelper.impact(.light)
+                                searchText = ""
+                            } label: {
+                                Image(systemName: "xmark.circle.fill")
+                                    .foregroundColor(.secondary)
+                            }
+                            .buttonStyle(.plain)
+                            .accessibilityLabel("Clear search")
+                        }
+                    }
+                }
+
+                if isSearching {
+                    Section {
+                        if filteredApps.isEmpty {
+                            Text("No apps match “\(searchText)”.")
+                                .foregroundColor(.secondary)
+                        } else {
+                            ForEach(filteredApps) { app in
+                                catalogButton(app)
+                            }
+                        }
                     } header: {
-                        Text("CUSTOM APP")
-                    } footer: {
-                        Text("Enter a custom title and URL scheme, e.g. myapp://")
+                        sectionHeader(filteredApps.isEmpty ? "NO RESULTS" : "\(filteredApps.count) APPS")
+                    }
+
+                    Section {
+                        Button {
+                            HapticsHelper.impact(.light)
+                            let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+                            let term = "\"\(query)\" app url scheme prefix"
+                            if let encoded = term.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
+                               let url = URL(string: "https://www.google.com/search?q=\(encoded)") {
+                                UIApplication.shared.open(url)
+                            }
+                        } label: {
+                            HStack(spacing: 12) {
+                                Image(systemName: "safari")
+                                    .font(.title3)
+                                    .foregroundColor(.blue)
+                                    .frame(width: 40, height: 40)
+
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("Look up “\(searchText)” URL scheme")
+                                        .font(.subheadline.weight(.semibold))
+                                        .foregroundColor(.white)
+                                    Text("Opens Google in Safari")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                }
+
+                                Spacer()
+
+                                Image(systemName: "arrow.up.right")
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                    } header: {
+                        sectionHeader("CAN'T FIND IT?")
                     }
                 } else {
                     Section {
-                        HStack(spacing: 8) {
-                            Image(systemName: "magnifyingglass")
-                                .foregroundColor(.secondary)
-                            TextField("Search apps", text: $searchText)
-                                .textInputAutocapitalization(.words)
-                                .autocorrectionDisabled()
-                            if !searchText.isEmpty {
-                                Button {
-                                    HapticsHelper.impact(.light)
-                                    searchText = ""
-                                } label: {
-                                    Image(systemName: "xmark.circle.fill")
-                                        .foregroundColor(.secondary)
-                                }
-                                .buttonStyle(.plain)
-                                .accessibilityLabel("Clear search")
-                            }
+                        ForEach(suggestedApps) { app in
+                            catalogButton(app)
                         }
+                    } header: {
+                        sectionHeader("SUGGESTED")
                     }
 
-                    if isSearching {
-                        Section {
-                            if filteredApps.isEmpty {
-                                Text("No apps match “\(searchText)”.")
-                                    .foregroundColor(.secondary)
-                            } else {
-                                ForEach(filteredApps) { app in
-                                    Button {
-                                        HapticsHelper.impact(.medium)
-                                        store.setLauncher(id: launcherID, name: app.name, scheme: app.scheme)
-                                        dismiss()
-                                    } label: {
-                                        catalogRow(app)
-                                    }
-                                }
-                            }
-                        } header: {
-                            Text(filteredApps.isEmpty ? "NO RESULTS" : "\(filteredApps.count) APPS")
+                    Section {
+                        ForEach(otherApps) { app in
+                            catalogButton(app)
                         }
-                    } else {
-                        Section {
-                            ForEach(suggestedApps) { app in
-                                Button {
-                                    HapticsHelper.impact(.medium)
-                                    store.setLauncher(id: launcherID, name: app.name, scheme: app.scheme)
-                                    dismiss()
-                                } label: {
-                                    catalogRow(app)
-                                }
-                            }
-                        } header: {
-                            Text("SUGGESTED")
-                                .font(.caption.weight(.bold))
-                                .foregroundColor(.white)
-                        }
-
-                        Section {
-                            ForEach(otherApps) { app in
-                                Button {
-                                    HapticsHelper.impact(.medium)
-                                    store.setLauncher(id: launcherID, name: app.name, scheme: app.scheme)
-                                    dismiss()
-                                } label: {
-                                    catalogRow(app)
-                                }
-                            }
-                        } header: {
-                            Text("MORE APPS")
-                                .font(.caption.weight(.bold))
-                                .foregroundColor(.white)
-                        }
-                    }
-
-                    if !searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                        Section {
-                            Button {
-                                HapticsHelper.impact(.light)
-                                let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
-                                let term = "\"\(query)\" app url scheme prefix"
-                                if let encoded = term.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
-                                   let url = URL(string: "https://www.google.com/search?q=\(encoded)") {
-                                    UIApplication.shared.open(url)
-                                }
-                            } label: {
-                                HStack(spacing: 12) {
-                                    Image(systemName: "safari")
-                                        .font(.title3)
-                                        .foregroundColor(.blue)
-                                        .frame(width: 40, height: 40)
-
-                                    VStack(alignment: .leading, spacing: 2) {
-                                        Text("Look up “\(searchText)” URL scheme")
-                                            .font(.subheadline.weight(.semibold))
-                                            .foregroundColor(.white)
-                                        Text("Opens Google in Safari")
-                                            .font(.caption)
-                                            .foregroundColor(.secondary)
-                                    }
-
-                                    Spacer()
-
-                                    Image(systemName: "arrow.up.right")
-                                        .foregroundColor(.secondary)
-                                }
-                            }
-                        } header: {
-                            Text("CAN'T FIND IT?")
-                        }
+                    } header: {
+                        sectionHeader("MORE APPS")
                     }
                 }
             }
-            .navigationTitle(advancedMode ? "Custom App" : "Add App")
+            .navigationTitle("Add App")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItemGroup(placement: .navigationBarLeading) {
-                    if advancedMode {
-                        Button {
-                            HapticsHelper.impact(.light)
-                            advancedMode = false
-                        } label: {
-                            Image(systemName: "chevron.backward")
-                                .fontWeight(.semibold)
-                        }
-                        .accessibilityLabel("Back to app list")
-                    } else {
-                        Button {
-                            HapticsHelper.impact(.light)
-                            dismiss()
-                        } label: {
-                            Image(systemName: "xmark")
-                                .fontWeight(.semibold)
-                        }
-                        .accessibilityLabel("Cancel")
-
-                        Button(role: .destructive) {
-                            HapticsHelper.impact(.heavy)
-                            store.clearLauncher(id: launcherID)
-                            dismiss()
-                        } label: {
-                            Image(systemName: "trash")
-                        }
-                        .tint(.red)
-                        .accessibilityLabel("Clear slot")
+                    Button {
+                        HapticsHelper.impact(.light)
+                        dismiss()
+                    } label: {
+                        Image(systemName: "xmark")
+                            .fontWeight(.semibold)
                     }
+                    .accessibilityLabel("Cancel")
+
+                    Button(role: .destructive) {
+                        HapticsHelper.impact(.heavy)
+                        store.clearLauncher(id: launcherID)
+                        dismiss()
+                    } label: {
+                        Image(systemName: "trash")
+                    }
+                    .tint(.red)
+                    .accessibilityLabel("Clear slot")
                 }
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    if advancedMode {
-                        Button {
-                            HapticsHelper.impact(.medium)
-                            let name = customName.trimmingCharacters(in: .whitespacesAndNewlines)
-                            let scheme = customScheme.trimmingCharacters(in: .whitespacesAndNewlines)
-                            if name.isEmpty {
-                                store.clearLauncher(id: launcherID)
-                            } else {
-                                store.setLauncher(id: launcherID, name: name, scheme: scheme)
-                            }
-                            dismiss()
-                        } label: {
-                            Image(systemName: "checkmark")
-                                .fontWeight(.semibold)
-                        }
-                        .accessibilityLabel("Save custom app")
-                    } else {
-                        Button {
-                            HapticsHelper.impact(.light)
-                            advancedMode = true
-                        } label: {
-                            Image(systemName: "ellipsis")
-                        }
-                        .accessibilityLabel("Advanced options")
+                    Button {
+                        HapticsHelper.impact(.light)
+                        advancedMode = true
+                    } label: {
+                        Image(systemName: "ellipsis")
                     }
+                    .accessibilityLabel("Advanced options")
+                }
+            }
+            .navigationDestination(isPresented: $advancedMode) {
+                AdvancedAppForm(name: $customName, scheme: $customScheme) { name, scheme in
+                    if name.isEmpty {
+                        store.clearLauncher(id: launcherID)
+                    } else {
+                        store.setLauncher(id: launcherID, name: name, scheme: scheme)
+                    }
+                    dismiss()
                 }
             }
             .onAppear {
@@ -1508,9 +1451,30 @@ struct AppPickerView: View {
         }
     }
 
+    private func sectionHeader(_ title: String) -> some View {
+        Text(title)
+            .font(.subheadline.weight(.semibold))
+            .foregroundColor(.white)
+    }
+
+    @ViewBuilder
+    private func catalogButton(_ app: CatalogApp) -> some View {
+        Button {
+            HapticsHelper.impact(.medium)
+            store.setLauncher(id: launcherID, name: app.name, scheme: app.scheme)
+            dismiss()
+        } label: {
+            catalogRow(app)
+        }
+        .listRowInsets(EdgeInsets(top: showURLSchemes ? 8 : 3,
+                                  leading: 16,
+                                  bottom: showURLSchemes ? 8 : 3,
+                                  trailing: 16))
+    }
+
     private func catalogRow(_ app: CatalogApp) -> some View {
         HStack(spacing: 12) {
-            CatalogIconView(name: app.name)
+            CatalogIconView(name: app.name, size: showURLSchemes ? 40 : 30)
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(app.name)
@@ -1528,6 +1492,44 @@ struct AppPickerView: View {
             Image(systemName: "plus.circle.fill")
                 .font(.title2)
                 .foregroundColor(.blue)
+        }
+    }
+}
+
+// MARK: - Advanced (custom) app form
+struct AdvancedAppForm: View {
+    @Binding var name: String
+    @Binding var scheme: String
+    let onSave: (String, String) -> Void
+
+    var body: some View {
+        List {
+            Section {
+                TextField("Title", text: $name)
+                TextField("URL Scheme", text: $scheme)
+                    .keyboardType(.URL)
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled()
+            } header: {
+                Text("CUSTOM APP")
+            } footer: {
+                Text("Enter a custom title and URL scheme, e.g. myapp://")
+            }
+        }
+        .navigationTitle("Custom App")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button {
+                    HapticsHelper.impact(.medium)
+                    onSave(name.trimmingCharacters(in: .whitespacesAndNewlines),
+                           scheme.trimmingCharacters(in: .whitespacesAndNewlines))
+                } label: {
+                    Image(systemName: "checkmark")
+                        .fontWeight(.semibold)
+                }
+                .accessibilityLabel("Save custom app")
+            }
         }
     }
 }
