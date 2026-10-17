@@ -364,6 +364,7 @@ enum AppCatalog {
         var inApps = false
         var current: String? = nil
         var seen = Set<String>()
+        var schemeSeen = Set<String>()
         var out: [CatalogApp] = []
 
         for raw in lines {
@@ -385,7 +386,11 @@ enum AppCatalog {
             let scheme = String(body[r])
             guard validScheme(scheme) != nil,
                   !scheme.lowercased().hasPrefix("shortcuts://"),
-                  !scheme.contains("$"), !scheme.contains("{"), !scheme.contains("}") else { continue }
+                  !scheme.contains("$"), !scheme.contains("{"), !scheme.contains("}"),
+                  isPlainLaunchScheme(scheme),
+                  !isIDStyleScheme(scheme) else { continue }
+            // One entry per scheme (deep-link variants are filtered above).
+            guard schemeSeen.insert(scheme.lowercased()).inserted else { continue }
             let label = String(body[body.startIndex..<r.lowerBound])
                 .replacingOccurrences(of: "[", with: "")
                 .replacingOccurrences(of: "]", with: "")
@@ -408,6 +413,25 @@ enum AppCatalog {
                 .trimmingCharacters(in: .whitespaces)
         }
         return s.trimmingCharacters(in: .whitespaces)
+    }
+
+    /// Accepts only plain `scheme://` launch URLs (nothing after the scheme) so
+    /// deep-link variants (paths, queries, templates) don't clutter the list.
+    private static func isPlainLaunchScheme(_ url: String) -> Bool {
+        guard let colon = url.firstIndex(of: ":") else { return false }
+        let after = url[url.index(after: colon)...]
+        guard after.hasPrefix("//") else { return true }
+        return after.dropFirst(2).isEmpty
+    }
+
+    /// Detects app-scoped numeric IDs (e.g. fb2427617054, db-06fps1zo86up2h9)
+    /// that aren't stable, human-usable schemes.
+    private static func isIDStyleScheme(_ url: String) -> Bool {
+        let name = url.split(separator: ":", maxSplits: 1).first?.lowercased() ?? ""
+        if name.range(of: "^[a-z]+[0-9]{6,}$", options: .regularExpression) != nil { return true }
+        if name.range(of: "[0-9]{8,}", options: .regularExpression) != nil { return true }
+        if name.contains("-"), name.range(of: "[0-9]", options: .regularExpression) != nil { return true }
+        return false
     }
 }
 

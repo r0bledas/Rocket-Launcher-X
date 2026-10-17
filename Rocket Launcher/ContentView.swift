@@ -1219,9 +1219,6 @@ struct LauncherSlotView: View {
             iconPreview
 
             VStack(alignment: .leading, spacing: 3) {
-                Text("Slot \(slotNumber + 1)")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
                 if launcher.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                     Text("Empty — tap to add an app")
                         .font(.subheadline)
@@ -1286,8 +1283,23 @@ struct AppPickerView: View {
         store.launchers.first(where: { $0.id == launcherID }) ?? AppLauncher(id: launcherID)
     }
 
+    private var isSearching: Bool {
+        !searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+
     private var filteredApps: [CatalogApp] {
         AppCatalog.search(searchText, in: catalog.apps)
+    }
+
+    /// Curated famous apps (our bundled list) shown as "Suggested" before searching.
+    private var suggestedApps: [CatalogApp] {
+        let curated = Set(AppCatalog.bundled.map { $0.name.lowercased() })
+        return catalog.apps.filter { curated.contains($0.name.lowercased()) }
+    }
+
+    private var otherApps: [CatalogApp] {
+        let curated = Set(AppCatalog.bundled.map { $0.name.lowercased() })
+        return catalog.apps.filter { !curated.contains($0.name.lowercased()) }
     }
 
     var body: some View {
@@ -1327,12 +1339,28 @@ struct AppPickerView: View {
                         }
                     }
 
-                    Section {
-                        if filteredApps.isEmpty {
-                            Text("No apps match “\(searchText)”.")
-                                .foregroundColor(.secondary)
-                        } else {
-                            ForEach(filteredApps) { app in
+                    if isSearching {
+                        Section {
+                            if filteredApps.isEmpty {
+                                Text("No apps match “\(searchText)”.")
+                                    .foregroundColor(.secondary)
+                            } else {
+                                ForEach(filteredApps) { app in
+                                    Button {
+                                        HapticsHelper.impact(.medium)
+                                        store.setLauncher(id: launcherID, name: app.name, scheme: app.scheme)
+                                        dismiss()
+                                    } label: {
+                                        catalogRow(app)
+                                    }
+                                }
+                            }
+                        } header: {
+                            Text(filteredApps.isEmpty ? "NO RESULTS" : "\(filteredApps.count) APPS")
+                        }
+                    } else {
+                        Section {
+                            ForEach(suggestedApps) { app in
                                 Button {
                                     HapticsHelper.impact(.medium)
                                     store.setLauncher(id: launcherID, name: app.name, scheme: app.scheme)
@@ -1341,9 +1369,23 @@ struct AppPickerView: View {
                                     catalogRow(app)
                                 }
                             }
+                        } header: {
+                            Text("SUGGESTED")
                         }
-                    } header: {
-                        Text(filteredApps.isEmpty ? "NO RESULTS" : "\(filteredApps.count) APPS")
+
+                        Section {
+                            ForEach(otherApps) { app in
+                                Button {
+                                    HapticsHelper.impact(.medium)
+                                    store.setLauncher(id: launcherID, name: app.name, scheme: app.scheme)
+                                    dismiss()
+                                } label: {
+                                    catalogRow(app)
+                                }
+                            }
+                        } header: {
+                            Text("MORE APPS")
+                        }
                     }
 
                     if !searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
