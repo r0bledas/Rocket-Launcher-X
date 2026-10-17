@@ -32,7 +32,7 @@
   <h2>1. Summary</h2>
   <ul>
     <li>We do <strong>not</strong> collect your name, email, contacts, photos, precise location, or the contents of your device.</li>
-    <li>Usage analytics is <strong>off by default and opt-in</strong>. When enabled, it sends the app name and full URL scheme you launch, the widget/slot, and the local hour of day under a pseudonymous install ID.</li>
+    <li>Usage analytics is <strong>on by default and can be turned off at any time</strong>. It sends the app name and full URL scheme you launch, the widget/slot, and the local hour of day under a pseudonymous install ID.</li>
     <li>The App shows ads through <strong>Google AdMob</strong>. With your permission ads may be personalized; otherwise they are non-personalized.</li>
     <li>You can withdraw consent and reset/delete data from <em>Settings → Privacy</em>.</li>
   </ul>
@@ -50,9 +50,9 @@
     <li>An optional <strong>launch background image</strong> you choose is stored locally on your device and is never transmitted to us.</li>
   </ul>
 
-  <h3>3.2 Usage analytics (pseudonymous, opt-in)</h3>
+  <h3>3.2 Usage analytics (pseudonymous, on by default)</h3>
   <ul>
-    <li><strong>Off by default.</strong> Nothing is sent until you turn on “Share anonymous usage data”. Our legal basis is your <strong>consent</strong>.</li>
+    <li><strong>On by default.</strong> You can turn it off at any time with “Share anonymous usage data” in Settings → Privacy. Where local law requires consent for analytics, turning it off withdraws that consent.</li>
     <li>When enabled: an app-launch event with the <strong>app name and full URL scheme</strong> (including custom schemes you type), the <strong>widget number and slot</strong>, the local <strong>hour of day</strong>, the launch source (widget or in-app), and basic device context (device model, OS version, app version, region).</li>
     <li>A random <strong>install identifier</strong> (a persistent identifier) stored in the Keychain on this device only. It is not your identity and is not restored from backups.</li>
     <li><strong>Reset</strong> it any time with “Reset analytics ID” in Settings. To request <strong>access to or deletion of</strong> your analytics data, copy the ID shown in Settings and email it to <a href="mailto:raudel@raudel.lat">raudel@raudel.lat</a>.</li>
@@ -76,7 +76,7 @@
 
   <h2>4. How We Use Information</h2>
   <ul>
-    <li>To understand aggregate usage and improve features and reliability (analytics, with consent).</li>
+    <li>To understand aggregate usage and improve features and reliability (analytics, on by default and opt-out).</li>
     <li>To display ads (personalized only with your consent/permission).</li>
     <li>To verify entitlements for purchased or rewarded features.</li>
   </ul>
@@ -88,13 +88,13 @@
     <tr><td>Google AdMob</td><td>Ad request data, and (if you allow tracking) IDFA/advertising data</td><td>When ads are requested</td></tr>
     <tr><td>Apple (iTunes Search API)</td><td>The app name being looked up (catalog or custom)</td><td>When fetching an icon (disable in Settings)</td></tr>
     <tr><td>GitHub (raw.githubusercontent.com)</td><td>An app-catalog request (no personal data)</td><td>When loading the community catalog (disable in Settings)</td></tr>
-    <tr><td>Our analytics server (self-hosted)</td><td>App name, URL scheme, widget/slot, hour of day, pseudonymous ID, and IP address</td><td>Only if you opt in and analytics is enabled</td></tr>
+    <tr><td>Our analytics server (self-hosted)</td><td>App name, URL scheme, widget/slot, hour of day, pseudonymous ID, and IP address</td><td>When analytics is enabled (on by default; you can turn it off)</td></tr>
     <tr><td>Google Search (google.com)</td><td>Your search text</td><td>Only when you tap “Look up … URL scheme” in the app</td></tr>
   </table>
   <p class="muted">Status-check / “ping test” network code is present only in commented-out, inactive source and makes no requests in the shipped build.</p>
 
   <h2>6. Legal Bases (GDPR)</h2>
-  <p>We rely on your <strong>consent</strong> for advertising and (optionally) analytics, and on <strong>contract/legitimate interest</strong> for providing core App functionality and honoring purchases. You may withdraw consent at any time (section 8).</p>
+  <p>We rely on your <strong>consent</strong> for advertising, on <strong>legitimate interest</strong> for pseudonymous analytics (on by default; you can object or turn it off at any time), and on <strong>contract/legitimate interest</strong> for providing core App functionality and honoring purchases.</p>
 
   <h2>7. Data Retention</h2>
   <p>Retention period: <span class="ph">[[RETENTION_PERIOD]]</span>. The local install identifier is kept until you reset it or delete the App.</p>
@@ -117,7 +117,7 @@
   </table>
 
   <h2>10. Mexico — Aviso de Privacidad (Summary)</h2>
-  <p>Responsable: <span class="ph">[[LEGAL_NAME]]</span>, <span class="ph">[[POSTAL_ADDRESS]]</span>. Datos personales tratados: identificadores seudónimos, datos de uso, e identificadores publicitarios (con consentimiento). Finalidades: analítica (opt-in), publicidad, y funcionamiento de la App. Puedes ejercer tus derechos <strong>ARCO</strong> (Acceso, Rectificación, Cancelación y Oposición) enviando tu solicitud al correo de contacto indicado. Una versión completa en español está disponible en el <a href="./privacy-es.html">Aviso de Privacidad (ES)</a> y está pendiente de revisión legal.</p>
+  <p>Responsable: <span class="ph">[[LEGAL_NAME]]</span>, <span class="ph">[[POSTAL_ADDRESS]]</span>. Datos personales tratados: identificadores seudónimos, datos de uso, e identificadores publicitarios (con consentimiento). Finalidades: analítica (activada por defecto, desactivable), publicidad, y funcionamiento de la App. Puedes ejercer tus derechos <strong>ARCO</strong> (Acceso, Rectificación, Cancelación y Oposición) enviando tu solicitud al correo de contacto indicado. Una versión completa en español está disponible en el <a href="./privacy-es.html">Aviso de Privacidad (ES)</a> y está pendiente de revisión legal.</p>
 
   <h2>11. Apple Watch App</h2>
   <p>The optional Apple Watch companion stores your recent search terms locally on the watch (up to 5) and opens web searches (Google) in the watch browser, sending your search text to Google when you search. You can clear the history from the Watch app. It does not collect analytics.</p>

@@ -5,12 +5,11 @@
 //  Privacy-first, pseudonymous usage analytics.
 //
 //  Design goals:
-//   - OPT-IN: disabled by default. Nothing is sent until the user turns on
+//   - ON BY DEFAULT (opt-out): the user can turn sharing off at any time in
 //     Settings → Privacy → "Share anonymous usage data".
 //   - App-launch events include the app name and the full URL scheme (including
 //     custom schemes), the widget number and slot, and the local hour of day.
-//     This is what lets us see which apps are tapped most and when. It is only
-//     ever sent with explicit opt-in consent.
+//     This is what lets us see which apps are tapped most and when.
 //   - Pseudonymous: a random install id stored in the Keychain
 //     (this-device-only). It is a persistent identifier, resettable in Settings.
 //     No IDFA, names, emails, precise location, or content.
@@ -105,9 +104,15 @@ final class AnalyticsManager {
 
     private let enabledKey = "AnalyticsEnabled"
 
-    /// Whether usage sharing is enabled. OPT-IN: missing value means disabled.
+    /// Whether usage sharing is enabled. ON BY DEFAULT (opt-out): only an
+    /// explicit user choice to turn it off is stored.
     var isEnabled: Bool {
-        get { UserDefaults(suiteName: appGroupID)?.bool(forKey: enabledKey) ?? false }
+        get {
+            if let stored = UserDefaults(suiteName: appGroupID)?.object(forKey: enabledKey) as? Bool {
+                return stored
+            }
+            return true
+        }
         set { UserDefaults(suiteName: appGroupID)?.set(newValue, forKey: enabledKey) }
     }
 
