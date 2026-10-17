@@ -309,22 +309,25 @@ private func loadIconImage(fileName: String?) -> UIImage? {
 
 /// Background for the widget's container.
 ///
-/// In the default (light) and dark Home Screen appearances, WidgetKit renders
-/// widgets in full color, so the user's static color is honored. On a tinted or
-/// clear Home Screen the system uses the `accented` rendering mode and replaces
-/// the background with its own Liquid Glass material — an opaque color drawn
-/// there gets tinted solid white, so we stay clear and let the system's glass
-/// show through.
+/// Two styles are supported, stored in the app group as `WidgetBackgroundStyle`:
+/// - `static` (default): always draw the exact hex colour. This avoids the
+///   system glass/tint material that can look like an unintended gradient.
+/// - `system`: on a tinted or clear Home Screen, stay clear and let iOS's
+///   Liquid Glass material show through. In full-colour mode the hex is drawn.
 struct StaticWidgetBackground: View {
     let hexColor: String
     @Environment(\.widgetRenderingMode) private var renderingMode
+
+    private var usesSystemMaterial: Bool {
+        (UserDefaults(suiteName: "group.rocketlauncher")?.string(forKey: "WidgetBackgroundStyle") ?? "static") == "system"
+    }
 
     var body: some View {
         let hex = hexColor.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
         let resolvedColor = (hex == "00000000" || hex.lowercased() == "clear") ? Color.black.opacity(0.95) : Color(hex: hexColor)
 
         Group {
-            if renderingMode == .accented {
+            if usesSystemMaterial && renderingMode == .accented {
                 Color.clear
             } else {
                 resolvedColor

@@ -31,6 +31,7 @@ struct WidgetConfigurationView: View {
     
     @State private var backgroundColor: Color = Color(hex: "#000000")
     @State private var customHexInput: String = "#000000"
+    @State private var backgroundStyle: String = "static"
     @State private var selectedAlignment: TextAlignmentOption = .leading
     @State private var iconsEnabled: Bool = true
     @State private var selectedPreviewType: PreviewWidgetType = .launcher
@@ -538,6 +539,25 @@ struct WidgetConfigurationView: View {
             Text("Enter a 3- or 6-digit hex code, or use the color picker above.")
                 .font(.caption2)
                 .foregroundColor(Color.white.opacity(0.5))
+
+            Divider()
+                .overlay(Color.white.opacity(0.1))
+
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Background style")
+                    .font(.caption)
+                    .foregroundColor(Color.white.opacity(0.7))
+
+                Picker("Background style", selection: $backgroundStyle) {
+                    Text("Static").tag("static")
+                    Text("System").tag("system")
+                }
+                .pickerStyle(.segmented)
+
+                Text("Static fills the widget with your exact hex colour. System uses iOS's glass or tint material, which can appear as a gradient.")
+                    .font(.caption2)
+                    .foregroundColor(Color.white.opacity(0.5))
+            }
         }
         .padding(16)
         .background(Color.gray.opacity(0.12))
@@ -732,6 +752,7 @@ struct WidgetConfigurationView: View {
         let userDefaults = UserDefaults(suiteName: appGroupID)
         let hexColor = backgroundColor.toHex()
         userDefaults?.set(hexColor, forKey: "WidgetBackgroundColor")
+        userDefaults?.set(backgroundStyle, forKey: "WidgetBackgroundStyle")
         userDefaults?.set(selectedAlignment.rawValue, forKey: "WidgetTextAlignment")
         userDefaults?.set(iconsEnabled, forKey: "WidgetIconsEnabled")
         userDefaults?.synchronize()
@@ -742,6 +763,7 @@ struct WidgetConfigurationView: View {
         let savedBackgroundColor = userDefaults?.string(forKey: "WidgetBackgroundColor") ?? "#242424"
         backgroundColor = Color(hex: savedBackgroundColor)
         customHexInput = savedBackgroundColor
+        backgroundStyle = userDefaults?.string(forKey: "WidgetBackgroundStyle") ?? "static"
         if let alignmentRaw = userDefaults?.string(forKey: "WidgetTextAlignment"),
            let option = TextAlignmentOption(rawValue: alignmentRaw) {
             selectedAlignment = option
