@@ -186,6 +186,9 @@ enum AppCatalog {
             .map { $0.app }
     }
 
+    /// Number of curated apps shown in the picker's "Suggested" section.
+    static let suggestedLimit = 20
+
     /// Curated, non-alphabetical order for the "Suggested" section: popular
     /// social/messaging first, then media, AI/productivity, Apple preinstalled
     /// utilities, shopping/finance, navigation, games and news. Anything not

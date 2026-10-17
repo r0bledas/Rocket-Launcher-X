@@ -1345,16 +1345,22 @@ struct AppPickerView: View {
     }
 
     /// Curated famous apps (our bundled list) shown as "Suggested" before searching,
-    /// ordered by popularity/category rather than alphabetically.
+    /// ordered by popularity/category rather than alphabetically. Capped to the
+    /// top `suggestedLimit`; the rest fall through to "More Apps".
     private var suggestedApps: [CatalogApp] {
         let curated = Set(AppCatalog.bundled.map { $0.name.lowercased() })
         let curatedApps = catalog.apps.filter { curated.contains($0.name.lowercased()) }
-        return AppCatalog.orderSuggested(curatedApps)
+        return Array(AppCatalog.orderSuggested(curatedApps).prefix(AppCatalog.suggestedLimit))
     }
 
     private var otherApps: [CatalogApp] {
+        let suggestedIDs = Set(suggestedApps.map { $0.id })
         let curated = Set(AppCatalog.bundled.map { $0.name.lowercased() })
-        return catalog.apps.filter { !curated.contains($0.name.lowercased()) }
+        let remainingCurated = catalog.apps.filter {
+            curated.contains($0.name.lowercased()) && !suggestedIDs.contains($0.id)
+        }
+        let rest = catalog.apps.filter { !curated.contains($0.name.lowercased()) }
+        return AppCatalog.orderSuggested(remainingCurated) + rest
     }
 
     var body: some View {
