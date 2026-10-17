@@ -7,6 +7,59 @@
 		<key>UIApplicationSupportsMultipleScenes</key>
 		<false/>
 	</dict>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>chatgpt</string>
+		<string>whatsapp</string>
+		<string>tiktok</string>
+		<string>instagram</string>
+		<string>fb</string>
+		<string>snapchat</string>
+		<string>tg</string>
+		<string>roblox</string>
+		<string>fb-messenger</string>
+		<string>capcut</string>
+		<string>pinterest</string>
+		<string>googlegemini</string>
+		<string>spotify</string>
+		<string>blockblast</string>
+		<string>claude</string>
+		<string>barcelona</string>
+		<string>youtube</string>
+		<string>duolingo</string>
+		<string>zoomus</string>
+		<string>twitter</string>
+		<string>canva</string>
+		<string>temu</string>
+		<string>uber</string>
+		<string>firefox</string>
+		<string>amzn</string>
+		<string>nflx</string>
+		<string>msteams</string>
+		<string>ms-word</string>
+		<string>googlegmail</string>
+		<string>googlechrome</string>
+		<string>comgooglemaps</string>
+		<string>googledrive</string>
+		<string>ms-outlook</string>
+		<string>slack</string>
+		<string>discord</string>
+		<string>reddit</string>
+		<string>linkedin</string>
+		<string>viber</string>
+		<string>weixin</string>
+		<string>line</string>
+		<string>sgnl</string>
+		<string>whatsapp-smb</string>
+		<string>truecaller</string>
+		<string>bluesky</string>
+		<string>hulu</string>
+		<string>disneyplus</string>
+		<string>hbomax</string>
+		<string>peacock</string>
+		<string>tubi</string>
+		<string>aiv</string>
+	</array>
 	<key>GADApplicationIdentifier</key>
 	<string>$(AD_APP_ID)</string>
 	<key>AdBannerUnitID</key>

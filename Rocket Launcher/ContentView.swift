@@ -1318,12 +1318,42 @@ struct LauncherSlotView: View {
 }
 
 // MARK: - App Picker (searchable catalog + advanced manual entry)
+/// On-device installed-app check for the picker. Public API limits us to the
+/// schemes declared in `LSApplicationQueriesSchemes` (Apple caps it at 50).
+@MainActor
+final class InstalledAppsStore: ObservableObject {
+    @Published private(set) var installedSchemes: Set<String> = []
+    private var lastRefresh = Date.distantPast
+
+    func refreshIfNeeded(force: Bool = false) {
+        guard force || Date().timeIntervalSince(lastRefresh) > 60 else { return }
+        lastRefresh = Date()
+        let declared = Bundle.main.object(forInfoDictionaryKey: "LSApplicationQueriesSchemes") as? [String] ?? []
+        var found = Set<String>()
+        for scheme in declared {
+            guard let url = URL(string: "\(scheme)://") else { continue }
+            if UIApplication.shared.canOpenURL(url) {
+                found.insert(scheme.lowercased())
+            }
+        }
+        installedSchemes = found
+    }
+
+    func isInstalled(scheme: String) -> Bool {
+        guard let colon = scheme.firstIndex(of: ":") else { return false }
+        let name = scheme[..<colon].lowercased()
+        return installedSchemes.contains(name)
+    }
+}
+
 struct AppPickerView: View {
     @ObservedObject var store: AppLauncherStore
     let launcherID: Int
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.scenePhase) private var scenePhase
 
     @StateObject private var catalog = AppCatalogStore()
+    @StateObject private var installedApps = InstalledAppsStore()
     @State private var searchText = ""
     @State private var advancedMode = false
     @State private var customName = ""
@@ -1340,7 +1370,7 @@ struct AppPickerView: View {
     }
 
     private var filteredApps: [CatalogApp] {
-        AppCatalog.search(searchText, in: catalog.apps)
+        installedFirst(AppCatalog.search(searchText, in: catalog.apps))
     }
 
     /// Curated famous apps (our bundled list) shown as "Suggested" before searching,
@@ -1349,7 +1379,8 @@ struct AppPickerView: View {
     private var suggestedApps: [CatalogApp] {
         let curated = Set(AppCatalog.bundled.map { $0.name.lowercased() })
         let curatedApps = catalog.apps.filter { curated.contains($0.name.lowercased()) }
-        return Array(AppCatalog.orderSuggested(curatedApps).prefix(AppCatalog.suggestedLimit))
+        let top = Array(AppCatalog.orderSuggested(curatedApps).prefix(AppCatalog.suggestedLimit))
+        return installedFirst(top)
     }
 
     private var otherApps: [CatalogApp] {
@@ -1359,7 +1390,14 @@ struct AppPickerView: View {
             curated.contains($0.name.lowercased()) && !suggestedIDs.contains($0.id)
         }
         let rest = catalog.apps.filter { !curated.contains($0.name.lowercased()) }
-        return AppCatalog.orderSuggested(remainingCurated) + rest
+        return installedFirst(AppCatalog.orderSuggested(remainingCurated) + rest)
+    }
+
+    /// Puts apps that are installed on this device first, keeping the incoming order.
+    private func installedFirst(_ apps: [CatalogApp]) -> [CatalogApp] {
+        let installed = apps.filter { installedApps.isInstalled(scheme: $0.scheme) }
+        let rest = apps.filter { !installedApps.isInstalled(scheme: $0.scheme) }
+        return installed + rest
     }
 
     var body: some View {
@@ -1514,6 +1552,12 @@ struct AppPickerView: View {
             .onAppear {
                 customName = current.name
                 customScheme = current.urlScheme
+                installedApps.refreshIfNeeded()
+            }
+            .onChange(of: scenePhase) { _, newPhase in
+                if newPhase == .active {
+                    installedApps.refreshIfNeeded(force: true)
+                }
             }
             .task {
                 await catalog.loadRemoteIfNeeded()
@@ -1559,9 +1603,17 @@ struct AppPickerView: View {
             CatalogIconView(name: app.name, size: showURLSchemes ? 40 : 30)
 
             VStack(alignment: .leading, spacing: 2) {
-                Text(app.name)
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundColor(.white)
+                HStack(spacing: 6) {
+                    Text(app.name)
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundColor(.white)
+                    if installedApps.isInstalled(scheme: app.scheme) {
+                        Circle()
+                            .fill(Color.green)
+                            .frame(width: 6, height: 6)
+                            .accessibilityLabel("Installed")
+                    }
+                }
                 if showURLSchemes {
                     Text(app.scheme)
                         .font(.caption.monospaced())
