@@ -1318,14 +1318,22 @@ struct LauncherSlotView: View {
 }
 
 // MARK: - App Picker (searchable catalog + advanced manual entry)
-/// On-device installed-app check for the picker. Public API limits us to the
-/// schemes declared in `LSApplicationQueriesSchemes` (Apple caps it at 50).
+/// On-device installed-app check for the picker.
+///
+/// DISABLED ON PURPOSE. Apple caps `LSApplicationQueriesSchemes` at 50, so we
+/// can only detect a subset of the catalog; sorting/badging just that subset
+/// while leaving the rest unmarked is misleading. The implementation is kept
+/// here (and the scheme list lives in `Info.plist`) so it can be re-enabled by
+/// flipping `isEnabled` to `true` once we have a complete, reliable strategy.
 @MainActor
 final class InstalledAppsStore: ObservableObject {
+    static let isEnabled = false
+
     @Published private(set) var installedSchemes: Set<String> = []
     private var lastRefresh = Date.distantPast
 
     func refreshIfNeeded(force: Bool = false) {
+        guard Self.isEnabled else { return }
         guard force || Date().timeIntervalSince(lastRefresh) > 60 else { return }
         lastRefresh = Date()
         let declared = Bundle.main.object(forInfoDictionaryKey: "LSApplicationQueriesSchemes") as? [String] ?? []
@@ -1340,6 +1348,7 @@ final class InstalledAppsStore: ObservableObject {
     }
 
     func isInstalled(scheme: String) -> Bool {
+        guard Self.isEnabled else { return false }
         guard let colon = scheme.firstIndex(of: ":") else { return false }
         let name = scheme[..<colon].lowercased()
         return installedSchemes.contains(name)
@@ -1353,6 +1362,7 @@ struct AppPickerView: View {
     @Environment(\.scenePhase) private var scenePhase
 
     @StateObject private var catalog = AppCatalogStore()
+    // Inactive experiment: guarded by InstalledAppsStore.isEnabled.
     @StateObject private var installedApps = InstalledAppsStore()
     @State private var searchText = ""
     @State private var advancedMode = false
@@ -1394,7 +1404,9 @@ struct AppPickerView: View {
     }
 
     /// Puts apps that are installed on this device first, keeping the incoming order.
+    /// Disabled while `InstalledAppsStore.isEnabled` is `false`.
     private func installedFirst(_ apps: [CatalogApp]) -> [CatalogApp] {
+        guard InstalledAppsStore.isEnabled else { return apps }
         let installed = apps.filter { installedApps.isInstalled(scheme: $0.scheme) }
         let rest = apps.filter { !installedApps.isInstalled(scheme: $0.scheme) }
         return installed + rest
@@ -1552,6 +1564,7 @@ struct AppPickerView: View {
             .onAppear {
                 customName = current.name
                 customScheme = current.urlScheme
+                // No-op while the installed-app experiment is disabled.
                 installedApps.refreshIfNeeded()
             }
             .onChange(of: scenePhase) { _, newPhase in
@@ -1608,6 +1621,7 @@ struct AppPickerView: View {
                         .font(.subheadline.weight(.semibold))
                         .foregroundColor(.white)
                     if installedApps.isInstalled(scheme: app.scheme) {
+                        // Hidden while InstalledAppsStore.isEnabled is false.
                         Circle()
                             .fill(Color.green)
                             .frame(width: 6, height: 6)

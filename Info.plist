@@ -7,6 +7,9 @@
 		<key>UIApplicationSupportsMultipleScenes</key>
 		<false/>
 	</dict>
+	<!-- Inactive: only consulted when InstalledAppsStore.isEnabled is true.
+	     Kept here so the installed-first/badge experiment can be re-enabled
+	     without re-declaring the schemes. -->
 	<key>LSApplicationQueriesSchemes</key>
 	<array>
 		<string>chatgpt</string>
