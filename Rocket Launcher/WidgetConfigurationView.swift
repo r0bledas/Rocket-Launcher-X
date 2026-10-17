@@ -32,6 +32,7 @@ struct WidgetConfigurationView: View {
     @State private var backgroundColor: Color = Color(hex: "#000000")
     @State private var customHexInput: String = "#000000"
     @State private var backgroundStyle: String = "static"
+    @FocusState private var hexFocused: Bool
     @State private var selectedAlignment: TextAlignmentOption = .leading
     @State private var iconsEnabled: Bool = true
     @State private var selectedPreviewType: PreviewWidgetType = .launcher
@@ -68,6 +69,7 @@ struct WidgetConfigurationView: View {
                     .padding(.horizontal, 16)
                     .padding(.vertical, 20)
                 }
+                .scrollDismissesKeyboard(.interactively)
             }
             .navigationTitle("Widget Configuration")
             .navigationBarTitleDisplayMode(.inline)
@@ -95,6 +97,10 @@ struct WidgetConfigurationView: View {
                     }
                     .foregroundColor(.blue)
                     .accessibilityLabel("Apply and close")
+                }
+                ToolbarItemGroup(placement: .keyboard) {
+                    Spacer()
+                    Button("Done") { hexFocused = false }
                 }
             }
         }
@@ -513,6 +519,9 @@ struct WidgetConfigurationView: View {
                         .textInputAutocapitalization(.characters)
                         .autocorrectionDisabled()
                         .keyboardType(.asciiCapable)
+                        .focused($hexFocused)
+                        .submitLabel(.done)
+                        .onSubmit { hexFocused = false }
                         .accessibilityLabel("Hex color value")
                 }
                 .padding(.horizontal, 12)
