@@ -2106,7 +2106,7 @@ struct SettingsView: View {
                             AnalyticsManager.shared.isEnabled = newValue
                             HapticsHelper.impact(.light)
                         }
-                    Text("Off by default. When on, sends anonymous, pseudonymous app-launch statistics (a coarse category, never the specific app or your raw URL schemes). No personal data or content is collected.")
+                    Text("Off by default. When on, sends pseudonymous app-launch statistics: app name, full URL scheme (including custom schemes you type), widget number and slot, local hour of day, and basic device context under a random install ID. No name, email, contacts, or content is collected.")
                         .font(.caption)
                         .foregroundColor(.secondary)
 

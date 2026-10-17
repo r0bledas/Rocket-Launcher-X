@@ -74,8 +74,11 @@ class URLHandler: ObservableObject {
                 
                 if let scheme = queryItems.first(where: { $0.name == "scheme" })?.value {
                     print("🎯 Launching with scheme param: \(scheme)")
+                    let appName = queryItems.first(where: { $0.name == "name" })?.value
+                    let widget = queryItems.first(where: { $0.name == "widget" })?.value.flatMap(Int.init)
+                    let slot = queryItems.first(where: { $0.name == "slot" })?.value.flatMap(Int.init)
                     // Launch the target app immediately
-                    launchApp(withScheme: scheme, onFailure: onFailure)
+                    launchApp(withScheme: scheme, appName: appName, widget: widget, slot: slot, onFailure: onFailure)
                     return true
                 }
                 // Legacy: support ?app=...
@@ -91,7 +94,7 @@ class URLHandler: ObservableObject {
         return false
     }
     
-    private func launchApp(withScheme scheme: String, onFailure: ((String) -> Void)? = nil) {
+    private func launchApp(withScheme scheme: String, appName: String? = nil, widget: Int? = nil, slot: Int? = nil, onFailure: ((String) -> Void)? = nil) {
         print("launchApp called with scheme: \(scheme)")
         guard let url = URL(string: scheme) else { print("Invalid URL from scheme"); onFailure?(scheme); return }
         
@@ -99,9 +102,15 @@ class URLHandler: ObservableObject {
         print("🔊 Playing single hard haptic...")
         URLHandler.playLaunchHaptic()
         
-        // Anonymous, pseudonymous usage analytics (scheme resolved to a catalog
-        // app or "custom"; the raw scheme is never logged).
-        AnalyticsManager.shared.logAppLaunch(scheme: scheme, source: .widget)
+        // Pseudonymous, opt-in usage analytics: app name, full scheme, widget/slot
+        // and local hour. Sent only when the user has enabled it.
+        AnalyticsManager.shared.logAppLaunch(
+            scheme: scheme,
+            source: .widget,
+            appName: appName,
+            widget: widget,
+            slot: slot
+        )
         
         // Note: The scheme must be listed in LSApplicationQueriesSchemes in Info.plist
         UIApplication.shared.open(url, options: [:], completionHandler: { success in

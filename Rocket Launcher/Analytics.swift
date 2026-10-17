@@ -7,10 +7,10 @@
 //  Design goals:
 //   - OPT-IN: disabled by default. Nothing is sent until the user turns on
 //     Settings → Privacy → "Share anonymous usage data".
-//   - Minimal data: aggregate app-launch events only. We log a COARSE category,
-//     never the specific app name, and never raw custom URL schemes. Categories
-//     that could reveal sensitive interests (finance, health, dating, religion,
-//     etc.) are bucketed into "other".
+//   - App-launch events include the app name and the full URL scheme (including
+//     custom schemes), the widget number and slot, and the local hour of day.
+//     This is what lets us see which apps are tapped most and when. It is only
+//     ever sent with explicit opt-in consent.
 //   - Pseudonymous: a random install id stored in the Keychain
 //     (this-device-only). It is a persistent identifier, resettable in Settings.
 //     No IDFA, names, emails, precise location, or content.
@@ -144,17 +144,36 @@ final class AnalyticsManager {
         provider.send(event: event.rawValue, properties: props)
     }
 
-    /// Logs an app launch. Only a COARSE category is recorded — never the app
-    /// name and never the raw scheme — to protect users who typed private
-    /// schemes or use sensitive apps.
-    func logAppLaunch(scheme: String, source: LaunchSource) {
+    /// Logs an app launch with the app name and full URL scheme, plus where it
+    /// was tapped (widget/slot) and the local hour of day. Only sent when the
+    /// user has opted in and analytics is configured.
+    func logAppLaunch(scheme: String, source: LaunchSource, appName: String? = nil, widget: Int? = nil, slot: Int? = nil) {
         guard isEnabled, AnalyticsConfig.isConfigured else { return }
         let match = AppCatalog.bundled.first { $0.scheme.caseInsensitiveCompare(scheme) == .orderedSame }
-        let props: [String: String] = [
-            "category": Self.coarseCategory(match?.category),
-            "source": source.rawValue
+            ?? AppCatalog.knownApps().first { $0.scheme.caseInsensitiveCompare(scheme) == .orderedSame }
+        let name = appName?.trimmingCharacters(in: .whitespacesAndNewlines)
+        let resolvedName = (name?.isEmpty == false ? name! : nil) ?? match?.name ?? "custom"
+        let hour = Calendar.current.component(.hour, from: Date())
+        var props: [String: String] = [
+            "appName": resolvedName,
+            "scheme": scheme,
+            "source": source.rawValue,
+            "hour": String(hour),
+            "timeOfDay": Self.timeOfDay(hour: hour),
+            "category": Self.coarseCategory(match?.category)
         ]
+        if let widget { props["widget"] = String(widget) }
+        if let slot { props["slot"] = String(slot) }
         log(.appLaunch, properties: props)
+    }
+
+    private static func timeOfDay(hour: Int) -> String {
+        switch hour {
+        case 5..<12: return "morning"
+        case 12..<17: return "afternoon"
+        case 17..<21: return "evening"
+        default: return "night"
+        }
     }
 
     func logAppOpen() {

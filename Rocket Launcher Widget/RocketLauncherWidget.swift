@@ -115,6 +115,23 @@ struct LauncherWidgetEntryView: View {
         return min(1.0, min(widthScale, heightScale))
     }
     
+    /// Builds the launch URL with the app name, widget number and slot so the
+    /// main app can log which app was tapped and where. URLComponents handles
+    /// percent-encoding for schemes that contain reserved characters.
+    private func launchURL(for app: LauncherEntry.App, slotIndex: Int) -> URL {
+        var components = URLComponents()
+        components.scheme = "rocketlauncher"
+        components.host = "launch"
+        components.queryItems = [
+            URLQueryItem(name: "scheme", value: app.urlScheme),
+            URLQueryItem(name: "name", value: app.name),
+            URLQueryItem(name: "widget", value: String(entry.widgetNumber)),
+            URLQueryItem(name: "slot", value: String(slotIndex + 1))
+        ]
+        return components.url
+            ?? URL(string: "rocketlauncher://launch?scheme=\(app.urlScheme.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "")")!
+    }
+
     private var emptyStateView: some View {
         Text("👻")
             .font(.system(size: 60))
@@ -134,9 +151,9 @@ struct LauncherWidgetEntryView: View {
         let scaledLineSpacing: CGFloat = CGFloat(entry.lineSpacing) * scale
         
         VStack(alignment: horizontalAlignmentFor(entry.textAlignment), spacing: scaledLineSpacing) {
-            ForEach(Array(entry.apps.prefix(8).enumerated()), id: \.offset) { _, app in
+            ForEach(Array(entry.apps.prefix(8).enumerated()), id: \.offset) { index, app in
                 if !app.name.isEmpty && !app.urlScheme.isEmpty {
-                    Link(destination: URL(string: "rocketlauncher://launch?scheme=\(app.urlScheme.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "")")!) {
+                    Link(destination: launchURL(for: app, slotIndex: index)) {
                         HStack(spacing: iconSpacing) {
                             if entry.iconsEnabled, (app.showIcon ?? false), let image = loadIconImage(fileName: app.iconFileName) {
                                 if #available(iOS 18.0, *) {
