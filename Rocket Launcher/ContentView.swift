@@ -1213,6 +1213,7 @@ struct WidgetLaunchersConfigView: View {
 struct LauncherSlotView: View {
     let launcher: AppLauncher
     let slotNumber: Int
+    @AppStorage("ShowURLSchemes", store: UserDefaults(suiteName: appGroupID)) private var showURLSchemes = false
 
     var body: some View {
         HStack(spacing: 12) {
@@ -1227,10 +1228,12 @@ struct LauncherSlotView: View {
                     Text(launcher.name)
                         .font(.headline)
                         .foregroundColor(.white)
-                    Text(launcher.urlScheme)
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                        .lineLimit(1)
+                    if showURLSchemes {
+                        Text(launcher.urlScheme)
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                            .lineLimit(1)
+                    }
                 }
             }
 
@@ -1278,6 +1281,7 @@ struct AppPickerView: View {
     @State private var advancedMode = false
     @State private var customName = ""
     @State private var customScheme = ""
+    @AppStorage("ShowURLSchemes", store: UserDefaults(suiteName: appGroupID)) private var showURLSchemes = false
 
     private var current: AppLauncher {
         store.launchers.first(where: { $0.id == launcherID }) ?? AppLauncher(id: launcherID)
@@ -1499,9 +1503,11 @@ struct AppPickerView: View {
                 Text(app.name)
                     .font(.subheadline.weight(.semibold))
                     .foregroundColor(.white)
-                Text(app.scheme)
-                    .font(.caption.monospaced())
-                    .foregroundColor(.secondary)
+                if showURLSchemes {
+                    Text(app.scheme)
+                        .font(.caption.monospaced())
+                        .foregroundColor(.secondary)
+                }
             }
 
             Spacer()
@@ -1519,6 +1525,7 @@ struct SettingsView: View {
     @ObservedObject private var ads = AdsManager.shared
     @EnvironmentObject var storeManager: StoreManager
     @Environment(\.dismiss) private var dismiss
+    @AppStorage("ShowURLSchemes", store: UserDefaults(suiteName: appGroupID)) private var showURLSchemes = false
     // Import/Export functionality
     @State private var showingImportAlert = false
     @State private var showingExportAlert = false
@@ -1641,6 +1648,11 @@ struct SettingsView: View {
                         .foregroundColor(.blue)
                     }
                     .disabled(isRefetchingIcons)
+                    
+                    Toggle("Show URL schemes", isOn: $showURLSchemes)
+                        .onChange(of: showURLSchemes) { _, _ in
+                            HapticsHelper.impact(.light)
+                        }
                 }
                 
                 Section(header: Text("PRIVACY").font(.headline)) {
