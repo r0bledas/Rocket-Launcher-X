@@ -7,6 +7,7 @@
 
 import Foundation
 import StoreKit
+import WidgetKit
 
 // Define our product IDs
 public enum RocketProducts {
@@ -187,6 +188,8 @@ class StoreManager: ObservableObject {
             print("   - Calendar: \(hasCalendar)")
             print("   - Alignment: \(hasAlignment)")
         }
+        // Entitlements changed (e.g. a purchase or restore) — refresh widgets now.
+        WidgetCenter.shared.reloadAllTimelines()
     }
 }
 

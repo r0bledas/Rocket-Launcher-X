@@ -175,6 +175,23 @@ class AppLauncherStore: ObservableObject {
         launchers[idx].showIcon = false
         save()
     }
+
+    /// Moves an app into another widget: to its first empty slot, or swaps with
+    /// the widget's first slot if it's full. Returns false if the move is invalid.
+    @discardableResult
+    func moveLauncher(id: Int, toWidgetIndex: Int) -> Bool {
+        guard let from = launchers.firstIndex(where: { $0.id == id }) else { return false }
+        let start = toWidgetIndex * 8
+        let end = min(start + 8, launchers.count)
+        guard start < end, !(start..<end).contains(from) else { return false }
+        let target = (start..<end).first {
+            launchers[$0].name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        } ?? start
+        guard target != from else { return false }
+        launchers.swapAt(from, target)
+        save()
+        return true
+    }
     
     func bulkFetchIcons(completion: (() -> Void)? = nil) {
         let group = DispatchGroup()
@@ -1065,6 +1082,8 @@ struct WidgetLaunchersConfigView: View {
     @State private var showNoAdAlert = false
     @State private var editingLauncher: AppLauncher? = nil
     @State private var tempUnlockActive = RewardsEntitlement.isActive()
+    @State private var movingLauncher: AppLauncher? = nil
+    @State private var movingFromWidget: Int = 0
     @ObservedObject private var ads = AdsManager.shared
 
     var body: some View {
@@ -1149,6 +1168,16 @@ struct WidgetLaunchersConfigView: View {
                                         LauncherSlotView(launcher: launcher, slotNumber: index)
                                     }
                                     .buttonStyle(.plain)
+                                    .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                                        Button {
+                                            HapticsHelper.impact(.light)
+                                            movingLauncher = launcher
+                                            movingFromWidget = widgetIndex
+                                        } label: {
+                                            Label("Move", systemImage: "arrow.left.arrow.right")
+                                        }
+                                        .tint(.blue)
+                                    }
                                 }
                                 .onMove { indices, newOffset in
                                     reorderSlots(in: widgetIndex, indices: indices, newOffset: newOffset)
@@ -1188,6 +1217,33 @@ struct WidgetLaunchersConfigView: View {
                 Button("OK") { }
             } message: {
                 Text("No ad is available right now. Please try again later.")
+            }
+            .confirmationDialog(
+                "Move to another widget",
+                isPresented: Binding(
+                    get: { movingLauncher != nil },
+                    set: { if !$0 { movingLauncher = nil } }
+                ),
+                titleVisibility: .visible
+            ) {
+                ForEach(0..<5, id: \.self) { widgetIndex in
+                    if widgetIndex != movingFromWidget,
+                       widgetIndex == 0 || hasPurchasedExtraWidgets || tempUnlockActive {
+                        Button("Widget #\(widgetIndex + 1)") {
+                            if let launcher = movingLauncher,
+                               store.moveLauncher(id: launcher.id, toWidgetIndex: widgetIndex) {
+                                HapticsHelper.impact(.medium)
+                                WidgetCenter.shared.reloadAllTimelines()
+                            }
+                            movingLauncher = nil
+                        }
+                    }
+                }
+                Button("Cancel", role: .cancel) { movingLauncher = nil }
+            } message: {
+                if let launcher = movingLauncher {
+                    Text("Move “\(launcher.name)” into another widget’s first empty slot.")
+                }
             }
             .sheet(item: $editingLauncher) { launcher in
                 AppPickerView(store: store, launcherID: launcher.id)
