@@ -1711,7 +1711,6 @@ struct AdvancedAppForm: View {
     @State private var previewIcon: UIImage?
     @State private var fetchedKey: String = ""
     @State private var testStatus: String?
-    @State private var iconStatus: String?
 
     var body: some View {
         List {
@@ -1760,12 +1759,6 @@ struct AdvancedAppForm: View {
                     Label("Force Fetch Icon", systemImage: "arrow.clockwise")
                 }
                 .disabled(name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || !AppIconFetch.isEnabled)
-
-                if let iconStatus {
-                    Text(iconStatus)
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
             } header: {
                 Text("ICON")
             } footer: {
@@ -1856,20 +1849,11 @@ struct AdvancedAppForm: View {
             guard key != fetchedKey else { return }
         }
         fetchedKey = key
-        iconStatus = "Fetching icon…"
 
         fetchIconForAppName(appName: title) { result in
             DispatchQueue.main.async {
-                switch result {
-                case .success(let data):
-                    if let image = UIImage(data: data) {
-                        previewIcon = image
-                        iconStatus = "Icon updated."
-                    } else {
-                        iconStatus = "No icon found."
-                    }
-                case .failure:
-                    iconStatus = "No icon found."
+                if case .success(let data) = result, let image = UIImage(data: data) {
+                    previewIcon = image
                 }
             }
         }
