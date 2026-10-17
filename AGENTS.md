@@ -53,13 +53,27 @@ xcrun devicectl device install app \
   "build/Build/Products/Debug-iphoneos/Rocket Launcher.app"
 ```
 
-3. Launch:
+3. Launch — and make sure it's the **new** build on screen. `install` does not
+   restart a running app, and a plain `launch` may only foreground the old
+   process. So if it's already running, kill it by PID first:
 
 ```
+# find the running PID (if any)
+xcrun devicectl device info processes \
+  --device 00008110-001851691E44401E | grep "Rocket Launcher"
+
+# kill it (repeat if multiple), then launch fresh
+xcrun devicectl device process terminate \
+  --device 00008110-001851691E44401E --pid <PID>
+
 xcrun devicectl device process launch \
   --device 00008110-001851691E44401E \
   com.Robledas.rocketlauncher
 ```
+
+- Always launch after installing; don't stop at "App installed".
+- `devicectl ... process launch --terminate-existing` is flaky (can error with
+  "process identifier could not be determined") — prefer the PID kill above.
 
 - Device: iPhone 13 (iPhone14,5), UDID `00008110-001851691E44401E`.
 - Bundle id: `com.Robledas.rocketlauncher`.
