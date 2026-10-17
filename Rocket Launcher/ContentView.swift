@@ -1377,6 +1377,8 @@ struct AppPickerView: View {
                             }
                         } header: {
                             Text("SUGGESTED")
+                                .font(.caption.weight(.bold))
+                                .foregroundColor(.white)
                         }
 
                         Section {
@@ -1391,6 +1393,8 @@ struct AppPickerView: View {
                             }
                         } header: {
                             Text("MORE APPS")
+                                .font(.caption.weight(.bold))
+                                .foregroundColor(.white)
                         }
                     }
 
