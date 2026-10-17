@@ -1435,7 +1435,7 @@ struct AppPickerView: View {
             .navigationTitle(advancedMode ? "Custom App" : "Add App")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
+                ToolbarItemGroup(placement: .navigationBarLeading) {
                     Button {
                         HapticsHelper.impact(.light)
                         dismiss()
@@ -1444,6 +1444,16 @@ struct AppPickerView: View {
                             .fontWeight(.semibold)
                     }
                     .accessibilityLabel("Cancel")
+
+                    Button(role: .destructive) {
+                        HapticsHelper.impact(.heavy)
+                        store.clearLauncher(id: launcherID)
+                        dismiss()
+                    } label: {
+                        Image(systemName: "trash")
+                    }
+                    .tint(.red)
+                    .accessibilityLabel("Clear slot")
                 }
                 ToolbarItem(placement: .navigationBarTrailing) {
                     if advancedMode {
@@ -1463,27 +1473,15 @@ struct AppPickerView: View {
                         }
                         .accessibilityLabel("Save custom app")
                     } else {
-                        Button("Advanced") {
+                        Button {
                             HapticsHelper.impact(.light)
                             advancedMode = true
+                        } label: {
+                            Image(systemName: "ellipsis.circle")
                         }
+                        .accessibilityLabel("Advanced options")
                     }
                 }
-            }
-            .safeAreaInset(edge: .bottom) {
-                Button(role: .destructive) {
-                    HapticsHelper.impact(.heavy)
-                    store.clearLauncher(id: launcherID)
-                    dismiss()
-                } label: {
-                    Label("Clear Slot", systemImage: "trash")
-                        .frame(maxWidth: .infinity)
-                }
-                .buttonStyle(.bordered)
-                .tint(.red)
-                .padding(.horizontal)
-                .padding(.vertical, 8)
-                .background(.bar)
             }
             .onAppear {
                 customName = current.name
