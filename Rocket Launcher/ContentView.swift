@@ -193,6 +193,17 @@ class AppLauncherStore: ObservableObject {
         save()
         return true
     }
+
+    /// Moves (or swaps) an app into a specific slot, which may be in any widget.
+    @discardableResult
+    func moveLauncher(id: Int, toSlotID: Int) -> Bool {
+        guard let from = launchers.firstIndex(where: { $0.id == id }),
+              let to = launchers.firstIndex(where: { $0.id == toSlotID }),
+              from != to else { return false }
+        launchers.swapAt(from, to)
+        save()
+        return true
+    }
     
     func bulkFetchIcons(completion: (() -> Void)? = nil) {
         let group = DispatchGroup()
@@ -1368,6 +1379,9 @@ struct AppPickerView: View {
     @State private var advancedMode = false
     @State private var customName = ""
     @State private var customScheme = ""
+    @State private var pendingApp: CatalogApp?
+    @State private var duplicateSlotIDs: [Int] = []
+    @State private var showDuplicateAlert = false
     @FocusState private var searchFocused: Bool
     @AppStorage("ShowURLSchemes", store: UserDefaults(suiteName: appGroupID)) private var showURLSchemes = false
 
@@ -1575,7 +1589,52 @@ struct AppPickerView: View {
             .task {
                 await catalog.loadRemoteIfNeeded()
             }
+            .alert("Already added", isPresented: $showDuplicateAlert, presenting: pendingApp) { app in
+                Button("Add Anyway") { commitAdd(app) }
+                if duplicateSlotIDs.count == 1, let source = duplicateSlotIDs.first {
+                    Button("Move Here") {
+                        store.moveLauncher(id: source, toSlotID: launcherID)
+                        WidgetCenter.shared.reloadAllTimelines()
+                        dismiss()
+                    }
+                }
+                Button("Cancel", role: .cancel) {
+                    pendingApp = nil
+                    duplicateSlotIDs = []
+                }
+            } message: { app in
+                Text(duplicateMessage(for: app))
+            }
         }
+    }
+
+    /// Adds a catalog app, but first checks every slot (in every widget) for the
+    /// same URL scheme. Only an exact scheme match triggers the confirmation.
+    private func requestAdd(_ app: CatalogApp) {
+        let duplicates = store.launchers.filter {
+            $0.id != launcherID &&
+            $0.urlScheme.caseInsensitiveCompare(app.scheme) == .orderedSame
+        }
+        guard !duplicates.isEmpty else {
+            commitAdd(app)
+            return
+        }
+        pendingApp = app
+        duplicateSlotIDs = duplicates.map { $0.id }
+        showDuplicateAlert = true
+    }
+
+    private func commitAdd(_ app: CatalogApp) {
+        store.setLauncher(id: launcherID, name: app.name, scheme: app.scheme)
+        dismiss()
+    }
+
+    private func duplicateMessage(for app: CatalogApp) -> String {
+        let locations = duplicateSlotIDs.compactMap { id -> String? in
+            guard let index = store.launchers.firstIndex(where: { $0.id == id }) else { return nil }
+            return "Widget \(index / 8 + 1), slot \(index % 8 + 1)"
+        }
+        return "“\(app.name)” is already in \(locations.joined(separator: ", ")). Add it again?"
     }
 
     private func sectionHeader(_ title: String, count: Int? = nil) -> some View {
@@ -1600,8 +1659,7 @@ struct AppPickerView: View {
     private func catalogButton(_ app: CatalogApp) -> some View {
         Button {
             HapticsHelper.impact(.medium)
-            store.setLauncher(id: launcherID, name: app.name, scheme: app.scheme)
-            dismiss()
+            requestAdd(app)
         } label: {
             catalogRow(app)
         }
