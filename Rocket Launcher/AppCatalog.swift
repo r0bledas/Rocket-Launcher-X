@@ -68,6 +68,17 @@ enum AppCatalog {
         CatalogApp(name: "Apple Music Classical", scheme: "classical://", category: "Apple"),
         CatalogApp(name: "Health", scheme: "x-apple-health://", category: "Apple"),
         CatalogApp(name: "Fitness", scheme: "x-apple-fitness://", category: "Apple"),
+        CatalogApp(name: "Calculator", scheme: "calculator://", category: "Apple"),
+        CatalogApp(name: "Compass", scheme: "compass://", category: "Apple"),
+        CatalogApp(name: "Measure", scheme: "measure://", category: "Apple"),
+        CatalogApp(name: "Translate", scheme: "translate://", category: "Apple"),
+        CatalogApp(name: "Home", scheme: "home://", category: "Apple"),
+        CatalogApp(name: "Pages", scheme: "pages://", category: "Apple"),
+        CatalogApp(name: "Numbers", scheme: "numbers://", category: "Apple"),
+        CatalogApp(name: "Keynote", scheme: "keynote://", category: "Apple"),
+        CatalogApp(name: "Support", scheme: "support://", category: "Apple"),
+        CatalogApp(name: "Sports", scheme: "sports://", category: "Apple"),
+        CatalogApp(name: "Invites", scheme: "invites://", category: "Apple"),
 
         // MARK: Social
         CatalogApp(name: "Instagram", scheme: "instagram://", category: "Social"),
