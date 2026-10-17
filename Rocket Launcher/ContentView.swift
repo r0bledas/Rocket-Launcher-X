@@ -1329,7 +1329,6 @@ struct AppPickerView: View {
     @State private var customName = ""
     @State private var customScheme = ""
     @FocusState private var searchFocused: Bool
-    @State private var searchFieldFrame: CGRect = .zero
     @AppStorage("ShowURLSchemes", store: UserDefaults(suiteName: appGroupID)) private var showURLSchemes = false
 
     private var current: AppLauncher {
@@ -1390,14 +1389,6 @@ struct AppPickerView: View {
                     }
                     .contentShape(Rectangle())
                     .onTapGesture { searchFocused = true }
-                    .background(
-                        GeometryReader { geo in
-                            Color.clear.preference(
-                                key: SearchFieldFrameKey.self,
-                                value: geo.frame(in: .named("pickerList"))
-                            )
-                        }
-                    )
                 }
 
                 if isSearching {
@@ -1467,17 +1458,7 @@ struct AppPickerView: View {
                     }
                 }
             }
-            .coordinateSpace(name: "pickerList")
-            .onPreferenceChange(SearchFieldFrameKey.self) { searchFieldFrame = $0 }
             .scrollDismissesKeyboard(.interactively)
-            .simultaneousGesture(
-                SpatialTapGesture().onEnded { value in
-                    // Dismiss only when tapping outside the search field itself.
-                    if !searchFieldFrame.contains(value.location) {
-                        searchFocused = false
-                    }
-                }
-            )
             .navigationTitle("Add App")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -1514,6 +1495,10 @@ struct AppPickerView: View {
                         Image(systemName: "ellipsis")
                     }
                     .accessibilityLabel("Advanced options")
+                }
+                ToolbarItemGroup(placement: .keyboard) {
+                    Spacer()
+                    Button("Done") { searchFocused = false }
                 }
             }
             .navigationDestination(isPresented: $advancedMode) {
@@ -1591,11 +1576,6 @@ struct AppPickerView: View {
                 .foregroundColor(.blue)
         }
     }
-}
-
-private struct SearchFieldFrameKey: PreferenceKey {
-    static var defaultValue: CGRect = .zero
-    static func reduce(value: inout CGRect, nextValue: () -> CGRect) { value = nextValue() }
 }
 
 // MARK: - Advanced (custom) app form
