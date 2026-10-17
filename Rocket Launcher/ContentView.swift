@@ -1386,6 +1386,8 @@ struct AppPickerView: View {
                             .textInputAutocapitalization(.words)
                             .autocorrectionDisabled()
                             .focused($searchFocused)
+                            .submitLabel(.done)
+                            .onSubmit { searchFocused = false }
                         if !searchText.isEmpty {
                             Button {
                                 HapticsHelper.impact(.light)
@@ -1521,13 +1523,6 @@ struct AppPickerView: View {
                         Image(systemName: "ellipsis")
                     }
                     .accessibilityLabel("Advanced options")
-                }
-                ToolbarItemGroup(placement: .keyboard) {
-                    Spacer()
-                    Button("Done") {
-                        HapticsHelper.impact(.light)
-                        searchFocused = false
-                    }
                 }
             }
             .navigationDestination(isPresented: $advancedMode) {
