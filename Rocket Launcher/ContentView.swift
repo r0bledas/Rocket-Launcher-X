@@ -1502,14 +1502,42 @@ struct AdvancedAppForm: View {
     @Binding var scheme: String
     let onSave: (String, String) -> Void
 
+    @State private var previewIcon: UIImage?
+    @State private var fetchedKey: String = ""
+
     var body: some View {
         List {
             Section {
+                HStack(spacing: 12) {
+                    previewView
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "Custom App" : name)
+                            .font(.headline)
+                            .foregroundColor(.white)
+                        if !scheme.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                            Text(scheme)
+                                .font(.caption.monospaced())
+                                .foregroundColor(.secondary)
+                                .lineLimit(1)
+                        }
+                    }
+
+                    Spacer()
+                }
+                .padding(.vertical, 2)
+            } header: {
+                Text("PREVIEW")
+            }
+
+            Section {
                 TextField("Title", text: $name)
+                    .onChange(of: name) { _, _ in refreshPreviewIfNeeded() }
                 TextField("URL Scheme", text: $scheme)
                     .keyboardType(.URL)
                     .textInputAutocapitalization(.never)
                     .autocorrectionDisabled()
+                    .onChange(of: scheme) { _, _ in refreshPreviewIfNeeded() }
             } header: {
                 Text("CUSTOM APP")
             } footer: {
@@ -1529,6 +1557,45 @@ struct AdvancedAppForm: View {
                         .fontWeight(.semibold)
                 }
                 .accessibilityLabel("Save custom app")
+            }
+        }
+    }
+
+    private var previewView: some View {
+        Group {
+            if let previewIcon {
+                Image(uiImage: previewIcon)
+                    .resizable()
+                    .scaledToFill()
+            } else {
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .fill(Color.white.opacity(0.08))
+                    .overlay(
+                        Image(systemName: "app.dashed")
+                            .foregroundColor(Color.white.opacity(0.4))
+                    )
+            }
+        }
+        .frame(width: 44, height: 44)
+        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+        .accessibilityHidden(true)
+    }
+
+    /// Fetches a preview icon once a scheme is completed with "://".
+    private func refreshPreviewIfNeeded() {
+        let title = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmedScheme = scheme.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard trimmedScheme.hasSuffix("://"), !title.isEmpty, AppIconFetch.isEnabled else { return }
+
+        let key = "\(title)|\(trimmedScheme)"
+        guard key != fetchedKey else { return }
+        fetchedKey = key
+
+        fetchIconForAppName(appName: title) { result in
+            DispatchQueue.main.async {
+                if case .success(let data) = result, let image = UIImage(data: data) {
+                    previewIcon = image
+                }
             }
         }
     }
@@ -1690,7 +1757,7 @@ struct SettingsView: View {
                             UserDefaults(suiteName: appGroupID)?.set(newValue, forKey: "RemoteAppCatalogEnabled")
                             HapticsHelper.impact(.light)
                         }
-                    Text("Icon lookup sends only catalogued app names to Apple's iTunes Search API; custom names are never sent. Turning these off keeps the app fully offline (bundled list + placeholder icons).")
+                    Text("Icon lookup sends app names (including custom titles you enter) to Apple's iTunes Search API to fetch icons. Turn this off to keep the app fully offline (bundled list + placeholder icons).")
                         .font(.caption)
                         .foregroundColor(.secondary)
 

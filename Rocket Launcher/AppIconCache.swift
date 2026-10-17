@@ -11,16 +11,14 @@
 import SwiftUI
 import UIKit
 
-/// Gate for Apple (iTunes) icon lookups. We only look up names that come from
-/// the catalog — never free-typed custom names — and only when the user has not
-/// disabled it in Settings → Privacy.
+/// Gate for Apple (iTunes) icon lookups, controlled by the Settings toggle.
 enum AppIconFetch {
     static var isEnabled: Bool {
         UserDefaults(suiteName: appGroupID)?.object(forKey: "FetchAppIconsFromApple") as? Bool ?? true
     }
 
     static func shouldFetch(name: String) -> Bool {
-        isEnabled && AppCatalog.isKnownName(name)
+        isEnabled && !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
 }
 
