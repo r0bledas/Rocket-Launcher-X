@@ -265,14 +265,10 @@ enum AppCatalog {
         UserDefaults(suiteName: appGroupID)?.object(forKey: "RemoteAppCatalogEnabled") as? Bool ?? true
     }
 
-    /// Synchronous snapshot of everything we know: bundled + fresh cached remote
-    /// + fresh cached extra community list.
+    /// Synchronous snapshot of everything we know: bundled + fresh cached remote.
     static func knownApps() -> [CatalogApp] {
         var result = bundled
         if remoteFetchEnabled, let cached = cachedAppsIfFresh() {
-            result = merge(result, cached)
-        }
-        if extraFetchEnabled, let cached = cachedExtraIfFresh() {
             result = merge(result, cached)
         }
         return result
@@ -359,125 +355,6 @@ enum AppCatalog {
         }
         return scheme
     }
-
-    // MARK: - Extra community source (awesome-URLSchemes)
-
-    /// A second, larger community list (markdown). Fetched at runtime, parsed
-    /// and validated; entries are not redistributed in the app bundle.
-    static let extraURL = URL(string: "https://raw.githubusercontent.com/yishuiliunian/awesome-URLSchemes/master/README.md")!
-
-    /// Whether the extra community list is enabled (Settings → Privacy, default on).
-    static var extraFetchEnabled: Bool {
-        UserDefaults(suiteName: appGroupID)?.object(forKey: "ExtraAppCatalogEnabled") as? Bool ?? true
-    }
-
-    private static var extraCacheFileURL: URL? {
-        guard let caches = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first else { return nil }
-        let dir = caches.appendingPathComponent("AppCatalog", isDirectory: true)
-        try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
-        return dir.appendingPathComponent("awesome.md")
-    }
-
-    static func fetchExtra() async -> [CatalogApp]? {
-        guard extraFetchEnabled else { return nil }
-        if let cached = cachedExtraIfFresh() { return cached }
-        do {
-            let (data, response) = try await URLSession.shared.data(from: extraURL)
-            guard data.count <= maxCatalogBytes else { return nil }
-            if let http = response as? HTTPURLResponse, http.statusCode != 200 { return nil }
-            if let url = extraCacheFileURL { try? data.write(to: url) }
-            return parseAwesome(String(decoding: data, as: UTF8.self))
-        } catch {
-            return nil
-        }
-    }
-
-    private static func cachedExtraIfFresh() -> [CatalogApp]? {
-        guard let url = extraCacheFileURL,
-              let attrs = try? FileManager.default.attributesOfItem(atPath: url.path),
-              let modified = attrs[.modificationDate] as? Date,
-              Date().timeIntervalSince(modified) < 7 * 24 * 3600,
-              let data = try? Data(contentsOf: url) else { return nil }
-        return parseAwesome(String(decoding: data, as: UTF8.self))
-    }
-
-    /// Parses the `awesome-URLSchemes` markdown (apps section) into catalog
-    /// entries. Treated as untrusted input: schemes are validated and deduped.
-    private static func parseAwesome(_ text: String) -> [CatalogApp]? {
-        let lines = text.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-        let regex = try! NSRegularExpression(pattern: "([A-Za-z][A-Za-z0-9+.-]*://[^\\s\\)\\]`|]*)")
-        var inApps = false
-        var current: String? = nil
-        var seen = Set<String>()
-        var schemeSeen = Set<String>()
-        var out: [CatalogApp] = []
-
-        for raw in lines {
-            let line = raw.trimmingCharacters(in: .whitespaces)
-            if line.hasPrefix("## ") {
-                let h = String(line.dropFirst(3)).trimmingCharacters(in: .whitespaces)
-                inApps = h.contains("应用")
-                current = nil
-                continue
-            }
-            if line.hasPrefix("### ") {
-                current = cleanMarkdownName(String(line.dropFirst(4)))
-                continue
-            }
-            guard inApps, line.hasPrefix("* ") else { continue }
-            let body = String(line.dropFirst(2))
-            guard let match = regex.firstMatch(in: body, options: [], range: NSRange(body.startIndex..., in: body)),
-                  let r = Range(match.range(at: 1), in: body) else { continue }
-            let scheme = String(body[r])
-            guard validScheme(scheme) != nil,
-                  !scheme.lowercased().hasPrefix("shortcuts://"),
-                  !scheme.contains("$"), !scheme.contains("{"), !scheme.contains("}"),
-                  isPlainLaunchScheme(scheme),
-                  !isIDStyleScheme(scheme) else { continue }
-            // One entry per scheme (deep-link variants are filtered above).
-            guard schemeSeen.insert(scheme.lowercased()).inserted else { continue }
-            let label = String(body[body.startIndex..<r.lowerBound])
-                .replacingOccurrences(of: "[", with: "")
-                .replacingOccurrences(of: "]", with: "")
-                .trimmingCharacters(in: .whitespaces)
-            let base = current ?? "App"
-            let name = (label.isEmpty || label == "唤起" || label == "打开" || label == "扫一扫")
-                ? base : "\(base) – \(label)"
-            let trimmedName = String(name.prefix(100))
-            guard !trimmedName.isEmpty, seen.insert(trimmedName.lowercased()).inserted else { continue }
-            out.append(CatalogApp(name: trimmedName, scheme: scheme, category: "Apps"))
-            if out.count >= maxCatalogEntries { break }
-        }
-        return out.isEmpty ? nil : out.sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
-    }
-
-    private static func cleanMarkdownName(_ s: String) -> String {
-        if let r = s.range(of: "](") {
-            return s[s.startIndex..<r.lowerBound]
-                .replacingOccurrences(of: "[", with: "")
-                .trimmingCharacters(in: .whitespaces)
-        }
-        return s.trimmingCharacters(in: .whitespaces)
-    }
-
-    /// Accepts only plain `scheme://` launch URLs (nothing after the scheme) so
-    /// deep-link variants (paths, queries, templates) don't clutter the list.
-    private static func isPlainLaunchScheme(_ url: String) -> Bool {
-        guard let colon = url.firstIndex(of: ":") else { return false }
-        let after = url[url.index(after: colon)...]
-        guard after.hasPrefix("//") else { return true }
-        return after.dropFirst(2).isEmpty
-    }
-
-    /// Detects app-scoped numeric IDs (e.g. fb2427617054, db-06fps1zo86up2h9)
-    /// that aren't stable, human-usable schemes.
-    private static func isIDStyleScheme(_ url: String) -> Bool {
-        let name = url.split(separator: ":", maxSplits: 1).first?.lowercased() ?? ""
-        if name.range(of: "^[a-z]+[0-9]{6,}$", options: .regularExpression) != nil { return true }
-        if name.range(of: "[0-9]{8,}", options: .regularExpression) != nil { return true }
-        if name.contains("-"), name.range(of: "[0-9]", options: .regularExpression) != nil { return true }
-        return false
-    }
 }
 
 /// Observable holder for the catalog used by the app picker.
@@ -495,9 +372,6 @@ final class AppCatalogStore: ObservableObject {
         var combined = AppCatalog.bundled
         if let remote = await AppCatalog.fetchRemote() {
             combined = AppCatalog.merge(combined, remote)
-        }
-        if let extra = await AppCatalog.fetchExtra() {
-            combined = AppCatalog.merge(combined, extra)
         }
         apps = combined
         isLoading = false

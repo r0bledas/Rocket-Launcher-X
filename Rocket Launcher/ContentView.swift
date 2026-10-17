@@ -1537,7 +1537,6 @@ struct SettingsView: View {
     @State private var analyticsID: String = AnalyticsManager.shared.installID
     @State private var fetchIconsFromApple: Bool = AppIconFetch.isEnabled
     @State private var loadRemoteCatalog: Bool = AppCatalog.remoteFetchEnabled
-    @State private var loadExtraCatalog: Bool = AppCatalog.extraFetchEnabled
     // Purchase simulation state
     @AppStorage("HasPurchasedExtraWidgets", store: UserDefaults(suiteName: appGroupID)) private var hasPurchasedExtraWidgets: Bool = false
     @AppStorage("HasPurchasedIconFeature", store: UserDefaults(suiteName: appGroupID)) private var hasPurchasedIconFeature: Bool = false
@@ -1662,11 +1661,6 @@ struct SettingsView: View {
                     Toggle("Load community app catalog", isOn: $loadRemoteCatalog)
                         .onChange(of: loadRemoteCatalog) { _, newValue in
                             UserDefaults(suiteName: appGroupID)?.set(newValue, forKey: "RemoteAppCatalogEnabled")
-                            HapticsHelper.impact(.light)
-                        }
-                    Toggle("Load extra community list", isOn: $loadExtraCatalog)
-                        .onChange(of: loadExtraCatalog) { _, newValue in
-                            UserDefaults(suiteName: appGroupID)?.set(newValue, forKey: "ExtraAppCatalogEnabled")
                             HapticsHelper.impact(.light)
                         }
                     Text("Icon lookup sends only catalogued app names to Apple's iTunes Search API; custom names are never sent. Turning these off keeps the app fully offline (bundled list + placeholder icons).")
