@@ -1405,7 +1405,8 @@ struct AppPickerView: View {
                             }
                         }
                     } header: {
-                        sectionHeader(filteredApps.isEmpty ? "NO RESULTS" : "\(filteredApps.count) APPS")
+                        sectionHeader(filteredApps.isEmpty ? "NO RESULTS" : "RESULTS",
+                                      count: filteredApps.isEmpty ? nil : filteredApps.count)
                     }
 
                     Section {
@@ -1448,7 +1449,7 @@ struct AppPickerView: View {
                             catalogButton(app)
                         }
                     } header: {
-                        sectionHeader("SUGGESTED")
+                        sectionHeader("SUGGESTED", count: suggestedApps.count)
                     }
 
                     Section {
@@ -1456,7 +1457,7 @@ struct AppPickerView: View {
                             catalogButton(app)
                         }
                     } header: {
-                        sectionHeader("MORE APPS")
+                        sectionHeader("MORE APPS", count: otherApps.count)
                     }
                 }
             }
@@ -1529,11 +1530,22 @@ struct AppPickerView: View {
         }
     }
 
-    private func sectionHeader(_ title: String) -> some View {
-        Text(title)
-            .font(.subheadline.weight(.semibold))
-            .foregroundColor(.white)
-            .padding(.leading, -4)
+    private func sectionHeader(_ title: String, count: Int? = nil) -> some View {
+        HStack(spacing: 8) {
+            Text(title)
+                .font(.subheadline.weight(.semibold))
+                .foregroundColor(.white)
+
+            Spacer(minLength: 8)
+
+            if let count {
+                Text("\(count)")
+                    .font(.subheadline.weight(.semibold))
+                    .monospacedDigit()
+                    .foregroundColor(.secondary)
+            }
+        }
+        .padding(.leading, -4)
     }
 
     @ViewBuilder
