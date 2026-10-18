@@ -100,12 +100,18 @@ struct WidgetConfigurationView: View {
                 }
                 ToolbarItemGroup(placement: .keyboard) {
                     Spacer()
-                    Button("Done") { hexFocused = false }
+                    Button("Done") {
+                        commitHexInput()
+                        hexFocused = false
+                    }
                 }
             }
         }
         .onAppear {
             loadSettings()
+        }
+        .onChange(of: hexFocused) { _, focused in
+            if !focused { commitHexInput() }
         }
     }
     
@@ -492,6 +498,8 @@ struct WidgetConfigurationView: View {
                 .font(.subheadline)
                 .tint(.purple)
                 .onChange(of: backgroundColor) { _, newColor in
+                    // Don't overwrite the field while the user is typing.
+                    guard !hexFocused else { return }
                     customHexInput = newColor.toHex()
                 }
 
@@ -521,7 +529,10 @@ struct WidgetConfigurationView: View {
                         .keyboardType(.asciiCapable)
                         .focused($hexFocused)
                         .submitLabel(.done)
-                        .onSubmit { hexFocused = false }
+                        .onSubmit {
+                            commitHexInput()
+                            hexFocused = false
+                        }
                         .accessibilityLabel("Hex color value")
                 }
                 .padding(.horizontal, 12)
@@ -545,7 +556,7 @@ struct WidgetConfigurationView: View {
                 .tint(.white)
             }
 
-            Text("Enter a 3- or 6-digit hex code, or use the color picker above.")
+            Text("Enter a 6-digit hex code (0–9, A–F). Three-digit shorthand is expanded when you finish.")
                 .font(.caption2)
                 .foregroundColor(Color.white.opacity(0.5))
 
@@ -573,25 +584,45 @@ struct WidgetConfigurationView: View {
         .cornerRadius(16)
     }
 
-    /// Two-way binding that keeps the hex field and the color swatch in sync.
+    /// Two-way binding that keeps the hex field and the colour swatch in sync.
+    /// Only accepts hex digits, caps at six, and does not apply a colour until
+    /// the input is complete (three digits are expanded only on commit).
     private var hexBinding: Binding<String> {
         Binding(
             get: {
                 customHexInput
-                    .trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
                     .uppercased()
+                    .filter(\.isHexDigit)
             },
             set: { newValue in
                 let cleaned = String(newValue
-                    .trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
                     .uppercased()
+                    .filter(\.isHexDigit)
                     .prefix(6))
                 customHexInput = "#\(cleaned)"
-                if cleaned.count == 3 || cleaned.count == 6 {
+                if cleaned.count == 6 {
                     backgroundColor = Color(hex: cleaned)
                 }
             }
         )
+    }
+
+    /// Applies the typed hex once the user finishes editing. Three-digit input
+    /// is expanded (for example ABC becomes AABBCC); incomplete input reverts
+    /// to the currently applied colour.
+    private func commitHexInput() {
+        let digits = customHexInput.uppercased().filter(\.isHexDigit)
+        switch digits.count {
+        case 3:
+            let expanded = digits.map { "\($0)\($0)" }.joined()
+            customHexInput = "#\(expanded)"
+            backgroundColor = Color(hex: expanded)
+        case 6:
+            customHexInput = "#\(digits)"
+            backgroundColor = Color(hex: digits)
+        default:
+            customHexInput = backgroundColor.toHex()
+        }
     }
     
     // MARK: - Section 4: Text Alignment
