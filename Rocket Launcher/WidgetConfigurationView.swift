@@ -31,7 +31,7 @@ struct WidgetConfigurationView: View {
     
     @State private var backgroundColor: Color = Color(hex: "#000000")
     @State private var hexText: String = "000000"
-    @State private var backgroundStyle: String = "static"
+    @State private var backgroundStyle: String
     @FocusState private var hexFocused: Bool
     @State private var selectedAlignment: TextAlignmentOption = .leading
     @State private var iconsEnabled: Bool = true
@@ -42,6 +42,16 @@ struct WidgetConfigurationView: View {
     
     @State private var showIconPurchaseAlert = false
     @State private var showAlignmentPurchaseAlert = false
+
+    /// Reads the saved background style at construction time so reopening the
+    /// configurator never falls back to the default. `static` is only the
+    /// default for users who have not chosen a style yet.
+    init(store: AppLauncherStore) {
+        self.store = store
+        let savedStyle = UserDefaults(suiteName: appGroupID)?
+            .string(forKey: "WidgetBackgroundStyle") ?? "static"
+        _backgroundStyle = State(initialValue: savedStyle)
+    }
     
     var body: some View {
         NavigationView {
@@ -748,7 +758,7 @@ struct WidgetConfigurationView: View {
         let savedBackgroundColor = userDefaults?.string(forKey: "WidgetBackgroundColor") ?? "#242424"
         backgroundColor = Color(hex: savedBackgroundColor)
         hexText = String(savedBackgroundColor.uppercased().filter(\.isHexDigit).prefix(6))
-        backgroundStyle = userDefaults?.string(forKey: "WidgetBackgroundStyle") ?? "static"
+        backgroundStyle = userDefaults?.string(forKey: "WidgetBackgroundStyle") ?? backgroundStyle
         if let alignmentRaw = userDefaults?.string(forKey: "WidgetTextAlignment"),
            let option = TextAlignmentOption(rawValue: alignmentRaw) {
             selectedAlignment = option
