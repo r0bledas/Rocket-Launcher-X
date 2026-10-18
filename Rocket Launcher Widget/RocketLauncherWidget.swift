@@ -338,11 +338,33 @@ struct StaticWidgetBackground: View {
 }
 
 extension View {
+    /// Applies the widget background.
+    ///
+    /// In `static` mode the hex is drawn as an opaque layer *inside* the widget
+    /// content, above the system's container material. This is deliberate: on
+    /// iOS 26 the container background can still pick up a glass/gradient
+    /// material, even when an opaque colour is supplied. Drawing the colour in
+    /// the content layer hides that material and keeps the hex flat.
+    ///
+    /// In `system` mode the colour is supplied as the container background and
+    /// iOS is allowed to replace it with its glass material in accented mode.
     @ViewBuilder
     func widgetContainerBackgroundModifier(hexColor: String) -> some View {
         if #available(iOS 17.0, *) {
-            self.containerBackground(for: .widget) {
-                StaticWidgetBackground(hexColor: hexColor)
+            let style = UserDefaults(suiteName: "group.rocketlauncher")?
+                .string(forKey: "WidgetBackgroundStyle") ?? "static"
+
+            if style == "system" {
+                self.containerBackground(for: .widget) {
+                    StaticWidgetBackground(hexColor: hexColor)
+                }
+            } else {
+                ZStack {
+                    StaticWidgetBackground(hexColor: hexColor)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    self
+                }
+                .containerBackground(for: .widget) { Color.clear }
             }
         } else {
             self
