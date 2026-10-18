@@ -36,7 +36,6 @@ struct WidgetConfigurationView: View {
     @State private var selectedAlignment: TextAlignmentOption = .leading
     @State private var iconsEnabled: Bool = true
     @State private var selectedPreviewType: PreviewWidgetType = .launcher
-    @State private var didJustApplyWidgets = false
     
     @AppStorage("HasPurchasedIconFeature", store: UserDefaults(suiteName: appGroupID)) private var hasPurchasedIconFeature: Bool = false
     @AppStorage("HasPurchasedTextAlignment", store: UserDefaults(suiteName: appGroupID)) private var hasPurchasedTextAlignment: Bool = false
@@ -62,9 +61,6 @@ struct WidgetConfigurationView: View {
                         
                         // Section 4: App Icons Toggle
                         iconsToggleSection
-                        
-                        // Section 5: Apply to Widgets Action
-                        applyButtonSection
                     }
                     .padding(.horizontal, 16)
                     .padding(.vertical, 20)
@@ -583,9 +579,10 @@ struct WidgetConfigurationView: View {
     private var hexBinding: Binding<String> {
         Binding(
             get: {
-                customHexInput
+                String(customHexInput
                     .uppercased()
                     .filter(\.isHexDigit)
+                    .prefix(6))
             },
             set: { newValue in
                 let cleaned = String(newValue
@@ -738,37 +735,6 @@ struct WidgetConfigurationView: View {
             Button("OK") { }
         } message: {
             Text("This is a purchase simulator. In the production app, this would open the App Store purchase flow for the Icon Feature (~$19 MXN).")
-        }
-    }
-    
-    // MARK: - Section 6: Apply Button
-    private var applyButtonSection: some View {
-        Button(action: {
-            UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
-            applyColorToWidgets()
-            WidgetCenter.shared.reloadAllTimelines()
-            withTransaction(Transaction(animation: nil)) {
-                didJustApplyWidgets = true
-            }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
-                withTransaction(Transaction(animation: nil)) {
-                    didJustApplyWidgets = false
-                }
-            }
-        }) {
-            HStack(alignment: .center, spacing: 12) {
-                Image(systemName: didJustApplyWidgets ? "checkmark.circle.fill" : "arrow.triangle.2.circlepath")
-                    .font(.title2)
-                Text(didJustApplyWidgets ? "Applied Successfully! ✅" : "Apply to Widgets")
-                    .font(.headline)
-                    .fontWeight(.semibold)
-            }
-            .foregroundColor(.white)
-            .padding()
-            .frame(maxWidth: .infinity)
-            .background(didJustApplyWidgets ? Color.green : Color.blue)
-            .cornerRadius(14)
-            .shadow(color: (didJustApplyWidgets ? Color.green : Color.blue).opacity(0.3), radius: 8, x: 0, y: 4)
         }
     }
     
