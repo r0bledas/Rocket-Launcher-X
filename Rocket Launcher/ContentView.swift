@@ -337,6 +337,7 @@ struct ContentView: View {
     @State private var showingWidgetSetup = false
     @State private var showingWidgetConfiguration = false
     @State private var showingWidgetLaunchersConfig = false
+    @State private var pendingWidgetScroll: Int? = nil
     @Environment(\.scenePhase) private var scenePhase
     @State private var didJustRefreshWidgets = false
     @StateObject private var appLauncherStore = AppLauncherStore()
@@ -370,8 +371,8 @@ struct ContentView: View {
         .sheet(isPresented: $showingWidgetConfiguration) {
             WidgetConfigurationView(store: appLauncherStore)
         }
-        .sheet(isPresented: $showingWidgetLaunchersConfig) {
-            WidgetLaunchersConfigView(store: appLauncherStore)
+        .sheet(isPresented: $showingWidgetLaunchersConfig, onDismiss: { pendingWidgetScroll = nil }) {
+            WidgetLaunchersConfigView(store: appLauncherStore, initialWidget: pendingWidgetScroll)
         }
         .sheet(isPresented: $showingSettings) {
             SettingsView(store: appLauncherStore)
@@ -411,6 +412,17 @@ struct ContentView: View {
     private func handleDeepLink(_ url: URL) {
         guard url.scheme == "rocketlauncher" else { return }
         
+        if url.host == "add" {
+            let widget = URLComponents(url: url, resolvingAgainstBaseURL: false)?
+                .queryItems?
+                .first(where: { $0.name == "widget" })?
+                .value
+                .flatMap(Int.init)
+            pendingWidgetScroll = widget.map { max(0, $0 - 1) }
+            showingWidgetLaunchersConfig = true
+            return
+        }
+
         if url.host == "purchase" {
             // Trigger the purchase flow
             if let product = storeManager.products.first(where: { $0.id == RocketProducts.proLifetime }) {
@@ -1069,6 +1081,7 @@ extension Color {
 // MARK: - Widget Launchers Configuration View
 struct WidgetLaunchersConfigView: View {
     @ObservedObject var store: AppLauncherStore
+    var initialWidget: Int? = nil
     @Environment(\.dismiss) private var dismiss
     @AppStorage("HasPurchasedExtraWidgets", store: UserDefaults(suiteName: appGroupID)) private var hasPurchasedExtraWidgets: Bool = false
     @AppStorage("ShowURLSchemes", store: UserDefaults(suiteName: appGroupID)) private var showURLSchemes = false
@@ -1082,8 +1095,9 @@ struct WidgetLaunchersConfigView: View {
 
     var body: some View {
         NavigationView {
-            List {
-                ForEach(0..<5, id: \.self) { widgetIndex in
+            ScrollViewReader { proxy in
+                List {
+                    ForEach(0..<5, id: \.self) { widgetIndex in
                     let isLocked = widgetIndex >= 1 && !hasPurchasedExtraWidgets && !tempUnlockActive
                     Section(header: HStack {
                         Text("WIDGET #\(widgetIndex + 1)")
@@ -1188,7 +1202,15 @@ struct WidgetLaunchersConfigView: View {
                                 .foregroundColor(.secondary)
                         }
                     }
+                    .id(widgetIndex)
                 }
+            }
+            .onAppear {
+                guard let initialWidget else { return }
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
+                    proxy.scrollTo(initialWidget, anchor: .top)
+                }
+            }
             }
             .navigationTitle("Widgets")
             .toolbar {

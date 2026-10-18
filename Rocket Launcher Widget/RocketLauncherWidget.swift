@@ -35,6 +35,16 @@ struct LauncherEntry: TimelineEntry {
         let iconFileName: String?
         let showIcon: Bool?
     }
+
+    var isEmpty: Bool {
+        apps.isEmpty || apps.allSatisfy {
+            $0.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        }
+    }
+
+    var addAppsURL: URL? {
+        URL(string: "rocketlauncher://add?widget=\(widgetNumber)")
+    }
 }
 
 struct LauncherProvider: TimelineProvider {
@@ -133,9 +143,15 @@ struct LauncherWidgetEntryView: View {
     }
 
     private var emptyStateView: some View {
-        Text("👻")
-            .font(.system(size: 60))
-            .foregroundColor(.white.opacity(0.5))
+        VStack(spacing: 10) {
+            Text("👻")
+                .font(.system(size: 60))
+            Text("No apps set. Tap here to configure them.")
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundColor(.white.opacity(0.75))
+                .multilineTextAlignment(.center)
+        }
+        .padding(.horizontal, 16)
     }
     
     @ViewBuilder
@@ -426,6 +442,7 @@ struct RocketLauncherWidget: Widget {
         StaticConfiguration(kind: kind, provider: LauncherProvider()) { entry in
             LauncherWidgetEntryView(entry: entry)
                 .widgetContainerBackgroundModifier(hexColor: entry.backgroundColor)
+                .widgetURL(entry.isEmpty ? entry.addAppsURL : nil)
         }
         .disableContentMarginsIfNeeded()
         .configurationDisplayName("Widget #1")
@@ -440,7 +457,7 @@ struct RocketLauncherWidget2: Widget {
         StaticConfiguration(kind: kind, provider: CustomLauncherProvider(widgetIndex: 1)) { entry in
             LauncherWidgetEntryView(entry: entry)
                 .widgetContainerBackgroundModifier(hexColor: entry.backgroundColor)
-                .widgetURL(entry.isLocked ? URL(string: "rocketlauncher://purchase?widget=2") : nil)
+                .widgetURL(entry.isLocked ? URL(string: "rocketlauncher://purchase?widget=2") : (entry.isEmpty ? entry.addAppsURL : nil))
         }
         .disableContentMarginsIfNeeded()
         .configurationDisplayName("Widget #2")
@@ -455,7 +472,7 @@ struct RocketLauncherWidget3: Widget {
         StaticConfiguration(kind: kind, provider: CustomLauncherProvider(widgetIndex: 2)) { entry in
             LauncherWidgetEntryView(entry: entry)
                 .widgetContainerBackgroundModifier(hexColor: entry.backgroundColor)
-                .widgetURL(entry.isLocked ? URL(string: "rocketlauncher://purchase?widget=3") : nil)
+                .widgetURL(entry.isLocked ? URL(string: "rocketlauncher://purchase?widget=3") : (entry.isEmpty ? entry.addAppsURL : nil))
         }
         .disableContentMarginsIfNeeded()
         .configurationDisplayName("Widget #3")
@@ -470,7 +487,7 @@ struct RocketLauncherWidget4: Widget {
         StaticConfiguration(kind: kind, provider: CustomLauncherProvider(widgetIndex: 3)) { entry in
             LauncherWidgetEntryView(entry: entry)
                 .widgetContainerBackgroundModifier(hexColor: entry.backgroundColor)
-                .widgetURL(entry.isLocked ? URL(string: "rocketlauncher://purchase?widget=4") : nil)
+                .widgetURL(entry.isLocked ? URL(string: "rocketlauncher://purchase?widget=4") : (entry.isEmpty ? entry.addAppsURL : nil))
         }
         .disableContentMarginsIfNeeded()
         .configurationDisplayName("Widget #4")
@@ -485,7 +502,7 @@ struct RocketLauncherWidget5: Widget {
         StaticConfiguration(kind: kind, provider: CustomLauncherProvider(widgetIndex: 4)) { entry in
             LauncherWidgetEntryView(entry: entry)
                 .widgetContainerBackgroundModifier(hexColor: entry.backgroundColor)
-                .widgetURL(entry.isLocked ? URL(string: "rocketlauncher://purchase?widget=5") : nil)
+                .widgetURL(entry.isLocked ? URL(string: "rocketlauncher://purchase?widget=5") : (entry.isEmpty ? entry.addAppsURL : nil))
         }
         .disableContentMarginsIfNeeded()
         .configurationDisplayName("Widget #5")
