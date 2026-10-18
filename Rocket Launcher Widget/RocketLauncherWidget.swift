@@ -325,15 +325,53 @@ struct StaticWidgetBackground: View {
     var body: some View {
         let hex = hexColor.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
         let resolvedColor = (hex == "00000000" || hex.lowercased() == "clear") ? Color.black.opacity(0.95) : Color(hex: hexColor)
+        let isTintedOrClear = renderingMode == .accented || renderingMode == .vibrant
 
         Group {
-            if usesSystemMaterial && renderingMode == .accented {
-                Color.clear
+            if usesSystemMaterial {
+                if isTintedOrClear {
+                    Color.clear
+                } else {
+                    resolvedColor
+                }
+            } else if isTintedOrClear {
+                // iOS tints plain colours to white in accented/vibrant modes.
+                // An image rendered with .fullColor keeps the exact hex.
+                StaticColorImage(color: resolvedColor)
             } else {
                 resolvedColor
             }
         }
         .ignoresSafeArea()
+    }
+}
+
+/// A one-pixel image filled with a colour, rendered in full colour so iOS keeps
+/// the hex in tinted/clear widget modes instead of painting it white.
+private struct StaticColorImage: View {
+    let color: Color
+
+    var body: some View {
+        Group {
+            if #available(iOS 18.0, *) {
+                Image(uiImage: Self.image(for: color))
+                    .resizable()
+                    .widgetAccentedRenderingMode(.fullColor)
+                    .scaledToFill()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else {
+                color
+            }
+        }
+    }
+
+    private static func image(for color: Color) -> UIImage {
+        let uiColor = UIColor(color)
+        let renderer = UIGraphicsImageRenderer(size: CGSize(width: 1, height: 1))
+        return renderer.image { context in
+            uiColor.setFill()
+            context.fill(CGRect(x: 0, y: 0, width: 1, height: 1))
+        }
     }
 }
 
