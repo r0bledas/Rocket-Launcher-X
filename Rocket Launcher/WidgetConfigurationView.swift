@@ -30,7 +30,7 @@ struct WidgetConfigurationView: View {
     @Environment(\.scenePhase) private var scenePhase
     
     @State private var backgroundColor: Color = Color(hex: "#000000")
-    @State private var customHexInput: String = "#000000"
+    @State private var hexText: String = "000000"
     @State private var backgroundStyle: String = "static"
     @FocusState private var hexFocused: Bool
     @State private var selectedAlignment: TextAlignmentOption = .leading
@@ -197,7 +197,7 @@ struct WidgetConfigurationView: View {
             // Exact iOS Home Screen Widget Frame
             ZStack {
                 // Static Background Color (1:1 with StaticWidgetBackground)
-                let hex = customHexInput.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
+                let hex = hexText
                 if hex == "00000000" || hex.lowercased() == "clear" {
                     Color.black.opacity(0.95)
                 } else {
@@ -489,7 +489,7 @@ struct WidgetConfigurationView: View {
                 .onChange(of: backgroundColor) { _, newColor in
                     // Don't overwrite the field while the user is typing.
                     guard !hexFocused else { return }
-                    customHexInput = newColor.toHex()
+                    hexText = String(newColor.toHex().uppercased().filter(\.isHexDigit).prefix(6))
                 }
 
             Divider()
@@ -510,7 +510,7 @@ struct WidgetConfigurationView: View {
                     Text("#")
                         .font(.system(.body, design: .monospaced))
                         .foregroundColor(Color.white.opacity(0.5))
-                    TextField("RRGGBB", text: hexBinding)
+                    TextField("RRGGBB", text: $hexText)
                         .font(.system(.body, design: .monospaced))
                         .foregroundColor(.white)
                         .textInputAutocapitalization(.characters)
@@ -518,6 +518,16 @@ struct WidgetConfigurationView: View {
                         .keyboardType(.asciiCapable)
                         .focused($hexFocused)
                         .submitLabel(.done)
+                        .onChange(of: hexText) { _, newValue in
+                            // Enforce hex-only, six-digit input immediately.
+                            let cleaned = String(newValue.uppercased().filter(\.isHexDigit).prefix(6))
+                            if cleaned != newValue {
+                                hexText = cleaned
+                            }
+                            if cleaned.count == 6 {
+                                backgroundColor = Color(hex: cleaned)
+                            }
+                        }
                         .onSubmit {
                             commitHexInput()
                             hexFocused = false
@@ -538,7 +548,7 @@ struct WidgetConfigurationView: View {
                 Button("Reset") {
                     UIImpactFeedbackGenerator(style: .medium).impactOccurred()
                     backgroundColor = Color(hex: "#242424")
-                    customHexInput = "#242424"
+                    hexText = "242424"
                 }
                 .buttonStyle(.bordered)
                 .controlSize(.small)
@@ -573,45 +583,21 @@ struct WidgetConfigurationView: View {
         .cornerRadius(16)
     }
 
-    /// Two-way binding that keeps the hex field and the colour swatch in sync.
-    /// Only accepts hex digits, caps at six, and does not apply a colour until
-    /// the input is complete (three digits are expanded only on commit).
-    private var hexBinding: Binding<String> {
-        Binding(
-            get: {
-                String(customHexInput
-                    .uppercased()
-                    .filter(\.isHexDigit)
-                    .prefix(6))
-            },
-            set: { newValue in
-                let cleaned = String(newValue
-                    .uppercased()
-                    .filter(\.isHexDigit)
-                    .prefix(6))
-                customHexInput = "#\(cleaned)"
-                if cleaned.count == 6 {
-                    backgroundColor = Color(hex: cleaned)
-                }
-            }
-        )
-    }
-
     /// Applies the typed hex once the user finishes editing. Three-digit input
     /// is expanded (for example ABC becomes AABBCC); incomplete input reverts
     /// to the currently applied colour.
     private func commitHexInput() {
-        let digits = customHexInput.uppercased().filter(\.isHexDigit)
+        let digits = String(hexText.uppercased().filter(\.isHexDigit).prefix(6))
         switch digits.count {
         case 3:
             let expanded = digits.map { "\($0)\($0)" }.joined()
-            customHexInput = "#\(expanded)"
+            hexText = expanded
             backgroundColor = Color(hex: expanded)
         case 6:
-            customHexInput = "#\(digits)"
+            hexText = digits
             backgroundColor = Color(hex: digits)
         default:
-            customHexInput = backgroundColor.toHex()
+            hexText = String(backgroundColor.toHex().uppercased().filter(\.isHexDigit).prefix(6))
         }
     }
     
@@ -761,7 +747,7 @@ struct WidgetConfigurationView: View {
         let userDefaults = UserDefaults(suiteName: appGroupID)
         let savedBackgroundColor = userDefaults?.string(forKey: "WidgetBackgroundColor") ?? "#242424"
         backgroundColor = Color(hex: savedBackgroundColor)
-        customHexInput = savedBackgroundColor
+        hexText = String(savedBackgroundColor.uppercased().filter(\.isHexDigit).prefix(6))
         backgroundStyle = userDefaults?.string(forKey: "WidgetBackgroundStyle") ?? "static"
         if let alignmentRaw = userDefaults?.string(forKey: "WidgetTextAlignment"),
            let option = TextAlignmentOption(rawValue: alignmentRaw) {
