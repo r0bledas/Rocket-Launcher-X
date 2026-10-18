@@ -98,13 +98,6 @@ struct WidgetConfigurationView: View {
                     .foregroundColor(.blue)
                     .accessibilityLabel("Apply and close")
                 }
-                ToolbarItemGroup(placement: .keyboard) {
-                    Spacer()
-                    Button("Done") {
-                        commitHexInput()
-                        hexFocused = false
-                    }
-                }
             }
         }
         .onAppear {
