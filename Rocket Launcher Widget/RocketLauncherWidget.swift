@@ -148,7 +148,7 @@ struct LauncherWidgetEntryView: View {
                 .font(.system(size: 60))
             Text("No apps set. Tap here to configure them.")
                 .font(.system(size: 20, weight: .semibold))
-                .foregroundColor(.white.opacity(0.75))
+                .foregroundColor(.white.opacity(1.00))
                 .multilineTextAlignment(.center)
         }
         .padding(.horizontal, 16)
